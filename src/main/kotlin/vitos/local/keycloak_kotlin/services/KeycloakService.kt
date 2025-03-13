@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import vitos.local.keycloak_kotlin.models.ChangeUserPasswordDto
+
 
 @Service
 class KeycloakService(private val realmResource: RealmResource) {
@@ -27,12 +27,13 @@ class KeycloakService(private val realmResource: RealmResource) {
      * @param dto - username и password для выполнения сброса пароля
      * @return строку сообщения о выполнении и статус выполнения
      */
-    fun changeUserPassword(dto: ChangeUserPasswordDto): ResponseEntity<String> {
+    fun changeUserPassword(userName: String,
+                           password: String): ResponseEntity<String> {
 
         log.info("Changing password procedure is starting...")
         try {
             // Ищем пользователя и получаем ресурс администрирования
-            val user = realmResource.users().searchByUsername(dto.user, true).firstOrNull()
+            val user = realmResource.users().searchByUsername(userName, true).firstOrNull()
                 ?: return ResponseEntity("User not found", HttpStatus.NOT_FOUND)
 
             val usersResource = realmResource.users().get(user.id)
@@ -50,7 +51,7 @@ class KeycloakService(private val realmResource: RealmResource) {
             // создаем новую сущность для пароля пользователя типа PASSWORD и выполняем сброс пароля
             val credential = CredentialRepresentation()
             credential.type = CredentialRepresentation.PASSWORD
-            credential.value = dto.password
+            credential.value = password
             credential.isTemporary = false
 
             usersResource.resetPassword(credential)
@@ -85,13 +86,13 @@ class KeycloakService(private val realmResource: RealmResource) {
                 if (response.status == 201) {
                     val userId = CreatedResponseUtil.getCreatedId(response)
                     if (!userId.isNullOrBlank()) {
-                        log.info("User {} created :: {}", userName, userId)
+                        log.info(">>>> User {} created :: {}", userName, userId)
                         realmResource.users()?.get(userId)?.toRepresentation()?.also {
                             return ResponseEntity(it, HttpStatus.CREATED)
                         }
                     }
                 }
-                log.info("Create failed, search existing by username :: {}", userName)
+                log.info(">>>> Create failed, search existing by username :: {}", userName)
                 realmResource.users().searchByUsername(userName,true).firstOrNull()?.also {
                     return ResponseEntity(it, HttpStatus.OK)
                 }

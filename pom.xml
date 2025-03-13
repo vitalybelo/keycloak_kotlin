@@ -21,6 +21,7 @@
         <java.version>17</java.version>
         <kotlin.version>1.8.0</kotlin.version>
         <jackson.version>2.15.4</jackson.version>
+        <springdoc.version>1.8.0</springdoc.version>
     </properties>
 
     <dependencies>
@@ -77,6 +78,24 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-data-rest</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-kotlin</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
     </dependencies>
 
