@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @OpenAPIDefinition(
     info = Info(
-        title = "SWAGGER_NAME",
-        description = "SWAGGER_DESCRIPTION",
-        version = "SWAGGER_VERSION",
-        contact = Contact(name = "SWAGGER_CONTACT_NAME", email = "SWAGGER_CONTACT_EMAIL")
+        title = "Keycloak 26.1.2 custom REST API",
+        description = "Тестовый проект для проверки работы admin-client",
+        version = "version 1.0",
+        contact = Contact(name = "Belotserkovskii Vitalii", email = "vitaly@belo@gmail.com")
     )
 )
 class SpringdocConfig
