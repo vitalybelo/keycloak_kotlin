@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -23,6 +24,7 @@ import vitos.local.keycloak_kotlin.services.KeycloakService
     description = "API управления учётными данными пользователей и паролями"
 )
 @Controller
+@CrossOrigin
 @RequestMapping("/users")
 class KeycloakRestController(private val keycloakService: KeycloakService) {
 
@@ -44,7 +46,7 @@ class KeycloakRestController(private val keycloakService: KeycloakService) {
             log.info(">>>> Changing password {}", userName)
             return keycloakService.changeUserPassword(userName, password)
         }
-        invalidParametersLogging()
+        log.info(">>>> Invalid change password parameters")
         return ResponseEntity("Invalid parameters", HttpStatus.BAD_REQUEST)
     }
 
@@ -65,13 +67,19 @@ class KeycloakRestController(private val keycloakService: KeycloakService) {
             log.info(">>>> Creating user {}", user.username)
             return keycloakService.createKeycloakUser(user)
         }
-        invalidParametersLogging()
+        log.info(">>>> Invalid create user parameters")
         return ResponseEntity("Invalid username", HttpStatus.BAD_REQUEST)
     }
 
 
-    private fun invalidParametersLogging() {
-        log.info(">>>> Invalid change password parameters")
+    @PostMapping("/well-known")
+    @Operation(summary = "Возвращает информацию о конечных точках сервера")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Выполнено успешно", content = [Content()]),
+        ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+    ])
+    fun wellKnownKeycloak(): ResponseEntity<Any> {
+        return keycloakService.getWellKnownEndPoints()
     }
 
 }

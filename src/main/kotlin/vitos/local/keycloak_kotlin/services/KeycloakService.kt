@@ -6,17 +6,28 @@ import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestTemplate
 
 
 @Service
-class KeycloakService(private val realmResource: RealmResource) {
+class KeycloakService(
+
+    @Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+    private val issuerURL: String? = null,
+    private val realmResource: RealmResource,
+    private val restTemplate: RestTemplate,
+
+) {
 
     companion object {
         private val log = LoggerFactory.getLogger(KeycloakService::class.java)
+        const val FATAL_ERROR = "Непредвиденная ошибка"
     }
+
 
     /**
      * Выполняет замену пароля для заданного в запросе пользователя. Метод учитывает наличие
@@ -24,11 +35,14 @@ class KeycloakService(private val realmResource: RealmResource) {
      * политики, затем обнуляет политики для области (realm), выполняет сброс пароля на любой
      * заданный и затем восстанавливает дефолтные для области
      *
-     * @param dto - username и password для выполнения сброса пароля
+     * @param userName - username пользователя
+     * @param password - новый пароль пользователя
      * @return строку сообщения о выполнении и статус выполнения
      */
-    fun changeUserPassword(userName: String,
-                           password: String): ResponseEntity<String> {
+    fun changeUserPassword(
+        userName: String,
+        password: String
+    ): ResponseEntity<String> {
 
         log.info("Changing password procedure is starting...")
         try {
@@ -93,7 +107,7 @@ class KeycloakService(private val realmResource: RealmResource) {
                     }
                 }
                 log.info(">>>> Create failed, search existing by username :: {}", userName)
-                realmResource.users().searchByUsername(userName,true).firstOrNull()?.also {
+                realmResource.users().searchByUsername(userName, true).firstOrNull()?.also {
                     return ResponseEntity(it, HttpStatus.OK)
                 }
             }
@@ -101,6 +115,25 @@ class KeycloakService(private val realmResource: RealmResource) {
             log.info(">>>> Fatal error creating user :: {}", userName)
         }
         return ResponseEntity("Fatal error creating user in keycloak", HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+
+    /**
+     * Возвращает информацию о конечных точках сервера авторизации Keycloak
+     * @return json ответа конечной точки /.well-known/openid-configuration
+     */
+    fun getWellKnownEndPoints(): ResponseEntity<Any> {
+
+        val configUrl = "$issuerURL/.well-known/openid-configuration"
+        try {
+            val response = restTemplate.getForEntity(configUrl, String::class.java)
+            if (response.statusCode.is2xxSuccessful && response.body != null) {
+                return ResponseEntity(response.body, HttpStatus.OK)
+            }
+        } catch (e: java.lang.Exception) {
+            log.info(">>>> Ошибка чтения конфигурации области сервисов >>>> {}", e.message)
+        }
+        return ResponseEntity(FATAL_ERROR, HttpStatus.OK)
     }
 
 
