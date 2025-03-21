@@ -38,17 +38,16 @@ class SecurityConfig {
         http.authorizeHttpRequests { request ->
             request
                 .requestMatchers("/users/well-known").permitAll()
-                .requestMatchers("/user/**").authenticated()
-                //.requestMatchers("/users/create").hasAuthority("ROLE_USER")
+                .requestMatchers("/users/create").hasAuthority("ROLE_USER")
+                .requestMatchers("/users/**").authenticated()
                 .anyRequest().denyAll()
-            }
-        /*
+        }
+
+        // настраивает стандартный декодер для jwt токенов
+        //http.oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults()) }
         http.oauth2ResourceServer { oauth2 ->
             oauth2.jwt { jwt -> jwt.jwtAuthenticationConverter(KeycloakJwtAuthenticationConverter()) }
         }
-        */
-        // настраивает стандартный декодер для jwt токенов
-        http.oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults()) }
 
         return http.build()
     }
