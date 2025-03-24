@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate
 
 
 @Configuration
-class KeycloakAdminConfiguration (
+class KeycloakConfiguration (
 
     @Value("\${keycloak.server.url:http://localhost:8443}")
     private val keycloakServerUrl: String,

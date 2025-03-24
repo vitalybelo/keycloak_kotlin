@@ -11,7 +11,7 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig(
+class SecurityConfiguration(
 
     private val keycloakLogoutHandler: KeycloakLogoutHandler
 ) {
