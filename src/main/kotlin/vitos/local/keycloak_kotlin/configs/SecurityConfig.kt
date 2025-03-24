@@ -11,7 +11,9 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
+class SecurityConfig(
+    private val keycloakLogoutHandler: KeycloakLogoutHandler
+) {
 
     @Bean
     fun securityConfigFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -29,8 +31,9 @@ class SecurityConfig {
 
         // определяет обработчик для logout
         http.logout {
-            it.clearAuthentication(true)
+            it.addLogoutHandler(keycloakLogoutHandler)
             it.invalidateHttpSession(true)
+            it.clearAuthentication(true)
             it.logoutSuccessUrl("/")
         }
 

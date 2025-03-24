@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: headerFragment">
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron text-center">
+            <h1>YOUR ARE LOGGED OUT</h1>
+        </div>
+
+        <br><br>
+        <div class="well">
+            <b>Вернуться на главную: </b><a href="/keycloak/api/">HOME PAGE</a>
+        </div>
+
+        <div id="pagefoot" th:include="layout :: footerFragment">Footer</div>
+    </div>
+    <!-- container -->
+
+</body>
+</html>

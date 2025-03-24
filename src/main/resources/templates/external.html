@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: headerFragment">
+</head>
+<body>
+<div class="container">
+	<div class="jumbotron text-center">
+		<h1>Local Host 8080</h1>
+	</div>
+
+	<h3>Hello, <span th:text="${username}">--name--</span></h3>
+	<h4>телефон: <span th:text="${phone}">--phone--</span></h4>
+	<h4>должность: <span th:text="${position}">--position--</span></h4>
+
+	<h4>Granted Authorities:
+		<tbody>
+		<tr th:each="role : ${roles}">
+			<td th:text="${role}">Text ...</td>
+		</tr>
+		</tbody>
+	</h4>
+
+<!--	<h3>Доступные ссылки</h3>-->
+
+<!--	<div class="well">-->
+<!--		<b>Пройдите по ссылке: </b><a href="/customers1">доступ с ролью "РОЛЬ 1" или "РОЛЬ 2"</a>-->
+<!--	</div>-->
+<!--	<div class="well">-->
+<!--		<b>Пройдите по ссылке: </b><a href="/customers2">доступ с ролью "ADMIN"</a>-->
+<!--	</div>-->
+<!--	<div class="well">-->
+<!--		<b>Пройдите по ссылке: </b><a href="/customers3">доступ с ролью "BOSS"</a>-->
+<!--	</div>-->
+
+
+	<div class="well">
+		<b>Выход: </b><a href="/keycloak/api/logout">LOGOUT</a>
+	</div>
+
+	<div id="pagefoot" th:include="layout :: footerFragment">Footer
+	</div>
+</div>
+<!-- container -->
+
+</body>
+</html>
