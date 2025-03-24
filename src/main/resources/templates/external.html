@@ -12,27 +12,22 @@
 	<h4>телефон: <span th:text="${phone}">--phone--</span></h4>
 	<h4>должность: <span th:text="${position}">--position--</span></h4>
 
-	<h4>Granted Authorities:
+	<h4>Granted Client Roles:
 		<tbody>
-		<tr th:each="role : ${roles}">
+		<tr th:each="role : ${client_roles}">
+			<td th:text="${role}">Text ...</td>
+		</tr>
+		</tbody>
+	</h4>
+	<h4>Granted Realm Roles:
+		<tbody>
+		<tr th:each="role : ${realm_roles}">
 			<td th:text="${role}">Text ...</td>
 		</tr>
 		</tbody>
 	</h4>
 
-<!--	<h3>Доступные ссылки</h3>-->
-
-<!--	<div class="well">-->
-<!--		<b>Пройдите по ссылке: </b><a href="/customers1">доступ с ролью "РОЛЬ 1" или "РОЛЬ 2"</a>-->
-<!--	</div>-->
-<!--	<div class="well">-->
-<!--		<b>Пройдите по ссылке: </b><a href="/customers2">доступ с ролью "ADMIN"</a>-->
-<!--	</div>-->
-<!--	<div class="well">-->
-<!--		<b>Пройдите по ссылке: </b><a href="/customers3">доступ с ролью "BOSS"</a>-->
-<!--	</div>-->
-
-
+	<div class=""><p><br></p></div>
 	<div class="well">
 		<b>Выход: </b><a href="/keycloak/api/logout">LOGOUT</a>
 	</div>

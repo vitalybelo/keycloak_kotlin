@@ -10,10 +10,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import java.util.stream.Collectors
 
 
-class KeycloakJwtAuthenticationConverter: Converter<Jwt, AbstractAuthenticationToken> {
+class KeycloakJwtConverter: Converter<Jwt, AbstractAuthenticationToken> {
 
 
-    private val log = LoggerFactory.getLogger(KeycloakJwtAuthenticationConverter::class.java)
+    private val log = LoggerFactory.getLogger(KeycloakJwtConverter::class.java)
 
 
     /**

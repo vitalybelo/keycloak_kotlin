@@ -12,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
+
     private val keycloakLogoutHandler: KeycloakLogoutHandler
 ) {
 
@@ -37,7 +38,7 @@ class SecurityConfig(
             it.logoutSuccessUrl("/")
         }
 
-        // определяет URI для открытых, закрытых jwt токеном и вообще недоступных end-points
+        // определяет URI для открытых, закрытых jwt токеном и ролями, отсекает все остальные end-points
         http.authorizeHttpRequests { request ->
             request
                 .requestMatchers("/users/well-known").permitAll()
@@ -48,7 +49,7 @@ class SecurityConfig(
 
         // настраивает кастомный декодер для jwt токенов, обогащенный ролями области как authority
         http.oauth2ResourceServer { oauth2 ->
-            oauth2.jwt { jwt -> jwt.jwtAuthenticationConverter(KeycloakJwtAuthenticationConverter()) }
+            oauth2.jwt { jwt -> jwt.jwtAuthenticationConverter(KeycloakJwtConverter()) }
         }
 
         return http.build()
