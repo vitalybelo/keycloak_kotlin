@@ -25,13 +25,13 @@ class KeycloakJwtAuthenticationConverter: Converter<Jwt, AbstractAuthenticationT
         var authorities: Collection<GrantedAuthority> = emptyList()
         try {
             // извлечение мульти-карты ролей области пользователя из токена
-            val realmAccess: Map<String, Any> = jwt.getClaim("realm_access")
+            val realmAccess: Map<String, MutableList<String>> = jwt.getClaim("realm_access")
             if (realmAccess.isNotEmpty()) {
 
                 // извлечение списка ролей области для пользователя
-                val roles = realmAccess.getOrDefault("roles", emptyList<Any>()) as Collection<String>
+                val roles = realmAccess["roles"]
 
-                if (roles.isNotEmpty()) {
+                if (!roles.isNullOrEmpty()) {
                     // преобразование ролей в GrantedAuthority
                     authorities = roles.stream()
                         .map { role: String -> SimpleGrantedAuthority("ROLE_$role") }
