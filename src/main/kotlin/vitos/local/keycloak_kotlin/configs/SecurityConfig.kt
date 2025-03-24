@@ -39,12 +39,11 @@ class SecurityConfig {
             request
                 .requestMatchers("/users/well-known").permitAll()
                 .requestMatchers("/users/create").hasAuthority("ROLE_USER")
-                .requestMatchers("/users/**").authenticated()
+                .requestMatchers("/**").authenticated()
                 .anyRequest().denyAll()
         }
 
-        // настраивает стандартный декодер для jwt токенов
-        //http.oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults()) }
+        // настраивает кастомный декодер для jwt токенов, обогащенный ролями области как authority
         http.oauth2ResourceServer { oauth2 ->
             oauth2.jwt { jwt -> jwt.jwtAuthenticationConverter(KeycloakJwtAuthenticationConverter()) }
         }

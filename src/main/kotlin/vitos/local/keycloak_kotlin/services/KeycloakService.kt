@@ -21,7 +21,7 @@ class KeycloakService(
     private val realmResource: RealmResource,
     private val restTemplate: RestTemplate,
 
-) {
+    ) {
 
     companion object {
         private val log = LoggerFactory.getLogger(KeycloakService::class.java)

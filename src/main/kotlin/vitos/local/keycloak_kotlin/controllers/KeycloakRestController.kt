@@ -75,7 +75,9 @@ class KeycloakRestController(private val keycloakService: KeycloakService) {
     @PostMapping("/well-known")
     @Operation(summary = "Возвращает информацию о конечных точках сервера")
     @ApiResponses(value = [
-        ApiResponse(responseCode = "200", description = "Выполнено успешно", content = [Content()]),
+        ApiResponse(responseCode = "200", description = "Created successfully", content = [
+            (Content(mediaType = "application/json", array = (
+                    ArraySchema(schema = Schema(implementation = Any::class)))))]),
         ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
     ])
     fun wellKnownKeycloak(): ResponseEntity<Any> {
