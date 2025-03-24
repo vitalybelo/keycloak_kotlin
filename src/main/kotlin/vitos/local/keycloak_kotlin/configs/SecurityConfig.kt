@@ -38,8 +38,7 @@ class SecurityConfig {
         http.authorizeHttpRequests { request ->
             request
                 .requestMatchers("/users/well-known").permitAll()
-                .requestMatchers("/users/create").authenticated()
-                .requestMatchers("/users/**").authenticated()
+                .requestMatchers("/**").authenticated()
                 .anyRequest().denyAll()
             }
 
