@@ -1,0 +1,127 @@
+{
+  "realm" : "SpringBootKeycloak",
+  "users" : [ {
+    "id" : "bf2d1493-67b3-43c3-969b-71bcf911c148",
+    "username" : "alex",
+    "firstName" : "Alex",
+    "lastName" : "White",
+    "email" : "alex@gmail.com",
+    "emailVerified" : true,
+    "attributes" : {
+      "phone" : [ "+7 900 800-1122" ],
+      "position" : [ "Group manager " ]
+    },
+    "createdTimestamp" : 1739887493014,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "9ca3f9b7-cc11-4728-8e07-989faaef5f95",
+      "type" : "password",
+      "createdDate" : 1742808176794,
+      "secretData" : "{\"value\":\"0aJKlICQLVqMT2C5VWOfXHQEnALfpyIOhXyrwo6oXWk=\",\"salt\":\"b7tSXcZK1l/r/YN+gv2B5Q==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "USER", "default-roles-springbootkeycloak" ],
+    "clientRoles" : {
+      "account" : [ "USER" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ "/root/child_3" ]
+  }, {
+    "id" : "d63861d3-0925-44a5-991b-16783b1b7e72",
+    "username" : "nikola",
+    "firstName" : "Никола",
+    "lastName" : "Питерский",
+    "email" : "nikola@gmail.com",
+    "emailVerified" : true,
+    "attributes" : {
+      "phone" : [ "+79651757301" ],
+      "max_sessions" : [ "2" ],
+      "position" : [ "Начальник группы" ],
+      "ip_address" : [ "123.123.123.123" ],
+      "middle_name" : [ "3" ],
+      "department" : [ "ВП" ],
+      "max_idle_time" : [ "300" ]
+    },
+    "createdTimestamp" : 1741958472048,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-springbootkeycloak" ],
+    "notBefore" : 0,
+    "groups" : [ "/root/child_1", "/root/child_2", "/root/child_3", "/customer" ]
+  }, {
+    "id" : "eafafb6a-e3d6-46b1-abfe-bbfdad76858a",
+    "username" : "service-account-login-admin",
+    "emailVerified" : false,
+    "createdTimestamp" : 1740658138485,
+    "enabled" : true,
+    "totp" : false,
+    "serviceAccountClientId" : "login-admin",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-springbootkeycloak" ],
+    "clientRoles" : {
+      "realm-management" : [ "realm-admin", "manage-clients", "manage-users", "query-users", "manage-realm", "view-clients", "view-events", "manage-events", "view-identity-providers", "create-client", "impersonation", "query-groups", "query-realms", "manage-identity-providers", "manage-authorization", "view-users", "view-authorization", "view-realm", "query-clients" ],
+      "broker" : [ "read-token" ],
+      "account" : [ "manage-account-links", "view-consent", "delete-account", "view-profile", "view-applications", "manage-consent", "manage-account", "view-groups" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "1a5442f0-6ec9-4969-974c-9412dc910615",
+    "username" : "user",
+    "firstName" : "User",
+    "lastName" : "Family",
+    "email" : "user@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1740658529975,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "2855dbb8-c4bc-416f-a163-91c111400b29",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1740658544183,
+      "secretData" : "{\"value\":\"lO7SSO0GcnfZvQDa2gQnf99OJn6NR+sGn7WnwZtD1aU=\",\"salt\":\"SsumtpWFN3RBv9TLdC2zfA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "USER", "default-roles-springbootkeycloak" ],
+    "notBefore" : 0,
+    "groups" : [ "/root/child_1" ]
+  }, {
+    "id" : "1026fe4a-f98c-4954-93f5-7c6d945113d4",
+    "username" : "vitos",
+    "firstName" : "Vitaliy",
+    "lastName" : "Belotserkovsky",
+    "email" : "vitos@gmail.com",
+    "emailVerified" : true,
+    "attributes" : {
+      "phone" : [ "+7 903 539-2244" ],
+      "position" : [ "Самый мелкий сотрудник" ]
+    },
+    "createdTimestamp" : 1740658342508,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "7e8ef3ea-fc58-4baa-baba-63aa5e3263b6",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1740658353601,
+      "secretData" : "{\"value\":\"iz6zE9Nt75tq8yvyJESJ+lqc3d57P5cuF5W0y/1qAxE=\",\"salt\":\"Eg24lbLyB8ykjBgDmRw0SA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "REVIEWER", "CUSTOMER", "default-roles-springbootkeycloak" ],
+    "notBefore" : 0,
+    "groups" : [ "/root/child_2" ]
+  } ]
+}
