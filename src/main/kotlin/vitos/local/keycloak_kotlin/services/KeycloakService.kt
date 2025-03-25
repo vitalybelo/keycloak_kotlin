@@ -111,7 +111,7 @@ class KeycloakService(
                     return ResponseEntity(it, HttpStatus.OK)
                 }
             }
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
             log.info(">>>> Fatal error creating user :: {}", userName)
         }
         return ResponseEntity("Fatal error creating user in keycloak", HttpStatus.INTERNAL_SERVER_ERROR)
@@ -130,7 +130,7 @@ class KeycloakService(
             if (response.statusCode.is2xxSuccessful && response.body != null) {
                 return ResponseEntity(response.body, HttpStatus.OK)
             }
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
             log.info(">>>> Ошибка чтения конфигурации области сервисов >>>> {}", e.message)
         }
         return ResponseEntity(FATAL_ERROR, HttpStatus.OK)

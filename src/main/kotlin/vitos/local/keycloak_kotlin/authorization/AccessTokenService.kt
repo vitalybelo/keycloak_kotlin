@@ -22,7 +22,7 @@ import java.util.*
 class AccessTokenService(
 
     private val realmResource: RealmResource,
-    private val objectMapper: ObjectMapper,
+    private val objectMapper: ObjectMapper
 ) {
 
     private var accessToken: AccessToken? = null
@@ -115,14 +115,14 @@ class AccessTokenService(
      * @return извлекает и возвращает из карты ролей области все значения
      */
     fun streamRealmRoles(): List<String> {
+
         val roles: MutableList<String> = ArrayList()
-        if (accessToken != null) {
-            try {
-                accessToken?.realmRolesMap?.values?.forEach { value ->
-                    roles.addAll(value.toList())
-                }
-            } catch (ignored: Exception) {
+        if (accessToken == null) assign(null) ?: return roles
+        try {
+            accessToken?.realmRolesMap?.values?.forEach { value ->
+                roles.addAll(value.toList())
             }
+        } catch (ignored: Exception) {
         }
         return roles
     }
@@ -132,14 +132,14 @@ class AccessTokenService(
      * @return извлекает и возвращает из карты ролей сервисов все значения
      */
     fun streamClientRoles(): List<String> {
+
         val roles: MutableList<String> = ArrayList()
-        if (accessToken != null) {
-            try {
-                accessToken?.clientRolesMap?.values?.forEach { map ->
-                    map.values.forEach { value -> roles.addAll(value.toList()) }
-                }
-            } catch (ignored: java.lang.Exception) {
+        if (accessToken == null) assign(null) ?: return roles
+        try {
+            accessToken?.clientRolesMap?.values?.forEach { map ->
+                map.values.forEach { value -> roles.addAll(value.toList()) }
             }
+        } catch (ignored: Exception) {
         }
         return roles
     }

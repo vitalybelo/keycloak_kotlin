@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * Класс описывающий сущность токена доступа пользователя keycloak. Поля по необходимости можно добавлять.
  * @author Vitalii Belotserkovskii, 24.03.2025
  */
+@Suppress("unused")
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AccessToken(
 
@@ -58,4 +59,20 @@ data class AccessToken(
     @JsonProperty("email_verified")
     var emailVerified: Boolean = false,
 
-    )
+    ) {
+
+    /**
+     * @return Возвращает полное имя пользователя: имя, отчество и фамилию
+     */
+    fun fullName(): String {
+
+        val space = " "
+        val fio = StringBuilder().append(firstName ?: login ?: "Anonymous")
+
+        if (!middleName.isNullOrBlank()) fio.append(space).append(middleName)
+        if (!familyName.isNullOrBlank()) fio.append(space).append(familyName)
+
+        return fio.toString()
+    }
+
+}

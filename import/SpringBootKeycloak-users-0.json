@@ -8,6 +8,7 @@
     "email" : "alex@gmail.com",
     "emailVerified" : true,
     "attributes" : {
+      "middle_name" : [ "Beans" ],
       "phone" : [ "+7 900 800-1122" ],
       "position" : [ "Group manager " ]
     },
@@ -99,11 +100,12 @@
   }, {
     "id" : "1026fe4a-f98c-4954-93f5-7c6d945113d4",
     "username" : "vitos",
-    "firstName" : "Vitaliy",
-    "lastName" : "Belotserkovsky",
+    "firstName" : "Виталий",
+    "lastName" : "Белоцерковский",
     "email" : "vitos@gmail.com",
     "emailVerified" : true,
     "attributes" : {
+      "middle_name" : [ "Анатольевич" ],
       "phone" : [ "+7 903 539-2244" ],
       "position" : [ "Самый мелкий сотрудник" ]
     },

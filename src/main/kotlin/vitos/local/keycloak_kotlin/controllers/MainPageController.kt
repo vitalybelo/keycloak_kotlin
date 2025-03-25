@@ -36,6 +36,7 @@ class MainPageController(
         model.addAttribute("last_name", accessToken?.familyName ?: NO_DETECTED)
         model.addAttribute("phone", accessToken?.phone ?: NO_DETECTED)
         model.addAttribute("position", accessToken?.position ?: NO_DETECTED)
+        model.addAttribute("full_name", accessToken?.fullName() ?: NO_DETECTED)
         model.addAttribute("client_roles", clientRoles.toString())
         model.addAttribute("realm_roles", realmRoles.toString())
 
