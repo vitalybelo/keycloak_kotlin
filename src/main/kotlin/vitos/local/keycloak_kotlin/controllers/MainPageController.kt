@@ -7,13 +7,12 @@ import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
 import vitos.local.keycloak_kotlin.authorization.AccessTokenService
 
 
 @Controller
 class MainPageController(
+
     private val request: HttpServletRequest,
     private val accessTokenService: AccessTokenService
 ) {
@@ -44,14 +43,13 @@ class MainPageController(
         return "external"
     }
 
-
-    @GetMapping("/custom_logout")
+    @GetMapping("/logout")
     fun logout(): String {
         request.logout()
         return "redirect:/"
     }
 
-    @RequestMapping("/custom_logout", method = [RequestMethod.POST, RequestMethod.GET])
+    @GetMapping("/custom_logout")
     fun customLogout(): String {
         request.logout()
         return "redirect:/"
