@@ -117,12 +117,13 @@ class AccessTokenService(
     fun streamRealmRoles(): List<String> {
 
         val roles: MutableList<String> = ArrayList()
-        if (accessToken == null) assign(null) ?: return roles
-        try {
-            accessToken?.realmRolesMap?.values?.forEach { value ->
-                roles.addAll(value.toList())
+        if (accessToken != null || assign(null) != null) {
+            try {
+                accessToken?.realmRolesMap?.values?.forEach { value ->
+                    roles.addAll(value.toList())
+                }
+            } catch (ignored: Exception) {
             }
-        } catch (ignored: Exception) {
         }
         return roles
     }
@@ -134,12 +135,13 @@ class AccessTokenService(
     fun streamClientRoles(): List<String> {
 
         val roles: MutableList<String> = ArrayList()
-        if (accessToken == null) assign(null) ?: return roles
-        try {
-            accessToken?.clientRolesMap?.values?.forEach { map ->
-                map.values.forEach { value -> roles.addAll(value.toList()) }
+        if (accessToken != null || assign(null) != null) {
+            try {
+                accessToken?.clientRolesMap?.values?.forEach { map ->
+                    map.values.forEach { value -> roles.addAll(value.toList()) }
+                }
+            } catch (ignored: Exception) {
             }
-        } catch (ignored: Exception) {
         }
         return roles
     }

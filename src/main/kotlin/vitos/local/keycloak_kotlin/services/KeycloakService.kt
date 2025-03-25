@@ -1,5 +1,6 @@
 package vitos.local.keycloak_kotlin.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.CredentialRepresentation
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import vitos.local.keycloak_kotlin.models.OpenIdConfiguration
 
 
 @Service
@@ -20,6 +22,7 @@ class KeycloakService(
     private val issuerURL: String? = null,
     private val realmResource: RealmResource,
     private val restTemplate: RestTemplate,
+    private val objectMapper: ObjectMapper
 
     ) {
 
@@ -126,9 +129,11 @@ class KeycloakService(
 
         val configUrl = "$issuerURL/.well-known/openid-configuration"
         try {
-            val response = restTemplate.getForEntity(configUrl, String::class.java)
+            val response = restTemplate.getForEntity(configUrl, Any::class.java)
             if (response.statusCode.is2xxSuccessful && response.body != null) {
-                return ResponseEntity(response.body, HttpStatus.OK)
+                val value = objectMapper.writeValueAsString(response.body)
+                val result = objectMapper.readValue(value, OpenIdConfiguration::class.java)
+                return ResponseEntity(result, HttpStatus.OK)
             }
         } catch (e: Exception) {
             log.info(">>>> Ошибка чтения конфигурации области сервисов >>>> {}", e.message)
