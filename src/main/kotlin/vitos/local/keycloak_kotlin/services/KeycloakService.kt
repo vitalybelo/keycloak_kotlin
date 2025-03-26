@@ -10,8 +10,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import vitos.local.keycloak_kotlin.authorization.AccessTokenService
 import vitos.local.keycloak_kotlin.models.OpenIdConfiguration
 
 
@@ -22,9 +24,10 @@ class KeycloakService(
     private val issuerURL: String? = null,
     private val realmResource: RealmResource,
     private val restTemplate: RestTemplate,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val accessTokenService: AccessTokenService
 
-    ) {
+) {
 
     companion object {
         private val log = LoggerFactory.getLogger(KeycloakService::class.java)
@@ -38,26 +41,33 @@ class KeycloakService(
      * политики, затем обнуляет политики для области (realm), выполняет сброс пароля на любой
      * заданный и затем восстанавливает дефолтные для области
      *
-     * @param userName - username пользователя
+     * @param username - username пользователя
      * @param password - новый пароль пользователя
+     * @param authentication - класс аутентификации spring security
      * @return строку сообщения о выполнении и статус выполнения
      */
     fun changeUserPassword(
-        userName: String,
-        password: String
-    ): ResponseEntity<String> {
+        username: String?,
+        password: String?,
+        authentication: Authentication
+    ): ResponseEntity<Any> {
 
-        log.info("Changing password procedure is starting...")
+        fun notFound(message: String): ResponseEntity<Any> {
+            return ResponseEntity(message, HttpStatus.NOT_FOUND)
+        }
+        val userName = username ?: getKeycloakUser(authentication) ?: return notFound("Username not found")
+
+        log.info("Changing password procedure for: $userName is starting...")
         try {
             // Ищем пользователя и получаем ресурс администрирования
             val user = realmResource.users().searchByUsername(userName, true).firstOrNull()
-                ?: return ResponseEntity("User not found", HttpStatus.NOT_FOUND)
+                ?: return notFound("User not found")
 
             val usersResource = realmResource.users().get(user.id)
-                ?: return ResponseEntity("Impossible to receive user resource", HttpStatus.NOT_FOUND)
+                ?: return notFound("Impossible to receive user resource")
 
             val realm: RealmRepresentation = realmResource.toRepresentation()
-                ?: return ResponseEntity("Impossible to receive realm representation", HttpStatus.NOT_FOUND)
+                ?: return notFound("Impossible to receive realm representation")
 
             // сохраняем существующие политики установленные для пароля и сбрасываем их временно
             val passwordPolicies: String? = realm.passwordPolicy
@@ -78,7 +88,7 @@ class KeycloakService(
             realmResource.update(realm)
             log.info("Realm password policies restored ...")
 
-            return ResponseEntity("Password changed successfully", HttpStatus.OK)
+            return ResponseEntity("Password changed successfully for user: $userName", HttpStatus.OK)
 
         } catch (e: Exception) {
             log.error("Error during changing password\n {}", e.localizedMessage)
@@ -141,5 +151,12 @@ class KeycloakService(
         return ResponseEntity(FATAL_ERROR, HttpStatus.OK)
     }
 
+
+    /**
+     * @return Возвращает username пользователя, извлеченный из id токена
+     */
+    private fun getKeycloakUser(authentication: Authentication): String? {
+        accessTokenService.assign(authentication)?.let { return it.login } ?: return null
+    }
 
 }
