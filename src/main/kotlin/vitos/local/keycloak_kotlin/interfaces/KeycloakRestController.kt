@@ -60,7 +60,7 @@ interface KeycloakRestController {
     )
     @PostMapping("/create")
     @Operation(summary = "Создание нового пользователя или чтение если он уже существует")
-    fun createKeycloakUser(@RequestBody user: UserRepresentation): ResponseEntity<Any>
+    fun createKeycloakUser(@RequestBody(required = true) user: UserRepresentation?): ResponseEntity<Any>
 
 
     @ApiResponses(

@@ -36,9 +36,9 @@ class KeycloakRestControllerImpl(private val keycloakService: KeycloakService) :
     }
 
 
-    override fun createKeycloakUser(@RequestBody user: UserRepresentation): ResponseEntity<Any> {
+    override fun createKeycloakUser(@RequestBody(required = true) user: UserRepresentation?): ResponseEntity<Any> {
 
-        if (!user.username.isNullOrEmpty()) {
+        if (user != null && user.username.isNotEmpty()) {
             log.info(">>>> Creating user {}", user.username)
             return keycloakService.createKeycloakUser(user)
         }

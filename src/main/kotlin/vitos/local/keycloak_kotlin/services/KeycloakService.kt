@@ -52,22 +52,22 @@ class KeycloakService(
         authentication: Authentication
     ): ResponseEntity<Any> {
 
-        fun notFound(message: String): ResponseEntity<Any> {
+        fun notFoundResponse(message: String): ResponseEntity<Any> {
             return ResponseEntity(message, HttpStatus.NOT_FOUND)
         }
-        val userName = username ?: getKeycloakUser(authentication) ?: return notFound("Username not found")
+        val userName = username ?: getKeycloakUser(authentication) ?: return notFoundResponse("Username not found")
 
         log.info("Changing password procedure for: $userName is starting...")
         try {
-            // Ищем пользователя и получаем ресурс администрирования
+            // Ищем пользователя и получаем ресурс администрирования пользователя и области сервисов
             val user = realmResource.users().searchByUsername(userName, true).firstOrNull()
-                ?: return notFound("User not found")
+                ?: return notFoundResponse("User not found")
 
             val usersResource = realmResource.users().get(user.id)
-                ?: return notFound("Impossible to receive user resource")
+                ?: return notFoundResponse("Impossible to receive user resource")
 
             val realm: RealmRepresentation = realmResource.toRepresentation()
-                ?: return notFound("Impossible to receive realm representation")
+                ?: return notFoundResponse("Impossible to receive realm representation")
 
             // сохраняем существующие политики установленные для пароля и сбрасываем их временно
             val passwordPolicies: String? = realm.passwordPolicy
