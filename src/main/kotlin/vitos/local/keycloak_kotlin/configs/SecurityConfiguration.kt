@@ -13,24 +13,30 @@ import org.springframework.security.web.SecurityFilterChain
 @EnableWebSecurity
 class SecurityConfiguration(
 
-    private val keycloakLogoutHandler: KeycloakLogoutHandler
+    private val keycloakLogoutHandler: KeycloakLogoutHandler,
+    private val successLoginHandler: SuccessLoginHandler
+
 ) {
 
     @Bean
     fun securityConfigFilterChain(http: HttpSecurity): SecurityFilterChain {
 
-        // позволяет аутентификацию с фронта, например для swagger
+        // позволяет аутентификацию с фронта, например для swagger,
+        // устанавливаем обработчик успешной аутентификации
         http.csrf { it.disable() }
             .cors { it.disable() }
             .oauth2Login(Customizer.withDefaults())
+            .oauth2Login {
+                it.successHandler(successLoginHandler)
+            }
             .formLogin { it.disable() }
 
-        // определяет стратегию создания сессий
+        // определяет стратегию создания сессий, по умолчанию "если потребуется"
         http.sessionManagement { session ->
             session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
         }
 
-        // определяет обработчик для logout
+        // определяет обработчик для logout и дополнительные действий
         http.logout {
             it.addLogoutHandler(keycloakLogoutHandler)
             it.invalidateHttpSession(true)

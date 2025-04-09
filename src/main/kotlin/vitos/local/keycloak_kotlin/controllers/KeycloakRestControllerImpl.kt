@@ -7,10 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.*
 import vitos.local.keycloak_kotlin.interfaces.KeycloakRestController
 import vitos.local.keycloak_kotlin.services.KeycloakService
 
@@ -29,10 +26,9 @@ class KeycloakRestControllerImpl(private val keycloakService: KeycloakService) :
     override fun changeUserPassword(
         @RequestParam("user", required = false) userName: String?,
         @RequestParam("password", required = false, defaultValue = "1") password: String?,
-        authentication: Authentication
+        @RequestHeader headers: Map<String, String>,
     ): ResponseEntity<Any> {
-
-        return keycloakService.changeUserPassword(userName, password, authentication)
+        return keycloakService.changeUserPassword(userName, password, headers)
     }
 
 
@@ -47,8 +43,20 @@ class KeycloakRestControllerImpl(private val keycloakService: KeycloakService) :
     }
 
 
-    override fun wellKnownKeycloak(): ResponseEntity<Any> {
+    override fun getKeycloakWellKnown(): ResponseEntity<Any> {
         return keycloakService.getWellKnownEndPoints()
+    }
+
+    override fun getUserRepresentation(authentication: Authentication): ResponseEntity<Any> {
+        return keycloakService.getUserRepresentation(authentication)
+    }
+
+    override fun getExtendedUserRepresentation(): ResponseEntity<Any> {
+        return keycloakService.getExtendedUserRepresentation()
+    }
+
+    override fun getExtendedUserRepresentationList(): ResponseEntity<Any> {
+        return keycloakService.getExtendedUserRepresentationList()
     }
 
 }

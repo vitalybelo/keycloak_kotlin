@@ -1,6 +1,7 @@
 package vitos.local.keycloak_kotlin.configs
 
 import org.keycloak.OAuth2Constants
+import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.admin.client.resource.RealmResource
 import org.springframework.beans.factory.annotation.Value
@@ -23,6 +24,17 @@ class KeycloakConfiguration (
     private val keycloakAdminClientSecret: String
 
 ) {
+
+    @Bean
+    fun keycloak(): Keycloak {
+        return KeycloakBuilder.builder()
+            .serverUrl(keycloakServerUrl)
+            .realm(keycloakRealm)
+            .clientId(keycloakAdminClientId)
+            .clientSecret(keycloakAdminClientSecret)
+            .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
+            .build()
+    }
 
     @Bean
     fun realmResource(): RealmResource {

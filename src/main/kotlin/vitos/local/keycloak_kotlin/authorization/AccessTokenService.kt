@@ -1,7 +1,6 @@
 package vitos.local.keycloak_kotlin.authorization
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.commons.lang3.StringUtils
 import org.keycloak.admin.client.resource.RealmResource
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
@@ -30,6 +29,7 @@ class AccessTokenService(
 
     companion object {
         const val TOKEN_PREFIX: String = "Bearer "
+        const val AUTHORIZATION_HEADER: String = "Authorization"
     }
 
 
@@ -39,60 +39,86 @@ class AccessTokenService(
      */
     private fun isSpringContext(): Boolean {
         return Optional.ofNullable(SecurityContextHolder.getContext())
-                        .map { obj: SecurityContext -> obj.authentication }
-                        .isPresent
+            .map { obj: SecurityContext -> obj.authentication }.isPresent
     }
 
 
     /**
-     * В зависимости от состава контекста безопасности spring boot security, инициализирует авторизационный
+     * Читает из контекста безопасности spring security класс аутентификации пользователя, если он там есть
+     * @return инициализированный data класс AccessToken или null
+     */
+    fun assign(): AccessToken? {
+
+        SecurityContextHolder.getContext()?.authentication?.let { return assign(it) } ?: return null
+    }
+
+
+    /**
+     * В зависимости от источника запроса и типа токена (JWT или JSESSIONID), инициализирует авторизационный
      * класс AccessToken для чтения данных пользователя из токена аутентификации.
      *
-     * @param auth класс аутентификации spring boot security
-     * @return true = AccessToken инициализирован
+     * @param authentication класс аутентификации spring boot security
+     * @return инициализированный data класс AccessToken или null
      */
-    fun assign(auth: Authentication?): AccessToken? {
+    fun assign(authentication: Authentication?): AccessToken? {
 
-        accessToken = null
-        var authentication: Authentication? = null
-        // если запрос аутентифицированный, должен быть контекст безопасности, проверим
-        if (isSpringContext()) {
-            authentication = SecurityContextHolder.getContext().authentication
-        } else if (auth != null) {
-            authentication = auth
-        }
-
-        if (authentication != null) {
+        authentication?.let {
 
             val principal = authentication.principal
 
             // Проверяем аутентификацию, выполненную по типу > BEARER
             if (principal is Jwt) {
-                accessToken = parseAccessToken(principal.tokenValue)
-                if (accessToken != null) return accessToken
+                parseAccessToken(principal.tokenValue)?.let { return it }
             }
 
             // Проверяем аутентификацию, выполненную по типу > JSESSIONID
             if (principal is DefaultOidcUser) {
-                accessToken = parseAccessToken(principal.idToken.tokenValue)
-                if (accessToken != null) return accessToken
+                parseAccessToken(principal.idToken.tokenValue)?.let { return it }
             }
         }
-        return accessToken
+        return null
+    }
+
+
+    /**
+     * Извлекает из заголовка http запроса токен доступа, и инициализирует с помощью него класс AccessToken
+     *
+     * @param headers - карта заголовков http запроса
+     * @return инициализированный data класс AccessToken или null
+     */
+    fun assign(headers: Map<String, String>): AccessToken? {
+
+        val key = getIgnoreCaseHeaderAuthorization(headers)
+        if (key != null) {
+            headers[key]?.replace(TOKEN_PREFIX, "")?.let { return parseAccessToken(it) }
+        }
+        return null
+    }
+
+
+    /**
+     * Выполняет поиск среди ключей карты http заголовков - заголовка Authorization без учета регистра
+     *
+     * @param headers - карта http заголовков
+     * @return строку валидного ключа для извлечения или null
+     */
+    private fun getIgnoreCaseHeaderAuthorization(headers: Map<String, String>): String? {
+        return headers.keys.stream()
+            .filter { key -> key.equals(AUTHORIZATION_HEADER, true) }
+            .findFirst().orElse(null)
     }
 
 
     /**
      * Метод извлекает экземпляр класса авторизации AccessToken из payload токена доступа keycloak.
+
      * @param tokenString строка с токеном доступа keycloak, без префикса Bearer
-     *
      * @return экземпляр класса AccessToken, или null в случае ошибки
      */
-    private fun parseAccessToken(tokenString: String): AccessToken? {
+    private fun parseAccessToken(tokenString: String?): AccessToken? {
 
-        var accessToken: AccessToken? = null
-
-        if (!StringUtils.isBlank(tokenString)) {
+        accessToken = null
+        if (!tokenString.isNullOrEmpty()) {
 
             val decoder = Base64.getUrlDecoder()
             val chunks = tokenString.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -117,7 +143,7 @@ class AccessTokenService(
     fun streamRealmRoles(): List<String> {
 
         val roles: MutableList<String> = ArrayList()
-        if (accessToken != null || assign(null) != null) {
+        if (accessToken != null || assign() != null) {
             try {
                 accessToken?.realmRolesMap?.values?.forEach { value ->
                     roles.addAll(value.toList())
@@ -135,7 +161,7 @@ class AccessTokenService(
     fun streamClientRoles(): List<String> {
 
         val roles: MutableList<String> = ArrayList()
-        if (accessToken != null || assign(null) != null) {
+        if (accessToken != null || assign() != null) {
             try {
                 accessToken?.clientRolesMap?.values?.forEach { map ->
                     map.values.forEach { value -> roles.addAll(value.toList()) }
