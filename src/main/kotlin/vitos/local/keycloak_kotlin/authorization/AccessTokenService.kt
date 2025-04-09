@@ -1,7 +1,8 @@
 package vitos.local.keycloak_kotlin.authorization
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.keycloak.admin.client.resource.RealmResource
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
@@ -19,9 +20,7 @@ import java.util.*
 @Service
 @Suppress("unused")
 class AccessTokenService(
-
-    private val realmResource: RealmResource,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
 ) {
 
     private var accessToken: AccessToken? = null
@@ -126,7 +125,7 @@ class AccessTokenService(
             if (chunks.size > 1) {
                 val payload = String(decoder.decode(chunks[1]))
                 try {
-                    accessToken = objectMapper.readValue(payload, AccessToken::class.java)
+                    accessToken = objectMapper.readValue(payload)
 
                 } catch (e: Exception) {
                     logger.info(">>> Ошибка парсинга токена доступа: {}", e.message)
