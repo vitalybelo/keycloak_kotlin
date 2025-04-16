@@ -11,7 +11,6 @@ import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import java.util.concurrent.Callable
 
 
 @RequestMapping("/users")
@@ -74,25 +73,6 @@ interface KeycloakRestController {
     fun createKeycloakUser(@Parameter(description = "сущность для нового пользователя")
                            @RequestBody(required = true) user: UserRepresentation?): ResponseEntity<Any>
 
-
-    /**
-     * Возвращает данные о конечных точках сервера авторизации Keycloak - в упрощенном виде
-     */
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200", description = "Данные о конечных точках получены успешно", content = [
-                    (Content(
-                        mediaType = "application/json", array = (
-                                ArraySchema(schema = Schema(implementation = Any::class)))
-                    ))]
-            ),
-            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
-        ]
-    )
-    @GetMapping("/public/well-known")
-    @Operation(summary = "Возвращает информацию о конечных точках сервера")
-    fun getKeycloakWellKnown(): ResponseEntity<Any>
 
     /**
      * Извлекает из токена доступа идентификатор пользователя Keycloak.
@@ -161,27 +141,5 @@ interface KeycloakRestController {
     @GetMapping("/brute-force/list")
     @Operation(summary = "Возвращает список пользователей с расширенной информацией по блокировкам brute-force")
     fun getExtendedUserRepresentationList(): ResponseEntity<Any>
-
-
-    /**
-     * Метод эмулирует блокирующий синхронный запрос с устанавливаемым значением timeout.
-     * Если запрос обрабатывается за время меньшее чем установленный таймаут, возвращается 200 и ответ
-     * @return строку сообщения и статус
-     */
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200", description = "Выполнено успешно", content = [
-                    (Content(
-                        mediaType = "application/json", array = (
-                                ArraySchema(schema = Schema(implementation = Any::class)))
-                    ))]
-            ),
-            ApiResponse(responseCode = "408", description = "Таймаут в процессе выполнения запроса", content = [Content()])
-        ]
-    )
-    @GetMapping("/public/transactional/limited/{millis}")
-    @Operation(summary = "Эмулирует синхронный запрос с установленным параметром timeout")
-    fun getDelayedResponse(@PathVariable millis: Long): Callable<ResponseEntity<Any>>
 
 }

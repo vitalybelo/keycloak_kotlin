@@ -14,15 +14,15 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import vitos.local.keycloak_kotlin.authorization.AccessTokenService
 import vitos.local.keycloak_kotlin.configs.KeycloakTokenService
-import vitos.local.keycloak_kotlin.models.OpenIdConfiguration
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.databind.ObjectMapper
+import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
 
 @Suppress("unused")
 @Service
-class KeycloakService(
+class KeycloakRestService(
 
     @Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
     private val issuerURL: String? = null,
@@ -38,10 +38,7 @@ class KeycloakService(
 
 ) {
 
-    companion object {
-        private val log = LoggerFactory.getLogger(KeycloakService::class.java)
-        const val FATAL_ERROR = "Непредвиденная ошибка"
-    }
+    private val log = LoggerFactory.getLogger(KeycloakRestService::class.java)
 
 
     /**
@@ -140,27 +137,6 @@ class KeycloakService(
             log.info(">>>> Fatal error creating user :: {}", userName)
         }
         return ResponseEntity("Fatal error creating user in keycloak", HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-
-
-    /**
-     * Возвращает информацию о конечных точках сервера авторизации Keycloak
-     * @return json ответа конечной точки /.well-known/openid-configuration
-     */
-    fun getWellKnownEndPoints(): ResponseEntity<Any> {
-
-        val configUrl = "$issuerURL/.well-known/openid-configuration"
-        try {
-            val response = restTemplate.getForEntity(configUrl, Any::class.java)
-            if (response.statusCode.is2xxSuccessful && response.body != null) {
-                val value = objectMapper.writeValueAsString(response.body)
-                val result: OpenIdConfiguration = objectMapper.readValue(value)
-                return ResponseEntity(result, HttpStatus.OK)
-            }
-        } catch (e: Exception) {
-            log.info(">>>> Ошибка чтения конфигурации области сервисов >>>> {}", e.message)
-        }
-        return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
 
