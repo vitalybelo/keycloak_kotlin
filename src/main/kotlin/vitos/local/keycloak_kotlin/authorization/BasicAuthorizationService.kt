@@ -57,6 +57,15 @@ class BasicAuthorizationService(
     }
 
 
+    /**
+     * Формирует заголовок Basic авторизации для http запросов в PCR CONNECT коробку.
+     * Если в качестве параметра передана не пустая карта заголовков, заголовок авторизации
+     * добавляется к уже существующим. Если карта заголовков не передана или передана = null,
+     * создается новая MutableMap<String, String> только с одним значением ключа Authorization
+     *
+     * @param headers заголовки (не обязательный)
+     * @return headers с Basic авторизацией
+     */
     fun addBasicHeader(headers: Map<String, String>? = null): Map<String, String> {
 
         val encoder = Base64.getEncoder()
@@ -64,7 +73,7 @@ class BasicAuthorizationService(
         val encodedString = String(encoder.encode(decodedString.encodeToByteArray()))
         val authBasicString = BASIC_PREFIX + encodedString
 
-        val resultMap: MutableMap<String, String> = HashMap<String, String>(headers ?: emptyMap())
+        val resultMap: MutableMap<String, String> = HashMap(headers ?: emptyMap())
         resultMap[AUTHORIZATION_HEADER] = authBasicString
         return resultMap
     }
