@@ -47,7 +47,7 @@ class SecurityConfiguration(
         // определяет URI для открытых, закрытых jwt токеном и ролями, отсекает все остальные end-points
         http.authorizeHttpRequests { request ->
             request
-                .requestMatchers("/users/well-known").permitAll()
+                .requestMatchers("/users/public/**").permitAll()
                 .requestMatchers("/users/create").hasAuthority("ROLE_USER")
                 .requestMatchers("/**").authenticated()
                 .anyRequest().denyAll()
