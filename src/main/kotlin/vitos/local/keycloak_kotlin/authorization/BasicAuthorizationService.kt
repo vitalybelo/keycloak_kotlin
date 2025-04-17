@@ -2,14 +2,14 @@ package vitos.local.keycloak_kotlin.authorization
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.HashMap
 
 
-@Service
 @Suppress("unused")
+@Component("basicAuthorization")
 class BasicAuthorizationService(
 
     @Value("\${digital.ruble.pcrconnect.login}")

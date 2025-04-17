@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
@@ -35,6 +36,7 @@ interface BasicRestController {
         ]
     )
     @GetMapping("/auth")
+    @PreAuthorize("@basicAuthorization.isAuthorized(#headers)")
     @Operation(summary = "Имитация запроса с Basic авторизацией в заголовке")
     fun receiveRequestBasicAuthorization(@RequestHeader headers: Map<String, String>?): ResponseEntity<Any>
 

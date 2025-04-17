@@ -7,11 +7,13 @@ import org.keycloak.admin.client.resource.RealmResource
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.web.client.RestTemplate
 
 
 
 @Configuration
+@EnableMethodSecurity
 class KeycloakConfiguration (
 
     @Value("\${keycloak.server.url:http://localhost:8443}")

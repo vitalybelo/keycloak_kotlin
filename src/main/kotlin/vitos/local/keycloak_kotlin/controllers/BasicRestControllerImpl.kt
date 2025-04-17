@@ -15,8 +15,7 @@ class BasicRestControllerImpl(
 ) : BasicRestController {
 
 
-    override fun receiveRequestBasicAuthorization(
-        @RequestHeader headers: Map<String, String>?): ResponseEntity<Any> {
+    override fun receiveRequestBasicAuthorization(@RequestHeader headers: Map<String, String>?): ResponseEntity<Any> {
 
         return basicRestService.getBasicAuthorization(headers)
     }
