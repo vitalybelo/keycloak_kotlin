@@ -20,7 +20,7 @@ class GlobalExceptionHandler {
         log.error("Timeout occurred while getting delayed response")
     }
 
-    @ExceptionHandler(AuthenticationException::class)
+    @ExceptionHandler(IllegalAccessException::class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     fun handleUnauthenticatedException() {
         log.error(">>>> Basic Authentication headers not found :: access DENIED")

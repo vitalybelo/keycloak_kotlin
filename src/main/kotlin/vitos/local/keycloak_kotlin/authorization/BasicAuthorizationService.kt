@@ -1,10 +1,10 @@
 package vitos.local.keycloak_kotlin.authorization
 
-import org.apache.http.auth.AuthenticationException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.stereotype.Component
+import sun.security.jgss.GSSUtil.login
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.HashMap
@@ -39,27 +39,33 @@ class BasicAuthorizationService(
      */
     fun isAuthorized(headers: Map<String, String>?): Boolean {
 
+        log.debug(">>>> Callback Basic Values: login = $callbackLogin,  password = $callbackPassword")
+        if (callbackLogin == null ||  callbackPassword == null) {
+            log.info(">>>> Configuration parameters of Basic authentication missed")
+            return false
+        }
+
         headers?.let { heads ->
             getIgnoreCaseHeaderAuthorization(heads)?.let { key ->
 
                 val basicValue = headers[key]?.replace(BASIC_PREFIX, "")
                 if (basicValue != null) {
 
-                    val decoder = Base64.getDecoder()
-                    val decodedString = String(decoder.decode(basicValue), StandardCharsets.UTF_8)
-                    val chunks = decodedString.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                    val decodedString =
+                        String(Base64.getDecoder().decode(basicValue), StandardCharsets.UTF_8)
+                    val chunks = decodedString.split(":")
+
                     if (chunks.size == 2) {
-                        log.info(">>>> Find Basic authorization as correct :: $decodedString :: access GRANTED")
                         if (chunks[0] == callbackLogin && chunks[1] == callbackPassword) {
+                            log.info(">>>> Find Basic authorization received :: $decodedString :: access GRANTED")
                             return true
                         }
                         throw AuthorizationDeniedException("403")
                     }
                 }
             }
-            throw AuthenticationException("401")
         }
-        return false
+        throw IllegalAccessException("401")
     }
 
 
@@ -74,13 +80,14 @@ class BasicAuthorizationService(
      */
     fun addBasicHeader(headers: Map<String, String>? = null): Map<String, String> {
 
-        val encoder = Base64.getEncoder()
-        val decodedString = "$connectLogin:$connectPassword"
-        val encodedString = String(encoder.encode(decodedString.encodeToByteArray()))
-        val authBasicString = BASIC_PREFIX + encodedString
-
         val resultMap: MutableMap<String, String> = HashMap(headers ?: emptyMap())
-        resultMap[AUTHORIZATION_HEADER] = authBasicString
+        val authorizationKey = getIgnoreCaseHeaderAuthorization(resultMap)
+
+        if (authorizationKey != null) {
+            resultMap.remove(authorizationKey)
+        }
+        val basicHeader = getBasicValues()
+        resultMap[basicHeader.first] = basicHeader.second
         return resultMap
     }
 
@@ -97,4 +104,18 @@ class BasicAuthorizationService(
             .findFirst().orElse(null)
     }
 
+
+    /**
+     * Возвращает пару из ключа заголовка авторизации и значения ключа - строки авторизации Basic
+     */
+    private fun getBasicValues(): Pair<String, String> {
+
+        val username = connectLogin ?: ""
+        val password = connectPassword ?: ""
+        log.debug(">>>> Request Basic Values: login = \'$username\',  password = \'$password\'")
+
+        val decodedString = "$username:$password"
+        val encodedString = String(Base64.getEncoder().encode(decodedString.encodeToByteArray()))
+        return Pair(AUTHORIZATION_HEADER, BASIC_PREFIX + encodedString)
+    }
 }
