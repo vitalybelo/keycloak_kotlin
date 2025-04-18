@@ -1,7 +1,9 @@
 package vitos.local.keycloak_kotlin.authorization
 
+import org.apache.http.auth.AuthenticationException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -47,11 +49,15 @@ class BasicAuthorizationService(
                     val decodedString = String(decoder.decode(basicValue), StandardCharsets.UTF_8)
                     val chunks = decodedString.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                     if (chunks.size == 2) {
-                        log.info(">>>> Find Basic authorization as :: $decodedString")
-                        return chunks[0] == callbackLogin && chunks[1] == callbackPassword
+                        log.info(">>>> Find Basic authorization as correct :: $decodedString :: access GRANTED")
+                        if (chunks[0] == callbackLogin && chunks[1] == callbackPassword) {
+                            return true
+                        }
+                        throw AuthorizationDeniedException("403")
                     }
                 }
             }
+            throw AuthenticationException("401")
         }
         return false
     }
