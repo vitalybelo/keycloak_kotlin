@@ -24,7 +24,8 @@ class ExperimentsRestService {
 
         try {
             Thread.sleep(millis)
-        } catch (ignored: InterruptedException) {
+        } catch (exception: InterruptedException) {
+            return ResponseEntity(exception, HttpStatus.INTERNAL_SERVER_ERROR)
         }
         return ResponseEntity("Delayed at ${millis / TIME_MILLIS} seconds HELLO", HttpStatus.OK)
     }

@@ -153,7 +153,8 @@ class KeycloakRestService(
         if (accessToken != null) {
             realmResource.users().get(accessToken.userId)?.toRepresentation()?.let {
                 return ResponseEntity(it, HttpStatus.OK)
-            } ?: return ResponseEntity("Пользователь не найден", HttpStatus.NOT_FOUND)
+            }
+            return ResponseEntity("Пользователь не найден", HttpStatus.NOT_FOUND)
         }
         return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
     }

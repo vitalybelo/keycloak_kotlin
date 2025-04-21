@@ -1,6 +1,5 @@
 package vitos.local.keycloak_kotlin.controllers
 
-import io.swagger.v3.oas.annotations.tags.Tag
 import org.keycloak.representations.idm.UserRepresentation
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -11,10 +10,6 @@ import org.springframework.web.bind.annotation.*
 import vitos.local.keycloak_kotlin.interfaces.KeycloakRestController
 import vitos.local.keycloak_kotlin.services.KeycloakRestService
 
-@Tag(
-    name = "KeycloakRestController",
-    description = "API управления учётными данными пользователей и паролями"
-)
 @Controller
 @CrossOrigin
 class KeycloakRestControllerImpl(

@@ -4,7 +4,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.stereotype.Component
-import sun.security.jgss.GSSUtil.login
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.HashMap
