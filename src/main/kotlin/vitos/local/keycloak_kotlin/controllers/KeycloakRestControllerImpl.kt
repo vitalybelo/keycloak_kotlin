@@ -38,16 +38,32 @@ class KeycloakRestControllerImpl(
         return ResponseEntity("Invalid username", HttpStatus.BAD_REQUEST)
     }
 
+
     override fun getUserRepresentation(authentication: Authentication): ResponseEntity<Any> {
         return keycloakService.getUserRepresentation(authentication)
     }
+
 
     override fun getExtendedUserRepresentation(): ResponseEntity<Any> {
         return keycloakService.getExtendedUserRepresentation()
     }
 
+
     override fun getExtendedUserRepresentationList(): ResponseEntity<Any> {
         return keycloakService.getExtendedUserRepresentationList()
+    }
+
+
+    override fun changeUserAttributes(
+        key: String?,
+        value: String?,
+        attributesMap: Map<String, List<String>>?
+    ): ResponseEntity<Any> {
+
+        if (!key.isNullOrEmpty() && !value.isNullOrEmpty() && !attributesMap.isNullOrEmpty()) {
+            return keycloakService.changeUserAttributes(key, value, attributesMap)
+        }
+        return ResponseEntity("Incorrect request parameters",HttpStatus.BAD_REQUEST)
     }
 
 

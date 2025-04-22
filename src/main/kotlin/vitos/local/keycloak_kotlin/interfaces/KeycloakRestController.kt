@@ -75,8 +75,10 @@ interface KeycloakRestController {
     )
     @PostMapping("/create")
     @Operation(summary = "Создание нового пользователя или чтение если он уже существует")
-    fun createKeycloakUser(@Parameter(description = "сущность для нового пользователя")
-                           @RequestBody(required = true) user: UserRepresentation?): ResponseEntity<Any>
+    fun createKeycloakUser(
+        @Parameter(description = "сущность для нового пользователя")
+        @RequestBody(required = true) user: UserRepresentation?
+    ): ResponseEntity<Any>
 
 
     /**
@@ -146,5 +148,34 @@ interface KeycloakRestController {
     @GetMapping("/brute-force/list")
     @Operation(summary = "Возвращает список пользователей с расширенной информацией по блокировкам brute-force")
     fun getExtendedUserRepresentationList(): ResponseEntity<Any>
+
+
+    /**
+     * Выполняет поиск пользователя по заданному атрибуту, а затем добавляет или обновляет карту атрибутов
+     * значениями, переданным в теле запроса
+     *
+     * @return возвращает статус выполнения
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Пользователь найден, обновление выполнено успешно", content = [
+                    (Content(
+                        mediaType = "application/json", array = (
+                                ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Неверные параметры запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Ошибка обновления атрибутов", content = [Content()])
+        ]
+    )
+    @RequestMapping("/attributes", method = [RequestMethod.POST, RequestMethod.PUT])
+    @Operation(summary = "Выполняет поиск пользователя по заданному атрибуту и обновляет карту атрибутов")
+    fun changeUserAttributes(
+        @RequestParam(required = true) key: String?,
+        @RequestParam(required = true) value: String?,
+        @RequestBody(required = false) attributesMap: Map<String, List<String>>?
+    ): ResponseEntity<Any>
 
 }

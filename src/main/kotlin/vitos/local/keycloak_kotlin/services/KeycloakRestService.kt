@@ -230,4 +230,63 @@ class KeycloakRestService(
         return null
     }
 
+
+    /**
+     * В начале метод выполняет поиск пользователя Keycloak по заданному атрибуту. Если пользователь найден,
+     * запрашивается ресурс управления пользователем и обновляются выборочно заданные в запросе атрибуты.
+     *
+     * @param key ключ атрибута для поиска
+     * @param value значение атрибута для поиска
+     * @param attributesMap выборочные атрибуты для обновления/добавления
+     *
+     * @return статус выполнения и полную карту атрибутов пользователя
+     */
+    fun changeUserAttributes(
+        key: String?,
+        value: String?,
+        attributesMap: Map<String, List<String>>?
+    ): ResponseEntity<Any> {
+
+        findUserByAttributes(key, value)?.let { userRepresentation ->
+            try {
+                val usersResource = realmResource.users().get(userRepresentation.id)
+                attributesMap?.forEach {  (key, value) ->
+                    userRepresentation.attributes[key] = value
+                }
+                usersResource.update(userRepresentation)
+                return ResponseEntity(userRepresentation.attributes, HttpStatus.OK)
+
+            } catch (ignored: Exception) {
+            }
+            log.error(">>>> Error during changing user attributes :: {}", userRepresentation)
+            return ResponseEntity("Error updating user attributes", HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+        log.error(">>>> User with $key:$value not found")
+        return ResponseEntity("User not found", HttpStatus.NOT_FOUND)
+    }
+
+
+    /**
+     * Метод выполняет поиск пользователя по заданному ключу и значению атрибута
+     *
+     * @param key ключ атрибута для поиска
+     * @param value значение атрибута для поиска
+     * @return сущность пользователя Keycloak, или null если совпадение не найдено
+     */
+    private fun findUserByAttributes(key: String?, value: String?): UserRepresentation? {
+
+        realmResource.users()
+            .searchByAttributes("$key:$value", true)
+            ?.let { list ->
+                list.stream()
+                    .filter { user ->
+                        user.attributes[key]?.any { s -> s.equals(value) } == true
+                    }
+                    .findFirst()
+                    .orElse(null)
+                    ?.let { return it }
+            }
+        return null
+    }
+
 }
