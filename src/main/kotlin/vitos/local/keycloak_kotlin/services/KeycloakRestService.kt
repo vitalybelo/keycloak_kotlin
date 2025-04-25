@@ -18,7 +18,10 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.databind.ObjectMapper
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
+import vitos.local.keycloak_kotlin.handlers.ParameterChecker
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
+import kotlin.collections.forEach
+import kotlin.let
 
 @Suppress("unused")
 @Service
@@ -34,7 +37,8 @@ class KeycloakRestService(
     private val restTemplate: RestTemplate,
     private val accessTokenService: AccessTokenService,
     private val keycloakTokenService: KeycloakTokenService,
-    private val objectMapper: ObjectMapper = jacksonObjectMapper()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper(),
+    private val parameterChecker: ParameterChecker
 
 ) {
 
@@ -151,12 +155,22 @@ class KeycloakRestService(
 
         val accessToken = accessTokenService.assign(authentication)
         if (accessToken != null) {
-            realmResource.users().get(accessToken.userId)?.toRepresentation()?.let {
+            getUserRepresentationPrivate(accessToken.userId)?.let {
                 return ResponseEntity(it, HttpStatus.OK)
             }
             return ResponseEntity("Пользователь не найден", HttpStatus.NOT_FOUND)
         }
         return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+
+    private fun getUserRepresentationPrivate(userId: String?): UserRepresentation? {
+        if (!userId.isNullOrEmpty()) {
+            return realmResource.users()
+                .search("id:$userId", 0, 1, false)
+                .firstOrNull()
+        }
+        return null
     }
 
 
@@ -250,7 +264,7 @@ class KeycloakRestService(
         findUserByAttributes(key, value)?.let { userRepresentation ->
             try {
                 val usersResource = realmResource.users().get(userRepresentation.id)
-                attributesMap?.forEach {  (key, value) ->
+                attributesMap?.forEach { (key, value) ->
                     userRepresentation.attributes[key] = value
                 }
                 usersResource.update(userRepresentation)
@@ -288,5 +302,64 @@ class KeycloakRestService(
             }
         return null
     }
+
+
+    /**
+     * Метод возвращает userinfo пользователя Keycloak.
+     * Идентификатор пользователя передается в метод параметром, в случае если этот параметр null или
+     * пустой, метод извлекает идентификатор пользователя ищ токена и возвращает данные для него
+     *
+     * @param userId пользователя
+     * @param headers заголовки http запроса
+     * @return результат возвращаемый конечной точкой userinfo
+     */
+    fun getUserInfo(userId: String?, headers: Map<String, String>): ResponseEntity<Any> {
+
+        collectUserId(userId, headers)?.let { keycloakUserId ->
+            getUserRepresentationPrivate(keycloakUserId)?.let {
+
+                try {
+                    val userInfo: MutableMap<String, String> = emptyMap<String, String>().toMutableMap()
+
+                    userInfo["id"] = it.id
+                    userInfo["username"] = it.username
+                    userInfo["firstName"] = it.firstName
+                    userInfo["lastName"] = it.lastName
+                    userInfo["email"] = it.email
+                    userInfo["createdTimestamp"] = it.createdTimestamp.toString()
+                    userInfo["enabled"] = it.isEnabled.toString()
+                    userInfo["requiredActions"] = it.requiredActions.toString()
+
+                    it.attributes.forEach { k, v -> userInfo[k] = v.firstOrNull() ?: "" }
+
+                    return ResponseEntity(userInfo, HttpStatus.OK)
+                } catch (ignored: Exception) {
+                    log.error(">>>> getUserInfo() :: undefined error occurred")
+                }
+                return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+            }
+            return ResponseEntity("Пользователь не найден", HttpStatus.NOT_FOUND)
+        }
+        return ResponseEntity("Не найден id пользователя", HttpStatus.BAD_REQUEST)
+    }
+
+
+    /**
+     * Выбирает какой из переданных в метод getUserInfo идентификаторов пользователя - использовать.
+     * Если передан валидный с точки зрения uuid идентификатор как параметр пути - используем его.
+     * Если в пути идентификатор не передан, ищем его по утверждению sub в jwt токене. Если и там
+     * он не передан - возвращаем ошибку со статусом 400
+     */
+    private fun collectUserId(userId: String?, headers: Map<String, String>): String? {
+
+        if (parameterChecker.isValidUUID(userId)) return userId
+
+        val tokenUserId = accessTokenService.assign(headers)?.userId
+        if (parameterChecker.isValidUUID(tokenUserId)) {
+            return tokenUserId
+        }
+        return null
+    }
+
 
 }

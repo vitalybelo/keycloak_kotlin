@@ -20,5 +20,4 @@ class KeycloakTokenService(
         httpHeaders.add("Authorization", "Bearer ${keycloak.tokenManager().accessTokenString}")
         return httpHeaders
     }
-
 }

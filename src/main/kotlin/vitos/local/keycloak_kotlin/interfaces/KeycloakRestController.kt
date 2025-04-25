@@ -82,6 +82,36 @@ interface KeycloakRestController {
 
 
     /**
+     * Метод возвращает userinfo пользователя Keycloak.
+     * Идентификатор пользователя передается в метод параметром, в случае если этот параметр null или
+     * пустой, метод извлекает идентификатор пользователя ищ токена и возвращает данные для него
+     * Статусы выполнения: 200 - успешно, 400 bad request, 404 - user not found, 500 - server error
+     *
+     * @param userId пользователя
+     * @param headers заголовки http запроса
+     * @return результат возвращаемый конечной точкой userinfo
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Карта с данными userinfo пользователя", content = [
+                    (Content(
+                        mediaType = "application/json",
+                        array = (ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+        ]
+    )
+    @RequestMapping(value = ["/{user_id}/info","/info"], method = [RequestMethod.GET])
+    @Operation(summary = "Возвращает расширенную brute-force информацию о пользователе из Keycloak")
+    fun getUserInfo(@PathVariable("user_id", required = false) userId: String?,
+                    @RequestHeader headers: Map<String, String>): ResponseEntity<Any>
+
+
+    /**
      * Извлекает из токена доступа идентификатор пользователя Keycloak.
      * Затем выполняет чтение учетных данных пользователя по этому идентификатору
      *
