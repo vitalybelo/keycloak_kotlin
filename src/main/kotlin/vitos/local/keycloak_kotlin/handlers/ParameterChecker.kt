@@ -7,8 +7,8 @@ import java.util.regex.Pattern
 class ParameterChecker {
 
     companion object {
-        const val UUID_REGEX: String = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-        val UUID_REGEX_COMPILE: Pattern = Pattern.compile(UUID_REGEX)
+        val UUID_REGEX: Pattern =
+            Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
     }
 
     /**
@@ -18,7 +18,6 @@ class ParameterChecker {
      * @return true в случае удовлетворительной проверки
      */
     fun isValidUUID(uuid: CharSequence?): Boolean {
-        return !uuid.isNullOrEmpty() && UUID_REGEX_COMPILE.matcher(uuid).matches()
+        return !uuid.isNullOrEmpty() && UUID_REGEX.matcher(uuid).matches()
     }
-
 }

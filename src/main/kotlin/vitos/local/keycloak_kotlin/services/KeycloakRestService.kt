@@ -321,20 +321,20 @@ class KeycloakRestService(
                 try {
                     val userInfo: MutableMap<String, String> = emptyMap<String, String>().toMutableMap()
 
-                    userInfo["id"] = it.id
-                    userInfo["username"] = it.username
-                    userInfo["firstName"] = it.firstName
-                    userInfo["lastName"] = it.lastName
-                    userInfo["email"] = it.email
-                    userInfo["createdTimestamp"] = it.createdTimestamp.toString()
-                    userInfo["enabled"] = it.isEnabled.toString()
-                    userInfo["requiredActions"] = it.requiredActions.toString()
+                    userInfo["id"] = it.id ?: ""
+                    userInfo["username"] = it.username ?: ""
+                    userInfo["firstName"] = it.firstName ?: ""
+                    userInfo["lastName"] = it.lastName ?: ""
+                    userInfo["email"] = it.email ?: ""
+                    userInfo["createdTimestamp"] = it.createdTimestamp?.toString() ?: ""
+                    userInfo["enabled"] = it.isEnabled?.toString() ?: "true"
+                    userInfo["requiredActions"] = it.requiredActions?.toString() ?: "[]"
 
                     it.attributes.forEach { k, v -> userInfo[k] = v.firstOrNull() ?: "" }
 
                     return ResponseEntity(userInfo, HttpStatus.OK)
-                } catch (ignored: Exception) {
-                    log.error(">>>> getUserInfo() :: undefined error occurred")
+                } catch (ex: Exception) {
+                    log.error(">>>> getUserInfo() :: undefined error occurred ${ex.message}")
                 }
                 return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
             }
@@ -353,11 +353,7 @@ class KeycloakRestService(
     private fun collectUserId(userId: String?, headers: Map<String, String>): String? {
 
         if (parameterChecker.isValidUUID(userId)) return userId
-
-        val tokenUserId = accessTokenService.assign(headers)?.userId
-        if (parameterChecker.isValidUUID(tokenUserId)) {
-            return tokenUserId
-        }
+        accessTokenService.assign(headers)?.userId?.let { return userId }
         return null
     }
 
