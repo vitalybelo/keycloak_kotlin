@@ -19,7 +19,7 @@ class BasicAuthorizationService(
     private val connectPassword: String? = null,
     @Value("\${digital.ruble.pcrconnect.callback.login}")
     private val callbackLogin: String? = null,
-    @Value("\${digital.ruble.pcrconnect.callback.login}")
+    @Value("\${digital.ruble.pcrconnect.callback.password}")
     private val callbackPassword: String? = null
 
 ) {
