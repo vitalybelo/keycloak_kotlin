@@ -137,6 +137,31 @@ interface KeycloakRestController {
 
     /**
      * Извлекает из токена доступа идентификатор пользователя Keycloak.
+     * Затем выполняет чтение учетных данных пользователя по этому идентификатору, заполняя
+     * пропущенные карты ролей и списки групп
+     *
+     * @param headers карта заголовков http запроса
+     * @return сущность пользователя keycloak - UserRepresentation (дополненная)
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Данные пользователя получены", content = [
+                    (Content(
+                        mediaType = "application/json", array = (
+                                ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+        ]
+    )
+    @GetMapping("/representation/full")
+    @Operation(summary = "Возвращает полную информацию о пользователе из Keycloak")
+    fun getFullUserRepresentation(@RequestHeader headers: Map<String, String>): ResponseEntity<Any>
+
+
+    /**
+     * Извлекает из токена доступа идентификатор пользователя Keycloak.
      * Затем выполняет чтение учетных данных пользователя с расширенной информацией по brute-force.
      *
      * @return расширенную сущность пользователя keycloak - UserRepresentation

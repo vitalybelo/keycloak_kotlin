@@ -3,6 +3,7 @@ package vitos.local.keycloak_kotlin.authorization
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
@@ -10,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import java.util.*
 
 
@@ -36,10 +39,10 @@ class AccessTokenService(
      * Проверяет доступность класса аутентификации spring security для чтения данных пользователя из токена доступа
      * @return true если security context доступен
      */
-    private fun isSpringContext(): Boolean {
-        return Optional.ofNullable(SecurityContextHolder.getContext())
+    private fun isSpringContext() =
+        Optional
+            .ofNullable(SecurityContextHolder.getContext())
             .map { obj: SecurityContext -> obj.authentication }.isPresent
-    }
 
 
     /**
@@ -48,7 +51,13 @@ class AccessTokenService(
      */
     fun assign(): AccessToken? {
 
-        SecurityContextHolder.getContext()?.authentication?.let { return assign(it) } ?: return null
+        getHttpServletRequest()?.let { request ->
+            accessToken?.let { return it }
+        }
+        SecurityContextHolder.getContext()?.authentication?.let { authentication ->
+            accessToken?.let { return it }
+        }
+        return null
     }
 
 
@@ -87,26 +96,61 @@ class AccessTokenService(
      */
     fun assign(headers: Map<String, String>): AccessToken? {
 
-        val key = getIgnoreCaseHeaderAuthorization(headers)
-        if (key != null) {
-            headers[key]?.replace(TOKEN_PREFIX, "")?.let { return parseAccessToken(it) }
+        getIgnoreCaseAuthorizationHeader(headers)?.let {
+            return parseAccessToken(it)
         }
         return null
     }
 
 
     /**
-     * Выполняет поиск среди ключей карты http заголовков - заголовка Authorization без учета регистра
+     * Извлекает из заголовка http запроса токен доступа, и инициализирует с помощью него класс AccessToken
      *
-     * @param headers - карта http заголовков
-     * @return строку валидного ключа для извлечения или null
+     * @param request - сервлет http запроса
+     * @return инициализированный data класс AccessToken или null
      */
-    private fun getIgnoreCaseHeaderAuthorization(headers: Map<String, String>): String? {
-        return headers.keys.stream()
-            .filter { key -> key.equals(AUTHORIZATION_HEADER, true) }
-            .findFirst().orElse(null)
+    fun assign(request: HttpServletRequest): AccessToken? {
+
+        getIgnoreCaseAuthorizationHeader(request)?.let {
+            return parseAccessToken(it) }
+        return null
     }
 
+    /**
+     * Выполняет поиск среди ключей карты http заголовков - заголовка Authorization без учета регистра.
+     * Если находит, извлекает значение заголовка, удаляет префикс и возвращает токен доступа
+     *
+     * @param headers - карта http заголовков
+     * @return jwt токен доступа или null
+     */
+    private fun getIgnoreCaseAuthorizationHeader(headers: Map<String, String>): String? {
+        headers.keys.stream()
+            .filter { key -> key.equals(AUTHORIZATION_HEADER, true) }
+            .findFirst().orElse(null)?.let { key ->
+                headers[key]?.removePrefix(TOKEN_PREFIX)?.let {
+                    return it
+                }
+            }
+        return null
+    }
+
+    /**
+     * Выполняет поиск среди ключей карты http заголовков - заголовка Authorization без учета регистра.
+     * Если находит, извлекает значение заголовка, удаляет префикс и возвращает токен доступа
+     *
+     * @param request - сервлет http запроса
+     * @return jwt токен доступа или null
+     */
+    private fun getIgnoreCaseAuthorizationHeader(request: HttpServletRequest): String? {
+        request.headerNames.asSequence().toList().stream()
+            .filter { key -> key.equals(AUTHORIZATION_HEADER, true) }
+            .findFirst().orElse(null)?.let { key ->
+                request.getHeader(key)?.removePrefix(TOKEN_PREFIX)?.let {
+                    return it
+                }
+            }
+        return null
+    }
 
     /**
      * Метод извлекает экземпляр класса авторизации AccessToken из payload токена доступа keycloak.
@@ -171,4 +215,13 @@ class AccessTokenService(
         return roles
     }
 
+
+    /**
+     * Извлекает из контекста сервлета экземпляр класса HttpServletRequest
+     * @return экземпляр класса HttpServletRequest или null
+     */
+    private fun getHttpServletRequest(): HttpServletRequest? {
+        val requestAttributes = RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes
+        return requestAttributes?.request
+    }
 }

@@ -1,4 +1,4 @@
-package vitos.local.keycloak_kotlin.configs
+package vitos.local.keycloak_kotlin.handlers
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -10,7 +10,6 @@ import org.springframework.security.web.authentication.logout.LogoutHandler
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
-
 
 @Component
 class KeycloakLogoutHandler(

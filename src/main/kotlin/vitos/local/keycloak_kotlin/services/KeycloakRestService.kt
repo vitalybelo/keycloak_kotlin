@@ -1,5 +1,8 @@
 package vitos.local.keycloak_kotlin.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.CredentialRepresentation
@@ -14,16 +17,11 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import vitos.local.keycloak_kotlin.authorization.AccessTokenService
 import vitos.local.keycloak_kotlin.configs.KeycloakTokenService
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.databind.ObjectMapper
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 import vitos.local.keycloak_kotlin.handlers.ParameterChecker
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
-import kotlin.collections.forEach
-import kotlin.let
 
-@Suppress("unused")
+@Suppress("unused", "DuplicatedCode")
 @Service
 class KeycloakRestService(
 
@@ -164,6 +162,35 @@ class KeycloakRestService(
     }
 
 
+    /**
+     * Извлекает из токена доступа идентификатор пользователя Keycloak.
+     * Затем выполняет чтение учетных данных пользователя по этому идентификатору
+     * Далее выполняется обогащение сущности ролями и группами пользователя
+     *
+     * @param headers карта заголовков http запроса
+     * @return сущность пользователя keycloak - UserRepresentation (дополненная)
+     */
+    fun getFullUserRepresentation(headers: Map<String, String>): ResponseEntity<Any> {
+
+        accessTokenService.assign(headers)?.userId?.let { userId ->
+            getUserRepresentationPrivate(userId)?.let { user ->
+
+                user.realmRoles = getUserRealmRolesAsList(userId)
+                user.groups = getUserGroupsAssign(userId)
+
+                return ResponseEntity(user, HttpStatus.OK)
+            }
+            return ResponseEntity("Пользователь не найден", HttpStatus.NOT_FOUND)
+        }
+        return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+
+    /**
+     * Выполняет чтение учетной записи пользователя из админки Keycloak
+     * @param userId идентификатор пользователя
+     * @return сущность учётной записи
+     */
     private fun getUserRepresentationPrivate(userId: String?): UserRepresentation? {
         if (!userId.isNullOrEmpty()) {
             return realmResource.users()
@@ -171,6 +198,41 @@ class KeycloakRestService(
                 .firstOrNull()
         }
         return null
+    }
+
+
+    /**
+     * Читает список групп, к которым присоединен пользователь
+     * @param userId идентификатор пользователя
+     * @return список групп пользователей (с полным путем до root)
+     */
+    private fun getUserGroupsAssign(userId: String): List<String> {
+
+        try {
+            return realmResource.users().get(userId).groups().map { group -> group.path }.toList()
+        } catch (e: Exception) {
+            log.error("Error getting user groups assign: {}", e.message)
+        }
+        return emptyList()
+    }
+
+
+    /**
+     * Читает список ролей области, назначенных пользователю заданному по идентификатору userId
+     * @param userId идентификатор пользователя (заведомо корректный)
+     * @return список realm ролей пользователя
+     */
+    private fun getUserRealmRolesAsList(userId: String): List<String> {
+
+        try {
+            val roleMappingResource = realmResource.users().get(userId).roles()
+            if (roleMappingResource != null) {
+                return roleMappingResource.realmLevel().listEffective().stream().map { role -> role.name }.toList()
+            }
+        } catch (e: Exception) {
+            log.error(">>>> getUserRealmRolesAsList() :: Error getting user realm roles {}", e.message)
+        }
+        return emptyList()
     }
 
 
@@ -319,16 +381,18 @@ class KeycloakRestService(
             getUserRepresentationPrivate(keycloakUserId)?.let {
 
                 try {
-                    val userInfo: MutableMap<String, String> = emptyMap<String, String>().toMutableMap()
+                    val userInfo: MutableMap<String, Any> = emptyMap<String, Any>().toMutableMap()
 
                     userInfo["id"] = it.id ?: ""
                     userInfo["username"] = it.username ?: ""
                     userInfo["firstName"] = it.firstName ?: ""
                     userInfo["lastName"] = it.lastName ?: ""
                     userInfo["email"] = it.email ?: ""
-                    userInfo["createdTimestamp"] = it.createdTimestamp?.toString() ?: ""
-                    userInfo["enabled"] = it.isEnabled?.toString() ?: "true"
-                    userInfo["requiredActions"] = it.requiredActions?.toString() ?: "[]"
+                    userInfo["createdTimestamp"] = it.createdTimestamp ?: ""
+                    userInfo["enabled"] = it.isEnabled ?: true
+                    userInfo["requiredActions"] = it.requiredActions ?: emptyList<String>()
+                    userInfo["roles"] = getUserRealmRolesAsList(it.id)
+                    userInfo["groups"] = getUserGroupsAssign(it.id)
 
                     it.attributes.forEach { k, v -> userInfo[k] = v.firstOrNull() ?: "" }
 
@@ -349,11 +413,18 @@ class KeycloakRestService(
      * Если передан валидный с точки зрения uuid идентификатор как параметр пути - используем его.
      * Если в пути идентификатор не передан, ищем его по утверждению sub в jwt токене. Если и там
      * он не передан - возвращаем ошибку со статусом 400
+     * @param userId идентификатор переданный в контексте (необязательный)
+     * @param headers заголовки http запроса
+     * @return идентификатор пользователя
      */
     private fun collectUserId(userId: String?, headers: Map<String, String>): String? {
 
-        if (parameterChecker.isValidUUID(userId)) return userId
-        accessTokenService.assign(headers)?.userId?.let { return userId }
+        if (parameterChecker.isValidUUID(userId)) {
+            return userId
+        }
+        accessTokenService.assign(headers)?.let {
+            return it.userId
+        }
         return null
     }
 

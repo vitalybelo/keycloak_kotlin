@@ -28,7 +28,7 @@ class KeycloakRestControllerImpl(
     }
 
 
-    override fun createKeycloakUser(@RequestBody(required = true) user: UserRepresentation?): ResponseEntity<Any> {
+    override fun createKeycloakUser(user: UserRepresentation?): ResponseEntity<Any> {
 
         if (user != null && user.username.isNotEmpty()) {
             log.info(">>>> Creating user {}", user.username)
@@ -45,6 +45,10 @@ class KeycloakRestControllerImpl(
 
     override fun getUserRepresentation(authentication: Authentication): ResponseEntity<Any> {
         return keycloakService.getUserRepresentation(authentication)
+    }
+
+    override fun getFullUserRepresentation(headers: Map<String, String>): ResponseEntity<Any> {
+        return keycloakService.getFullUserRepresentation(headers)
     }
 
 

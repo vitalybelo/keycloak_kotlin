@@ -1,4 +1,4 @@
-package vitos.local.keycloak_kotlin.configs
+package vitos.local.keycloak_kotlin.handlers
 
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
@@ -23,8 +23,8 @@ class SuccessLoginHandler : SavedRequestAwareAuthenticationSuccessHandler() {
      * @param response       http сервлет ответа
      * @param authentication авторизационный класс spring security
      *
-     * @throws ServletException - для super.onAuthenticationSuccess
-     * @throws IOException - для на super.onAuthenticationSuccess
+     * @throws jakarta.servlet.ServletException - для super.onAuthenticationSuccess
+     * @throws java.io.IOException - для на super.onAuthenticationSuccess
      */
     @Throws(IOException::class, ServletException::class)
     override fun onAuthenticationSuccess(
