@@ -8,9 +8,11 @@
     "email" : "alex@gmail.com",
     "emailVerified" : true,
     "attributes" : {
+      "position2" : [ "blablabla" ],
+      "position" : [ "Group manager " ],
       "middle_name" : [ "Beans" ],
-      "phone" : [ "+7 900 800-1122" ],
-      "position" : [ "Group manager " ]
+      "phone" : [ "+7 900 100-2040" ],
+      "middle_name2" : [ "blablabla" ]
     },
     "createdTimestamp" : 1739887493014,
     "enabled" : true,
@@ -18,8 +20,8 @@
     "credentials" : [ {
       "id" : "9ca3f9b7-cc11-4728-8e07-989faaef5f95",
       "type" : "password",
-      "createdDate" : 1742808176794,
-      "secretData" : "{\"value\":\"0aJKlICQLVqMT2C5VWOfXHQEnALfpyIOhXyrwo6oXWk=\",\"salt\":\"b7tSXcZK1l/r/YN+gv2B5Q==\",\"additionalParameters\":{}}",
+      "createdDate" : 1746425561948,
+      "secretData" : "{\"value\":\"7qQ+Tk4Hdg1A7yj75UJYgexwDYuBotwZNw/Xhvw37xs=\",\"salt\":\"QUAgLFBEivWmBY4JjdU9AQ==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     } ],
     "disableableCredentialTypes" : [ ],
@@ -115,15 +117,14 @@
     "credentials" : [ {
       "id" : "7e8ef3ea-fc58-4baa-baba-63aa5e3263b6",
       "type" : "password",
-      "userLabel" : "My password",
-      "createdDate" : 1740658353601,
-      "secretData" : "{\"value\":\"iz6zE9Nt75tq8yvyJESJ+lqc3d57P5cuF5W0y/1qAxE=\",\"salt\":\"Eg24lbLyB8ykjBgDmRw0SA==\",\"additionalParameters\":{}}",
+      "createdDate" : 1744124187414,
+      "secretData" : "{\"value\":\"2R4pgKeovqaUMtUe2LGtJDJwqlfKCyUfZWT8Yrda61E=\",\"salt\":\"b29ROwFzYpRC5pz4CocVEg==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "REVIEWER", "CUSTOMER", "default-roles-springbootkeycloak" ],
     "notBefore" : 0,
-    "groups" : [ "/root/child_2" ]
+    "groups" : [ "/root/child_1", "/root/child_2", "/root/child_3" ]
   } ]
 }

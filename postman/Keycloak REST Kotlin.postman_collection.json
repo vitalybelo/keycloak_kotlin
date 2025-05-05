@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "Change User Password",
+			"name": "POST Change User Password",
 			"request": {
 				"auth": {
 					"type": "oauth2",
@@ -99,19 +99,19 @@
 			"response": []
 		},
 		{
-			"name": "Create Search User",
+			"name": "POST Create Search User",
 			"request": {
 				"auth": {
 					"type": "oauth2",
 					"oauth2": [
 						{
 							"key": "password",
-							"value": "vitos",
+							"value": "alex",
 							"type": "string"
 						},
 						{
 							"key": "username",
-							"value": "vitos",
+							"value": "alex",
 							"type": "string"
 						},
 						{
@@ -185,12 +185,67 @@
 			"response": []
 		},
 		{
-			"name": "Create Well Known",
+			"name": "GET Find Full User",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"auth": {
-					"type": "noauth"
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "password",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "clientId",
+							"value": "login-web",
+							"type": "string"
+						},
+						{
+							"key": "accessTokenUrl",
+							"value": "http://localhost:8443/realms/SpringBootKeycloak/protocol/openid-connect/token",
+							"type": "string"
+						},
+						{
+							"key": "clientSecret",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "grant_type",
+							"value": "password_credentials",
+							"type": "string"
+						},
+						{
+							"key": "client_authentication",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "scope",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "tokenName",
+							"value": "keycloak bearer token",
+							"type": "string"
+						}
+					]
 				},
-				"method": "POST",
+				"method": "GET",
 				"header": [],
 				"body": {
 					"mode": "raw",
@@ -202,7 +257,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/keycloak/api/users/well-known",
+					"raw": "http://localhost:8080/keycloak/api/users/representation/full",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -212,7 +267,676 @@
 						"keycloak",
 						"api",
 						"users",
+						"representation",
+						"full"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Find Standart User",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "password",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "clientId",
+							"value": "login-web",
+							"type": "string"
+						},
+						{
+							"key": "accessTokenUrl",
+							"value": "http://localhost:8443/realms/SpringBootKeycloak/protocol/openid-connect/token",
+							"type": "string"
+						},
+						{
+							"key": "clientSecret",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "grant_type",
+							"value": "password_credentials",
+							"type": "string"
+						},
+						{
+							"key": "client_authentication",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "scope",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "tokenName",
+							"value": "keycloak bearer token",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/users/representation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"users",
+						"representation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Userinfo Map",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "password",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "clientId",
+							"value": "login-web",
+							"type": "string"
+						},
+						{
+							"key": "accessTokenUrl",
+							"value": "http://localhost:8443/realms/SpringBootKeycloak/protocol/openid-connect/token",
+							"type": "string"
+						},
+						{
+							"key": "clientSecret",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "grant_type",
+							"value": "password_credentials",
+							"type": "string"
+						},
+						{
+							"key": "client_authentication",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "scope",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "tokenName",
+							"value": "keycloak bearer token",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/users/info",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"users",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Userinfo Map Path",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "password",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "clientId",
+							"value": "login-web",
+							"type": "string"
+						},
+						{
+							"key": "accessTokenUrl",
+							"value": "http://localhost:8443/realms/SpringBootKeycloak/protocol/openid-connect/token",
+							"type": "string"
+						},
+						{
+							"key": "clientSecret",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "grant_type",
+							"value": "password_credentials",
+							"type": "string"
+						},
+						{
+							"key": "client_authentication",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "scope",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "tokenName",
+							"value": "keycloak bearer token",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/users/1026fe4a-f98c-4954-93f5-7c6d945113d4/info",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"users",
+						"1026fe4a-f98c-4954-93f5-7c6d945113d4",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Find Brute Force User",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "password",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "clientId",
+							"value": "login-web",
+							"type": "string"
+						},
+						{
+							"key": "accessTokenUrl",
+							"value": "http://localhost:8443/realms/SpringBootKeycloak/protocol/openid-connect/token",
+							"type": "string"
+						},
+						{
+							"key": "clientSecret",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "grant_type",
+							"value": "password_credentials",
+							"type": "string"
+						},
+						{
+							"key": "client_authentication",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "scope",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "tokenName",
+							"value": "keycloak bearer token",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/users/brute-force/representation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"users",
+						"brute-force",
+						"representation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Find Brute Force User List",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "password",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "clientId",
+							"value": "login-web",
+							"type": "string"
+						},
+						{
+							"key": "accessTokenUrl",
+							"value": "http://localhost:8443/realms/SpringBootKeycloak/protocol/openid-connect/token",
+							"type": "string"
+						},
+						{
+							"key": "clientSecret",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "grant_type",
+							"value": "password_credentials",
+							"type": "string"
+						},
+						{
+							"key": "client_authentication",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "scope",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "tokenName",
+							"value": "keycloak bearer token",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/users/brute-force/list",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"users",
+						"brute-force",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PUT Change User Attributes",
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "password",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "vitos",
+							"type": "string"
+						},
+						{
+							"key": "clientId",
+							"value": "login-web",
+							"type": "string"
+						},
+						{
+							"key": "accessTokenUrl",
+							"value": "http://localhost:8443/realms/SpringBootKeycloak/protocol/openid-connect/token",
+							"type": "string"
+						},
+						{
+							"key": "clientSecret",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "grant_type",
+							"value": "password_credentials",
+							"type": "string"
+						},
+						{
+							"key": "client_authentication",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "scope",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "tokenName",
+							"value": "keycloak bearer token",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"phone\": [\r\n        \"+7 900 100-2040\"\r\n    ],\r\n    \"position2\": [\r\n        \"blablabla\"\r\n    ],\r\n    \"middle_name2\": [\r\n        \"blablabla\"\r\n    ]\r\n}\r\n    ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/users/attributes?key=middle_name&value=Beans",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"users",
+						"attributes"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "middle_name"
+						},
+						{
+							"key": "value",
+							"value": "Beans"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Read Well Known",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/public/well-known",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"public",
 						"well-known"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Delayed Response",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/experiments/timeout/2500",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"experiments",
+						"timeout",
+						"2500"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Basic Authorization",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "alex",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "alex",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/keycloak/api/basic/auth",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"keycloak",
+						"api",
+						"basic",
+						"auth"
 					]
 				}
 			},

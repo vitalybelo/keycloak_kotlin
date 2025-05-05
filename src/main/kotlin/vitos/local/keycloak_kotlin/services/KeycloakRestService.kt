@@ -211,7 +211,7 @@ class KeycloakRestService(
         try {
             return realmResource.users().get(userId).groups().map { group -> group.path }.toList()
         } catch (e: Exception) {
-            log.error("Error getting user groups assign: {}", e.message)
+            log.error(">>>> Error getting user groups assign: {}", e.message)
         }
         return emptyList()
     }

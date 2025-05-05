@@ -117,7 +117,7 @@
         "composite" : true,
         "composites" : {
           "client" : {
-            "realm-management" : [ "query-groups", "manage-clients", "query-realms", "manage-identity-providers", "manage-users", "manage-authorization", "query-users", "manage-realm", "view-clients", "view-events", "manage-events", "create-client", "view-identity-providers", "view-users", "view-authorization", "view-realm", "impersonation", "query-clients" ]
+            "realm-management" : [ "query-groups", "manage-clients", "query-realms", "manage-identity-providers", "manage-users", "manage-authorization", "query-users", "manage-realm", "view-clients", "view-events", "manage-events", "create-client", "view-identity-providers", "view-authorization", "view-users", "view-realm", "impersonation", "query-clients" ]
           }
         },
         "clientRole" : true,
