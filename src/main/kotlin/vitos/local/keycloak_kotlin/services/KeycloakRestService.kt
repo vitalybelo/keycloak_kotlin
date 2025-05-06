@@ -7,6 +7,7 @@ import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
+import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -175,8 +176,11 @@ class KeycloakRestService(
         accessTokenService.assign(headers)?.userId?.let { userId ->
             getUserRepresentationPrivate(userId)?.let { user ->
 
-                user.realmRoles = getUserRealmRolesAsList(userId)
                 user.groups = getUserGroupsAssign(userId)
+
+                val userRoles = getUserRolesMapping(userId)
+                user.realmRoles = userRoles.first
+                user.clientRoles = userRoles.second
 
                 return ResponseEntity(user, HttpStatus.OK)
             }
@@ -193,9 +197,7 @@ class KeycloakRestService(
      */
     private fun getUserRepresentationPrivate(userId: String?): UserRepresentation? {
         if (!userId.isNullOrEmpty()) {
-            return realmResource.users()
-                .search("id:$userId", 0, 1, false)
-                .firstOrNull()
+            return realmResource.users()?.get(userId)?.toRepresentation()
         }
         return null
     }
@@ -233,6 +235,26 @@ class KeycloakRestService(
             log.error(">>>> getUserRealmRolesAsList() :: Error getting user realm roles {}", e.message)
         }
         return emptyList()
+    }
+
+
+    /**
+     * Выполняет чтение всех ролей области и всех клиентских ролей, которые назначены пользователю
+     * @param userId идентификатор пользователя
+     * @return пару: список ролей области, карту клиентских ролей
+     */
+    private fun getUserRolesMapping(userId: String?): Pair<List<String>, Map<String, List<String>>> {
+
+        val mappings = realmResource.users().get(userId).roles().all
+
+        val realmRoles =
+            mappings.realmMappings?.stream()?.map(RoleRepresentation::getName)?.toList() ?: emptyList()
+
+        val clientsRoles: MutableMap<String, MutableList<String>> = HashMap()
+        mappings.clientMappings?.forEach { (key, value) ->
+            clientsRoles[key] = value.mappings.map(RoleRepresentation::getName).toMutableList()
+        }
+        return Pair(realmRoles, clientsRoles)
     }
 
 
