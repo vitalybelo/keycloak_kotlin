@@ -52,10 +52,10 @@ class AccessTokenService(
     fun assign(): AccessToken? {
 
         getHttpServletRequest()?.let { request ->
-            accessToken?.let { return it }
+            assign(request)?.let { return it }
         }
         SecurityContextHolder.getContext()?.authentication?.let { authentication ->
-            accessToken?.let { return it }
+            assign(authentication)?.let { return it }
         }
         return null
     }
