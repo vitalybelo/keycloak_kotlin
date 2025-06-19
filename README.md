@@ -22,7 +22,7 @@
 
 Приложение имеет несколько тестовых конечных точек rest api
 1. http://localhost:8080/keycloak/api/users/change-password - доступ с Bearer токеном пользователя, с любой или совсем без роли
-2. http://localhost:8080/keycloak/api/users/create - доступ с Bearer токеном пользователя, обязательно с ролью USER
+2. http://localhost:8080/keycloak/api/users/create - доступ с Bearer токеном пользователя, обязательно с ролью ADMIN
 3. http://localhost:8080/keycloak/api/users/well-known - открытый доступ без токена
 
 В папке postman проекта есть коллекция запросов 

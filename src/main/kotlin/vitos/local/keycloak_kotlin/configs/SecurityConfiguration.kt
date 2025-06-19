@@ -2,6 +2,7 @@ package vitos.local.keycloak_kotlin.configs
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -21,6 +22,7 @@ class SecurityConfiguration(
 ) {
 
     @Bean
+    @Order(1)
     fun securityConfigFilterChain(http: HttpSecurity): SecurityFilterChain {
 
         // позволяет аутентификацию с фронта, например для swagger,
@@ -53,7 +55,7 @@ class SecurityConfiguration(
                     "/public/**",
                     "/basic/**",
                     "/experiments/**").permitAll()
-                .requestMatchers("/users/create").hasAuthority("ROLE_USER")
+                .requestMatchers("/users/create").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/**").authenticated()
                 .anyRequest().denyAll()
         }
