@@ -2,6 +2,7 @@ package vitos.local.keycloak_kotlin.configs
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -14,7 +15,7 @@ import vitos.local.keycloak_kotlin.handlers.SuccessLoginHandler
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfiguration(
+class SecurityOAuth2Configuration(
 
     private val keycloakLogoutHandler: KeycloakLogoutHandler,
     private val successLoginHandler: SuccessLoginHandler
@@ -22,7 +23,7 @@ class SecurityConfiguration(
 ) {
 
     @Bean
-    @Order(1)
+    @Order(Ordered.LOWEST_PRECEDENCE)
     fun securityConfigFilterChain(http: HttpSecurity): SecurityFilterChain {
 
         // позволяет аутентификацию с фронта, например для swagger,
@@ -53,7 +54,6 @@ class SecurityConfiguration(
             request
                 .requestMatchers(
                     "/public/**",
-                    "/basic/**",
                     "/experiments/**").permitAll()
                 .requestMatchers("/users/create").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/**").authenticated()

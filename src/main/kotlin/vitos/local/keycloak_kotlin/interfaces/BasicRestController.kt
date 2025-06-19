@@ -11,13 +11,12 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
-import vitos.local.keycloak_kotlin.annotations.IsBasicAuthenticated
+
 
 @Tag(
     name = "BasicRestController",
     description = "API для тестирования features связанных с Basic авторизацией"
 )
-@IsBasicAuthenticated
 @RequestMapping("/basic")
 interface BasicRestController {
 
