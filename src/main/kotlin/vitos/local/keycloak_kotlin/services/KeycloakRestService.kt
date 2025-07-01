@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.CredentialRepresentation
+import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
@@ -238,22 +239,25 @@ class KeycloakRestService(
     }
 
 
+    private fun getUserClientsRolesAsList(userId: String): Map<String, MutableList<String>> {
+
+        val clientsRoles: MutableMap<String, MutableList<String>> = HashMap()
+        realmResource.users().get(userId).roles().all.clientMappings?.forEach { (key, value) ->
+            clientsRoles[key] = value.mappings.map(RoleRepresentation::getName).toMutableList()
+        }
+        return clientsRoles
+    }
+
+
     /**
      * Выполняет чтение всех ролей области и всех клиентских ролей, которые назначены пользователю
      * @param userId идентификатор пользователя
      * @return пару: список ролей области, карту клиентских ролей
      */
-    private fun getUserRolesMapping(userId: String?): Pair<List<String>, Map<String, List<String>>> {
+    private fun getUserRolesMapping(userId: String): Pair<List<String>, Map<String, List<String>>> {
 
-        val mappings = realmResource.users().get(userId).roles().all
-
-        val realmRoles =
-            mappings.realmMappings?.stream()?.map(RoleRepresentation::getName)?.toList() ?: emptyList()
-
-        val clientsRoles: MutableMap<String, MutableList<String>> = HashMap()
-        mappings.clientMappings?.forEach { (key, value) ->
-            clientsRoles[key] = value.mappings.map(RoleRepresentation::getName).toMutableList()
-        }
+        val realmRoles = getUserRealmRolesAsList(userId)
+        val clientsRoles = getUserClientsRolesAsList(userId)
         return Pair(realmRoles, clientsRoles)
     }
 
@@ -403,9 +407,10 @@ class KeycloakRestService(
             getUserRepresentationPrivate(keycloakUserId)?.let {
 
                 try {
+                    val userId = it.id
                     val userInfo: MutableMap<String, Any> = emptyMap<String, Any>().toMutableMap()
 
-                    userInfo["id"] = it.id ?: ""
+                    userInfo["id"] = userId ?: ""
                     userInfo["username"] = it.username ?: ""
                     userInfo["firstName"] = it.firstName ?: ""
                     userInfo["lastName"] = it.lastName ?: ""
@@ -413,8 +418,9 @@ class KeycloakRestService(
                     userInfo["createdTimestamp"] = it.createdTimestamp ?: ""
                     userInfo["enabled"] = it.isEnabled ?: true
                     userInfo["requiredActions"] = it.requiredActions ?: emptyList<String>()
-                    userInfo["roles"] = getUserRealmRolesAsList(it.id)
-                    userInfo["groups"] = getUserGroupsAssign(it.id)
+                    userInfo["realm_roles"] = getUserRealmRolesAsList(userId)
+                    userInfo["clients_roles"] = getUserClientsRolesAsList(userId)
+                    userInfo["groups"] = getUserGroupsAssign(userId)
 
                     it.attributes.forEach { k, v -> userInfo[k] = v.firstOrNull() ?: "" }
 
@@ -441,14 +447,55 @@ class KeycloakRestService(
      */
     private fun collectUserId(userId: String?, headers: Map<String, String>): String? {
 
-        if (parameterChecker.isValidUUID(userId)) {
-            return userId
+        if (parameterChecker.isValidUUID(userId)) { return userId
         }
-        accessTokenService.assign(headers)?.let {
-            return it.userId
-        }
+        accessTokenService.assign(headers)?.let { return it.userId }
         return null
     }
 
+
+    /**
+     * Выполняет формирование списка всех ролей групп, которые иерархически закреплены пользователю,
+     * включая дочерние группы. Данные пользователя извлекаются из токена доступа, переданного в headers запроса.
+     * Если в метод не передана карта заголовков, токен извлекается из контекста безопасности spring security.
+     *
+     * @param headers заголовки http запроса
+     * @return список ролей всех групп, включая дочерние, которые закреплены для пользователя
+     */
+    fun findGroupAssignedRoleList(headers: Map<String, String>?): ResponseEntity<Any> {
+
+        val userId = headers?.let { accessTokenService.assign(it)?.userId }
+            ?: accessTokenService.assign()?.userId
+            ?: return ResponseEntity("JWT not found", HttpStatus.BAD_REQUEST)
+
+        val rolesSet = mutableSetOf<String>()
+        realmResource.users().get(userId).groups(0, Integer.MAX_VALUE, false)?.let { groups ->
+            groups.forEach { recursiveGroups(rolesSet, it) }
+        }
+        return ResponseEntity(rolesSet.sorted(), HttpStatus.OK)
+    }
+
+
+    private fun recursiveGroups(
+        roleSet: MutableSet<String>,
+        parentGroup: GroupRepresentation
+    ) {
+        addGroupRoles(roleSet, parentGroup)
+        realmResource.groups().group(parentGroup.id)
+            ?.getSubGroups(0, Integer.MAX_VALUE, false)?.let { subGroups ->
+            subGroups.forEach { childGroup ->
+                addGroupRoles(roleSet, childGroup)
+                recursiveGroups(roleSet, childGroup)
+            }
+        }
+    }
+
+    private fun addGroupRoles(
+        roles: MutableSet<String>,
+        group: GroupRepresentation
+    ) {
+        group.realmRoles?.let { roles.addAll(it) }
+        group.clientRoles?.values?.flatMap { it.toList() }?.let { roles.addAll(it) }
+    }
 
 }

@@ -13,6 +13,7 @@ import vitos.local.keycloak_kotlin.services.KeycloakRestService
 @Controller
 @CrossOrigin
 class KeycloakRestControllerImpl(
+
     private val keycloakService: KeycloakRestService,
 ) : KeycloakRestController {
 
@@ -72,6 +73,11 @@ class KeycloakRestControllerImpl(
             return keycloakService.changeUserAttributes(key, value, attributesMap)
         }
         return ResponseEntity("Incorrect request parameters", HttpStatus.BAD_REQUEST)
+    }
+
+
+    override fun findGroupAssignedRoleList(headers: Map<String, String>?): ResponseEntity<Any> {
+        return keycloakService.findGroupAssignedRoleList(headers)
     }
 
 

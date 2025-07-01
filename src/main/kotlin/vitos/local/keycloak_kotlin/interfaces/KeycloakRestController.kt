@@ -233,4 +233,31 @@ interface KeycloakRestController {
         @RequestBody(required = false) attributesMap: Map<String, List<String>>?
     ): ResponseEntity<Any>
 
+
+    /**
+     * Выполняет формирование списка всех ролей групп, которые иерархически закреплены пользователю.
+     * Данные пользователя извлекаются из токена доступа, переданного в headers запроса. Если в метод
+     * не передана карта заголовков, токен извлекается из контекста безопасности spring security.
+     *
+     * @param headers заголовки http запроса
+     * @return список ролей всех групп, включая дочерние, которые закреплены для пользователя
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Список ролей получен, выполнено успешно", content = [
+                    (Content(
+                        mediaType = "application/json", array = (
+                                ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Не обнаружен токен и данные пользователя ", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Ошибка обновления атрибутов", content = [Content()])
+        ]
+    )
+    @RequestMapping("/groups/role-list", method = [RequestMethod.GET])
+    @Operation(summary = "Выполняет формирование списка всех ролей групп, которые иерархически закреплены пользователю.")
+    fun findGroupAssignedRoleList( @RequestHeader headers: Map<String, String>? = null): ResponseEntity<Any>
+
 }
