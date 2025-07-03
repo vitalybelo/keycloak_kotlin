@@ -185,7 +185,7 @@ class KeycloakRestService(
 
                 return ResponseEntity(user, HttpStatus.OK)
             }
-            return ResponseEntity("Пользователь не найден", HttpStatus.NOT_FOUND)
+            return ResponseEntity(null, HttpStatus.NOT_FOUND)
         }
         return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -378,17 +378,89 @@ class KeycloakRestService(
     private fun findUserByAttributes(key: String?, value: String?): UserRepresentation? {
 
         realmResource.users()
-            .searchByAttributes("$key:$value", true)
-            ?.let { list ->
-                list.stream()
-                    .filter { user ->
-                        user.attributes[key]?.any { s -> s.equals(value) } == true
-                    }
-                    .findFirst()
-                    .orElse(null)
-                    ?.let { return it }
+            .searchByAttributes("$key:$value", true)?.let { userList ->
+            userList.stream()
+                .filter { user -> user.attributes[key]?.any { s -> s.equals(value) } == true }
+                .findFirst()
+                .orElse(null)
+                ?.let { return it }
             }
         return null
+    }
+
+
+    /**
+     * Метод возвращает список сущностей пользователей Keycloak у которых совпадают значения атрибута.
+     * Поиск пользователей выполняется по заданному атрибуту. Найденный список возвращается с ответом 200
+     *
+     * @param key ключ атрибута для поиска пользователя
+     * @param value значение атрибута для поиска пользователя
+     * @return список сущностей найденных пользователей Keycloak
+     */
+    fun findUserListByAttributes(
+        key: String?,
+        value: String?
+    ): ResponseEntity<Any> {
+
+        if (key != null && value != null) {
+            try {
+                realmResource.users()
+                    .searchByAttributes("$key:$value", true)?.let { userList ->
+                        if (userList.isNotEmpty()) {
+                            return ResponseEntity(userList, HttpStatus.OK)
+                        }
+                    }
+                return ResponseEntity(null, HttpStatus.NOT_FOUND)
+            } catch (ex: Exception) {
+                log.error(">>>> Error during searching user list by attributes {}", ex.message)
+                log.debug(">>>> DEBUG :: ", ex)
+            }
+            return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+        return ResponseEntity(null, HttpStatus.BAD_REQUEST)
+    }
+
+
+    /**
+     * Метод выполняет обновление в карте атрибутов на каждого пользователя Keycloak переданного в списке.
+     *
+     * @param userList список сущностей найденных пользователей Keycloak
+     * @return статус выполнения и сообщение
+     */
+    fun updateUserListByAttributes(userList: List<Map<String, Any>?>?): ResponseEntity<Any> {
+
+        if (!userList.isNullOrEmpty()) {
+            userList.forEach { user ->
+                if (user is Map<String, Any>) {
+                    try {
+                        val userId = user["id"] as String
+                        realmResource.users().get(userId)?.let { userResource ->
+                            userResource.toRepresentation()?.let { userRepresentation ->
+
+                                val attributesMap: Any? = user["attributes"]
+                                if (attributesMap is Map<*, *>) {
+                                    attributesMap.forEach { key, values ->
+                                        if (key is String && values is List<*>) {
+                                            val valueList = values.stream().map { v -> v as String }.toList()
+                                            //values.forEach { v -> valueList.add(v as String) }
+                                            userRepresentation.attributes[key] = valueList
+                                        }
+                                    }
+                                }
+                                userResource.update(userRepresentation)
+                            }
+                        }
+                    } catch (ex: Exception) {
+                        log.error(">>>> Error during update user list by attributes {}", ex.message)
+                        return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+                    }
+                } else {
+                    log.warn("Impossible to perform update for user = null")
+                }
+            }
+            return ResponseEntity("Успешно обновлено пользователей = ${userList.size}", HttpStatus.OK)
+        }
+        return ResponseEntity(null, HttpStatus.BAD_REQUEST)
     }
 
 

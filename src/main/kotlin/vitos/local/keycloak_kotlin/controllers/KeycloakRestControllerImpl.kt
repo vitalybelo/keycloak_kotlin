@@ -80,5 +80,18 @@ class KeycloakRestControllerImpl(
         return keycloakService.findGroupAssignedRoleList(headers)
     }
 
+    override fun getUserListByAttribute(
+        key: String?,
+        value: String?
+    ): ResponseEntity<Any> {
+        return keycloakService.findUserListByAttributes(key, value)
+    }
+
+    override fun updateUserListByAttribute(
+        userList: List<Map<String, Any>?>?
+    ): ResponseEntity<Any> {
+        return keycloakService.updateUserListByAttributes(userList)
+    }
+
 
 }

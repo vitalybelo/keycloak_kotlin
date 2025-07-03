@@ -105,10 +105,12 @@ interface KeycloakRestController {
             ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
         ]
     )
-    @RequestMapping(value = ["/{user_id}/info","/info"], method = [RequestMethod.GET])
+    @RequestMapping(value = ["/{user_id}/info", "/info"], method = [RequestMethod.GET])
     @Operation(summary = "Возвращает расширенную brute-force информацию о пользователе из Keycloak")
-    fun getUserInfo(@PathVariable("user_id", required = false) userId: String?,
-                    @RequestHeader headers: Map<String, String>): ResponseEntity<Any>
+    fun getUserInfo(
+        @PathVariable("user_id", required = false) userId: String?,
+        @RequestHeader headers: Map<String, String>
+    ): ResponseEntity<Any>
 
 
     /**
@@ -209,6 +211,9 @@ interface KeycloakRestController {
      * Выполняет поиск пользователя по заданному атрибуту, а затем добавляет или обновляет карту атрибутов
      * значениями, переданным в теле запроса
      *
+     * @param key ключ атрибута для поиска пользователя
+     * @param value значение атрибута для поиска пользователя
+     * @param attributesMap карта атрибутов пользователя для обновления
      * @return возвращает статус выполнения
      */
     @ApiResponses(
@@ -251,13 +256,74 @@ interface KeycloakRestController {
                                 ArraySchema(schema = Schema(implementation = Any::class)))
                     ))]
             ),
-            ApiResponse(responseCode = "400", description = "Не обнаружен токен и данные пользователя ", content = [Content()]),
+            ApiResponse(
+                responseCode = "400",
+                description = "Не обнаружен токен и данные пользователя ",
+                content = [Content()]
+            ),
             ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
             ApiResponse(responseCode = "500", description = "Ошибка обновления атрибутов", content = [Content()])
         ]
     )
     @RequestMapping("/groups/role-list", method = [RequestMethod.GET])
     @Operation(summary = "Выполняет формирование списка всех ролей групп, которые иерархически закреплены пользователю.")
-    fun findGroupAssignedRoleList( @RequestHeader headers: Map<String, String>? = null): ResponseEntity<Any>
+    fun findGroupAssignedRoleList(@RequestHeader headers: Map<String, String>? = null): ResponseEntity<Any>
+
+
+    /**
+     * Метод возвращает список сущностей пользователей Keycloak у которых совпадают значения атрибута.
+     * Поиск пользователей выполняется по заданному атрибуту. Найденный список возвращается с ответом 200
+     *
+     * @param key ключ атрибута для поиска пользователя
+     * @param value значение атрибута для поиска пользователя
+     * @return список сущностей найденных пользователей Keycloak
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Список сущностей пользователей, удовлетворяющих критерию поиска", content = [
+                    (Content(
+                        mediaType = "application/json",
+                        array = (ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Ни один пользователь не найден", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+        ]
+    )
+    @RequestMapping(value = ["/list/by-attributes"], method = [RequestMethod.GET])
+    @Operation(summary = "Возвращает список сущностей пользователей Keycloak по заданному атрибуту")
+    fun getUserListByAttribute(
+        @RequestParam(required = true) key: String?,
+        @RequestParam(required = true) value: String?,
+    ): ResponseEntity<Any>
+
+
+
+    /**
+     * Метод выполняет обновление в карте атрибутов на каждого пользователя Keycloak переданного в списке.
+     *
+     * @param userList список сущностей найденных пользователей Keycloak
+     * @return статус выполнения и сообщение
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Выполнено успешно", content = [
+                    (Content(
+                        mediaType = "application/json",
+                        array = (ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+        ]
+    )
+    @RequestMapping(value = ["/list/by-attributes"], method = [RequestMethod.PUT])
+    @Operation(summary = "Выполняет изменение атрибутов для каждого переданного в списке пользователя Keycloak")
+    fun updateUserListByAttribute(
+        @RequestBody userList: List<Map<String, Any>?>?
+    ): ResponseEntity<Any>
 
 }
