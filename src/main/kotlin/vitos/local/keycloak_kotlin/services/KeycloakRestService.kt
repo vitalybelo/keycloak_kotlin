@@ -442,8 +442,7 @@ class KeycloakRestService(
                                     attributesMap.forEach { key, values ->
                                         if (key is String && values is List<*>) {
                                             val valueList = values.stream().map { v -> v as String }.toList()
-                                            //values.forEach { v -> valueList.add(v as String) }
-                                            userRepresentation.attributes[key] = valueList
+                                            userRepresentation.attributes.put(key, valueList)
                                         }
                                     }
                                 }

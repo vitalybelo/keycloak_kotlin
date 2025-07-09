@@ -27,6 +27,9 @@ class MainPageController(
     @GetMapping("/")
     fun index(authentication: Authentication, model: Model): String {
 
+        logger.info(">>>>> Phone = ${accessTokenService.getClaims()["phone"]}")
+        logger.info(">>>>> Position = ${accessTokenService.getClaims()["position"]}")
+
         val accessToken = accessTokenService.assign(authentication)
         val clientRoles = accessTokenService.streamClientRoles()
         val realmRoles = accessTokenService.streamRealmRoles()

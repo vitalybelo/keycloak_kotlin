@@ -89,6 +89,25 @@ class AccessTokenService(
 
 
     /**
+     * Метод извлекает принципал из контекста безопасности spring security. В зависимости от источника
+     * запроса и типа токена (JWT или JSESSIONID) извлекается карта с утверждениями токена
+     *
+     * @return карта с утверждениями токена или пустая
+    */
+    fun getClaims(): Map<String, Any> {
+        SecurityContextHolder.getContext()?.authentication?.principal?.let { principal ->
+            if (principal is DefaultOidcUser) {
+                return principal.claims
+            }
+            if (principal is Jwt) {
+                return principal.claims
+            }
+        }
+        return emptyMap()
+    }
+
+
+    /**
      * Извлекает из заголовка http запроса токен доступа, и инициализирует с помощью него класс AccessToken
      *
      * @param headers - карта заголовков http запроса
