@@ -51,11 +51,11 @@ class AccessTokenService(
      */
     fun assign(): AccessToken? {
 
-        getHttpServletRequest()?.let { request ->
-            assign(request)?.let { return it }
-        }
         SecurityContextHolder.getContext()?.authentication?.let { authentication ->
             assign(authentication)?.let { return it }
+        }
+        getHttpServletRequest()?.let { request ->
+            assign(request)?.let { return it }
         }
         return null
     }

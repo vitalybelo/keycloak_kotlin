@@ -25,9 +25,8 @@ class KeycloakJwtConverter: Converter<Jwt, AbstractAuthenticationToken> {
         var authorities: Collection<GrantedAuthority> = emptyList()
         try {
             // извлечение мульти-карты ролей области пользователя из токена
-            val realmAccess: Map<String, MutableList<String>> = jwt.getClaim("realm_access")
-            if (realmAccess.isNotEmpty()) {
-
+            val realmAccess: Map<String, MutableList<String>?>? = jwt.getClaim("realm_access")
+            if (!realmAccess.isNullOrEmpty()) {
                 // извлечение списка ролей области для пользователя
                 val roles = realmAccess["roles"]
 
@@ -38,8 +37,9 @@ class KeycloakJwtConverter: Converter<Jwt, AbstractAuthenticationToken> {
                         .collect(Collectors.toList())
                 }
             }
-        } catch (e: Exception) {
-            log.error(">>>> Exception occurred while converting authorities of JWT\n{}", e.localizedMessage)
+        } catch (ex: Exception) {
+            log.error(">>>> Exception occurred while converting authorities of JWT {}", ex.localizedMessage)
+            log.debug(">>>> DEBUG :: ", ex)
         }
         // создание объекта аутентификации
         return JwtAuthenticationToken(jwt, authorities)
