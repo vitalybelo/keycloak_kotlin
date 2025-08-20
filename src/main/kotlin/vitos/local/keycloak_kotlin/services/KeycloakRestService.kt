@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.CredentialRepresentation
@@ -25,11 +28,10 @@ import vitos.local.keycloak_kotlin.configs.KeycloakTokenService
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 import vitos.local.keycloak_kotlin.handlers.ParameterChecker
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
-import java.util.concurrent.Executors
-import java.util.stream.Collectors
 
-@Suppress("unused", "DuplicatedCode")
+
 @Service
+@Suppress("unused", "DuplicatedCode")
 class KeycloakRestService(
 
     @param:Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
@@ -592,23 +594,40 @@ class KeycloakRestService(
         if (key.isNullOrEmpty() || values.isNullOrEmpty()) {
             throw IllegalArgumentException()
         }
-        val requestSet: MutableSet<String> = values.stream().filter { !it.isNullOrEmpty() }.collect(Collectors.toSet())
-        val responseSet: MutableSet<String> = mutableSetOf()
-        requestSet.map { value ->
-            findUserByAttributes(key, value)?.let { user ->
-                try {
-                    realmResource.users().delete(user.id)
-                    log.debug("Deleting user = ${user.username} performed successfully")
-                    responseSet.add(value)
-                } catch (ex: Exception) {
-                    log.error("Delete error occurred for user ${user.username}, message = ${ex.message}, cause = ${ex.cause}")
-                }
-            } ?: log.debug("User :: $key = $value not found in Keycloak")
+        val requestSet = values.filterNotNull().toSet()
+        var successfulDeleted = setOf<String>()
+
+        CoroutineScope(Dispatchers.Default).launch {
+            successfulDeleted = deleteUsersConcurrently(key, requestSet)
+            log.info("Successfully deleted: $successfulDeleted")
         }
+
         return ResponseEntity(
-            responseSet,
-            if (responseSet.isEmpty()) HttpStatus.NOT_FOUND else HttpStatus.OK
+            successfulDeleted,
+            if (successfulDeleted.isEmpty()) HttpStatus.NOT_FOUND else HttpStatus.OK
         )
+    }
+
+    suspend fun deleteUsersConcurrently(key: String, requestSet: Set<String>): Set<String> {
+
+        return supervisorScope {
+            val deferredResults = requestSet.map { value ->
+                async(Dispatchers.IO) {
+                    try {
+                        findUserByAttributes(key, value)?.let { user ->
+                            realmResource.users().delete(user.id)
+                            log.debug("Deleting user = ${user.username} performed successfully")
+                            return@async value
+                        } ?: log.debug("User :: $key = $value not found in Keycloak")
+                    } catch (ex: Exception) {
+                        log.error("Delete error occurred for user with value $value, message = ${ex.message}, cause = ${ex.cause}")
+                    }
+                    return@async null
+                }
+            }
+            val successfulValues = deferredResults.awaitAll()
+            successfulValues.filterNotNull().toSet()
+        }
     }
 
 }
