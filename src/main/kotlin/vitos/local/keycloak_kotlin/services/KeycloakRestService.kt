@@ -3,6 +3,9 @@ package vitos.local.keycloak_kotlin.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.CredentialRepresentation
@@ -22,16 +25,18 @@ import vitos.local.keycloak_kotlin.configs.KeycloakTokenService
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 import vitos.local.keycloak_kotlin.handlers.ParameterChecker
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
+import java.util.concurrent.Executors
+import java.util.stream.Collectors
 
 @Suppress("unused", "DuplicatedCode")
 @Service
 class KeycloakRestService(
 
-    @Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+    @param:Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
     private val issuerURL: String? = null,
-    @Value("\${keycloak.server.url}")
+    @param:Value("\${keycloak.server.url}")
     private val keycloakServerURL: String? = null,
-    @Value("\${keycloak.realm}")
+    @param:Value("\${keycloak.realm}")
     private val keycloakRealm: String? = null,
     private val realmResource: RealmResource,
     private val restTemplate: RestTemplate,
@@ -379,11 +384,11 @@ class KeycloakRestService(
 
         realmResource.users()
             .searchByAttributes("$key:$value", true)?.let { userList ->
-            userList.stream()
-                .filter { user -> user.attributes[key]?.any { s -> s.equals(value) } == true }
-                .findFirst()
-                .orElse(null)
-                ?.let { return it }
+                userList.stream()
+                    .filter { user -> user.attributes[key]?.any { s -> s.equals(value) } == true }
+                    .findFirst()
+                    .orElse(null)
+                    ?.let { return it }
             }
         return null
     }
@@ -439,10 +444,10 @@ class KeycloakRestService(
 
                                 val attributesMap: Any? = user["attributes"]
                                 if (attributesMap is Map<*, *>) {
-                                    attributesMap.forEach { key, values ->
+                                    attributesMap.forEach { (key, values) ->
                                         if (key is String && values is List<*>) {
                                             val valueList = values.stream().map { v -> v as String }.toList()
-                                            userRepresentation.attributes.put(key, valueList)
+                                            userRepresentation.attributes[key] = valueList
                                         }
                                     }
                                 }
@@ -493,7 +498,7 @@ class KeycloakRestService(
                     userInfo["clients_roles"] = getUserClientsRolesAsList(userId)
                     userInfo["groups"] = getUserGroupsAssign(userId)
 
-                    it.attributes.forEach { k, v -> userInfo[k] = v.firstOrNull() ?: "" }
+                    it.attributes.forEach { (k, v) -> userInfo[k] = v.firstOrNull() ?: "" }
 
                     return ResponseEntity(userInfo, HttpStatus.OK)
                 } catch (ex: Exception) {
@@ -518,7 +523,8 @@ class KeycloakRestService(
      */
     private fun collectUserId(userId: String?, headers: Map<String, String>): String? {
 
-        if (parameterChecker.isValidUUID(userId)) { return userId
+        if (parameterChecker.isValidUUID(userId)) {
+            return userId
         }
         accessTokenService.assign(headers)?.let { return it.userId }
         return null
@@ -554,11 +560,11 @@ class KeycloakRestService(
         addGroupRoles(roleSet, parentGroup)
         realmResource.groups().group(parentGroup.id)
             ?.getSubGroups(0, Integer.MAX_VALUE, false)?.let { subGroups ->
-            subGroups.forEach { childGroup ->
-                addGroupRoles(roleSet, childGroup)
-                recursiveGroups(roleSet, childGroup)
+                subGroups.forEach { childGroup ->
+                    addGroupRoles(roleSet, childGroup)
+                    recursiveGroups(roleSet, childGroup)
+                }
             }
-        }
     }
 
     private fun addGroupRoles(
@@ -569,4 +575,41 @@ class KeycloakRestService(
         group.clientRoles?.values?.flatMap { it.toList() }?.let { roles.addAll(it) }
     }
 
+
+    /**
+     * Метод выполняет поиск пользователей по заданному списку атрибутов, переданных в метод.
+     * Для каждого найденного пользователя, вызывается метода REST API удаления из Keycloak
+
+     * @param key ключ атрибута для поиска пользователя
+     * @param values список значений атрибута для поиска пользователя
+     * @return список значений атрибутов, по которым выполнено успешное удаление
+     */
+    fun deleteUsersByAttributeList(
+        key: String?,
+        values: List<String?>?
+    ): ResponseEntity<out Collection<String>> {
+
+        if (key.isNullOrEmpty() || values.isNullOrEmpty()) {
+            throw IllegalArgumentException()
+        }
+        val requestSet: MutableSet<String> = values.stream().filter { !it.isNullOrEmpty() }.collect(Collectors.toSet())
+        val responseSet: MutableSet<String> = mutableSetOf()
+        requestSet.map { value ->
+            findUserByAttributes(key, value)?.let { user ->
+                try {
+                    realmResource.users().delete(user.id)
+                    log.debug("Deleting user = ${user.username} performed successfully")
+                    responseSet.add(value)
+                } catch (ex: Exception) {
+                    log.error("Delete error occurred for user ${user.username}, message = ${ex.message}, cause = ${ex.cause}")
+                }
+            } ?: log.debug("User :: $key = $value not found in Keycloak")
+        }
+        return ResponseEntity(
+            responseSet,
+            if (responseSet.isEmpty()) HttpStatus.NOT_FOUND else HttpStatus.OK
+        )
+    }
+
 }
+

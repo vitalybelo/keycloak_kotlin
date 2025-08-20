@@ -93,5 +93,12 @@ class KeycloakRestControllerImpl(
         return keycloakService.updateUserListByAttributes(userList)
     }
 
+    override fun deleteUsersByAttributeList(
+        key: String?,
+        values: List<String?>?
+    ): ResponseEntity<out Collection<String>> {
+        return keycloakService.deleteUsersByAttributeList(key, values)
+    }
+
 
 }

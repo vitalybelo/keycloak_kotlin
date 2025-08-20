@@ -281,7 +281,9 @@ interface KeycloakRestController {
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "200", description = "Список сущностей пользователей, удовлетворяющих критерию поиска", content = [
+                responseCode = "200",
+                description = "Список сущностей пользователей, удовлетворяющих критерию поиска",
+                content = [
                     (Content(
                         mediaType = "application/json",
                         array = (ArraySchema(schema = Schema(implementation = Any::class)))
@@ -298,7 +300,6 @@ interface KeycloakRestController {
         @RequestParam(required = true) key: String?,
         @RequestParam(required = true) value: String?,
     ): ResponseEntity<Any>
-
 
 
     /**
@@ -325,5 +326,35 @@ interface KeycloakRestController {
     fun updateUserListByAttribute(
         @RequestBody userList: List<Map<String, Any>?>?
     ): ResponseEntity<Any>
+
+
+    /**
+     * Метод выполняет поиск пользователей по заданному списку атрибутов, переданных в метод.
+     * Для каждого найденного пользователя, вызывается метода REST API удаления из Keycloak
+
+     * @param key ключ атрибута для поиска пользователя
+     * @param values список значений атрибута для поиска пользователя
+     * @return список значений атрибутов, по которым выполнено успешное удаление
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Выполнено успешно", content = [
+                    (Content(
+                        mediaType = "application/json",
+                        array = (ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Ни один пользователь не найден", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+        ]
+    )
+    @RequestMapping(value = ["/by-attribute-list"], method = [RequestMethod.DELETE])
+    @Operation(summary = "Выполняет поиск пользователей по атрибуту и удаляет каждого найденного из Keycloak")
+    fun deleteUsersByAttributeList(
+        @RequestParam(required = true) key: String?,
+        @RequestBody(required = true) values: List<String?>?
+    ): ResponseEntity<out Collection<String>>
 
 }

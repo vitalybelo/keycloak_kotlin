@@ -20,6 +20,13 @@ class GlobalExceptionHandler {
     private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
 
+    @ExceptionHandler(IllegalArgumentException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun badRequestParametersException() {
+        log.error("Bad parameters occurred in request")
+    }
+
+
     @ExceptionHandler(TimeoutException::class)
     @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
     fun handleTimeoutException() {
