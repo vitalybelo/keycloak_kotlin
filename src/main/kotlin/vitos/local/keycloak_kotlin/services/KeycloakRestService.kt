@@ -3,11 +3,10 @@ package vitos.local.keycloak_kotlin.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.resource.RealmResource
@@ -24,10 +23,15 @@ import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import vitos.local.keycloak_kotlin.authorization.AccessTokenService
-import vitos.local.keycloak_kotlin.configs.KeycloakTokenService
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 import vitos.local.keycloak_kotlin.handlers.ParameterChecker
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
+import vitos.local.keycloak_kotlin.models.DeleteUsersEventDto
+import vitos.local.keycloak_kotlin.models.DeleteUsersEnum
+import vitos.local.keycloak_kotlin.models.DeleteUsersResponseDto
+import java.time.DateTimeException
+import java.time.Instant
+import javax.management.timer.Timer
 
 
 @Service
@@ -40,6 +44,11 @@ class KeycloakRestService(
     private val keycloakServerURL: String? = null,
     @param:Value("\${keycloak.realm}")
     private val keycloakRealm: String? = null,
+    @param:Value("\${dormant.delete.ft-userdel-event:false}")
+    private val isDeleteEventToggleON: Boolean,
+    @param:Value("\${dormant.delete.last-enter-time-period:48}")
+    private val lastEnterTimePeriodHours: Long,
+
     private val realmResource: RealmResource,
     private val restTemplate: RestTemplate,
     private val accessTokenService: AccessTokenService,
@@ -49,7 +58,8 @@ class KeycloakRestService(
 
 ) {
 
-    private val log = LoggerFactory.getLogger(KeycloakRestService::class.java)
+    private val logger = LoggerFactory.getLogger(KeycloakRestService::class.java)
+    private val lastEnterTimePeriodMillis = lastEnterTimePeriodHours * Timer.ONE_HOUR
 
 
     /**
@@ -77,7 +87,7 @@ class KeycloakRestService(
             ?: accessTokenService.assign(headers)?.login
             ?: return notFoundResponse("Parameter username missed")
 
-        log.info("Changing password procedure for: $userName is starting...")
+        logger.info("Changing password procedure for: $userName is starting...")
         try {
             // Ищем пользователя и получаем ресурс администрирования пользователя и области сервисов
             val user = realmResource.users().searchByUsername(userName, true).firstOrNull()
@@ -93,7 +103,7 @@ class KeycloakRestService(
             val passwordPolicies: String? = realm.passwordPolicy
             realm.passwordPolicy = ""
             realmResource.update(realm)
-            log.info("Realm password policies reset ...")
+            logger.info("Realm password policies reset ...")
 
             // создаем новую сущность для пароля пользователя типа PASSWORD и выполняем сброс пароля
             val credential = CredentialRepresentation()
@@ -106,12 +116,12 @@ class KeycloakRestService(
             // восстанавливаем политики для паролей до дефолтных для области сервисов
             realm.passwordPolicy = passwordPolicies
             realmResource.update(realm)
-            log.info("Realm password policies restored ...")
+            logger.info("Realm password policies restored ...")
 
             return ResponseEntity("Password changed successfully for user: $userName", HttpStatus.OK)
 
         } catch (e: Exception) {
-            log.error("Error during changing password\n {}", e.localizedMessage)
+            logger.error("Error during changing password\n {}", e.localizedMessage)
         }
         return ResponseEntity("Error during changing password", HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -133,19 +143,19 @@ class KeycloakRestService(
                 if (response.status == 201) {
                     val userId = CreatedResponseUtil.getCreatedId(response)
                     if (!userId.isNullOrBlank()) {
-                        log.info(">>>> User {} created :: {}", userName, userId)
+                        logger.info(">>>> User {} created :: {}", userName, userId)
                         realmResource.users()?.get(userId)?.toRepresentation()?.also {
                             return ResponseEntity(it, HttpStatus.CREATED)
                         }
                     }
                 }
-                log.info(">>>> Create failed, search existing by username :: {}", userName)
+                logger.info(">>>> Create failed, search existing by username :: {}", userName)
                 realmResource.users().searchByUsername(userName, true).firstOrNull()?.also {
                     return ResponseEntity(it, HttpStatus.OK)
                 }
             }
         } catch (e: Exception) {
-            log.info(">>>> Fatal error creating user :: {}", userName)
+            logger.info(">>>> Fatal error creating user :: {}", userName)
         }
         return ResponseEntity("Fatal error creating user in keycloak", HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -221,7 +231,7 @@ class KeycloakRestService(
         try {
             return realmResource.users().get(userId).groups().map { group -> group.path }.toList()
         } catch (e: Exception) {
-            log.error(">>>> Error getting user groups assign: {}", e.message)
+            logger.error(">>>> Error getting user groups assign: {}", e.message)
         }
         return emptyList()
     }
@@ -240,7 +250,7 @@ class KeycloakRestService(
                 return roleMappingResource.realmLevel().listEffective().stream().map { role -> role.name }.toList()
             }
         } catch (e: Exception) {
-            log.error(">>>> getUserRealmRolesAsList() :: Error getting user realm roles {}", e.message)
+            logger.error(">>>> getUserRealmRolesAsList() :: Error getting user realm roles {}", e.message)
         }
         return emptyList()
     }
@@ -334,7 +344,7 @@ class KeycloakRestService(
                 return bruteForceUserList
             }
         } catch (e: java.lang.Exception) {
-            log.error(">>>> Request to Keycloak UI-EXT failed >>>> {}", e.message)
+            logger.error(">>>> Request to Keycloak UI-EXT failed >>>> {}", e.message)
         }
         return null
     }
@@ -367,10 +377,10 @@ class KeycloakRestService(
 
             } catch (ignored: Exception) {
             }
-            log.error(">>>> Error during changing user attributes :: {}", userRepresentation)
+            logger.error(">>>> Error during changing user attributes :: {}", userRepresentation)
             return ResponseEntity("Error updating user attributes", HttpStatus.INTERNAL_SERVER_ERROR)
         }
-        log.error(">>>> User with $key:$value not found")
+        logger.error(">>>> User with $key:$value not found")
         return ResponseEntity("User not found", HttpStatus.NOT_FOUND)
     }
 
@@ -419,8 +429,8 @@ class KeycloakRestService(
                     }
                 return ResponseEntity(null, HttpStatus.NOT_FOUND)
             } catch (ex: Exception) {
-                log.error(">>>> Error during searching user list by attributes {}", ex.message)
-                log.debug(">>>> DEBUG :: ", ex)
+                logger.error(">>>> Error during searching user list by attributes {}", ex.message)
+                logger.debug(">>>> DEBUG :: ", ex)
             }
             return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -457,11 +467,11 @@ class KeycloakRestService(
                             }
                         }
                     } catch (ex: Exception) {
-                        log.error(">>>> Error during update user list by attributes {}", ex.message)
+                        logger.error(">>>> Error during update user list by attributes {}", ex.message)
                         return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
                     }
                 } else {
-                    log.warn("Impossible to perform update for user = null")
+                    logger.warn("Impossible to perform update for user = null")
                 }
             }
             return ResponseEntity("Успешно обновлено пользователей = ${userList.size}", HttpStatus.OK)
@@ -504,7 +514,7 @@ class KeycloakRestService(
 
                     return ResponseEntity(userInfo, HttpStatus.OK)
                 } catch (ex: Exception) {
-                    log.error(">>>> getUserInfo() :: undefined error occurred ${ex.message}")
+                    logger.error(">>>> getUserInfo() :: undefined error occurred ${ex.message}")
                 }
                 return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
             }
@@ -569,6 +579,7 @@ class KeycloakRestService(
             }
     }
 
+
     private fun addGroupRoles(
         roles: MutableSet<String>,
         group: GroupRepresentation
@@ -583,52 +594,132 @@ class KeycloakRestService(
      * Для каждого найденного пользователя, вызывается метода REST API удаления из Keycloak
 
      * @param key ключ атрибута для поиска пользователя
-     * @param values список значений атрибута для поиска пользователя
-     * @return список значений атрибутов, по которым выполнено успешное удаление
+     * @param requestSet набор значений атрибута для поиска пользователя и удаления
+     * @param isHardDelete тестовая заглушка, для исключения удаления пользователей при тестировании
+     * @return коллекция значений атрибута и статуса выполнения удаления
+     *
+     * Статус выполнения удаления:
+     * 2 - пользователя нет в Keycloak / пользователь найден и удален успешно,
+     * 3 - не требуется удаление пользователя (он найден, обнаружен вход в установленный период)
+     * 999 - пользователь найден, но при выполнении удаления произошла непредвиденная ошибка
+     * @author Belotserkovskii Vitaly
      */
     fun deleteUsersByAttributeList(
-        key: String?,
-        values: List<String?>?
-    ): ResponseEntity<out Collection<String>> {
 
-        if (key.isNullOrEmpty() || values.isNullOrEmpty()) {
-            throw IllegalArgumentException()
+        key: String,
+        requestSet: Set<String>,
+        isHardDelete: Boolean
+    ): ResponseEntity<out Collection<DeleteUsersResponseDto>> {
+
+        var deletedUsers: List<DeleteUsersResponseDto> = listOf()
+        runBlocking {
+            deletedUsers = deleteUsersConcurrently(key, requestSet, isHardDelete)
+            logger.info("Deletion procedure finished. Performed = ${deletedUsers.size} users")
         }
-        val requestSet = values.filterNotNull().toSet()
-        var successfulDeleted = setOf<String>()
-
-        CoroutineScope(Dispatchers.Default).launch {
-            successfulDeleted = deleteUsersConcurrently(key, requestSet)
-            log.info("Successfully deleted: $successfulDeleted")
-        }
-
-        return ResponseEntity(
-            successfulDeleted,
-            if (successfulDeleted.isEmpty()) HttpStatus.NOT_FOUND else HttpStatus.OK
-        )
+        return ResponseEntity(deletedUsers, HttpStatus.OK)
     }
 
-    suspend fun deleteUsersConcurrently(key: String, requestSet: Set<String>): Set<String> {
+    /**
+     * Основной метод, выполняющий логику удаления пользователя из Keycloak.
+     * Вначале, выполняется поиск пользователя по заданному ключу и значению атрибута. В метод передается
+     * одно значения ключа и список значений - по каждому значению выполняется поиск пользователя, в случае
+     * успешного поиска - проверяется время последнего входа, если оно не превышает лимит, пользователь не
+     * удаляется. Иначе, пользователь удаляется из Keycloak и выполняется отправка сообщения SFD об удалении
+     * по явной причине = DOR
+     *
+     * @param key ключ атрибута для поиска пользователя
+     * @param requestSet список уникальных значений атрибута для поиска пользователя
+     * @param isHardDelete тестовая заглушка, для исключения удаления пользователей при тестировании
+     * @return коллекция значений атрибута и статуса выполнения удаления
+     * @author Belotserkovskii Vitaly
+     *
+     * Статус выполнения удаления:
+     * 2 - пользователя нет в Keycloak / пользователь найден и удален успешно,
+     * 3 - не требуется удаление пользователя (он найден, но обнаружен вход в установленный период)
+     * 999 - пользователь найден, но при выполнении удаления произошла непредвиденная ошибка
+     */
+    suspend fun deleteUsersConcurrently(
+
+        key: String,
+        requestSet: Set<String>,
+        isHardDelete: Boolean
+    ): List<DeleteUsersResponseDto> {
 
         return supervisorScope {
             val deferredResults = requestSet.map { value ->
                 async(Dispatchers.IO) {
                     try {
-                        findUserByAttributes(key, value)?.let { user ->
-                            realmResource.users().delete(user.id)
-                            log.debug("Deleting user = ${user.username} performed successfully")
-                            return@async value
-                        } ?: log.debug("User :: $key = $value not found in Keycloak")
+                        val user = findUserByAttributes(key, value)
+                        if (user != null) {
+                            // пользователь найден, проверяем логику
+                            if (isUserAliveByEnterTime(user)) {
+                                // оказывается что пользователь недавно входил в ДБО (задано парамером = 48 часов)
+                                return@async DeleteUsersResponseDto(value, DeleteUsersEnum.STILL_ALIVE.status)
+                            }
+                            // выполняем удаление пользователя из Keycloak
+                            if (isHardDelete) {
+                                realmResource.users().delete(user.id)
+                            }
+                            logger.debug("User :: ${user.username}, found and successfully deleted from Keycloak")
+                            // выполняем отправку в очередь сообщение об удалении
+                            if (isDeleteEventToggleON) {
+                                val dataExportEvent = DeleteUsersEventDto(value)
+                                logger.debug("Event data exported : ${dataExportEvent.toDebugString()}")
+                                // TODO ставим сюда отправку сообщения
+                            }
+                        } else {
+                            // пользователь найден, считаем что удаление выполнено
+                            logger.debug("User :: $key = $value not found in Keycloak, consider deleted")
+                        }
+                        return@async DeleteUsersResponseDto(value, DeleteUsersEnum.DELETED.status)
+
                     } catch (ex: Exception) {
-                        log.error("Delete error occurred for user with value $value, message = ${ex.message}, cause = ${ex.cause}")
+                        logger.error("Delete error occurred for user = $value, message = ${ex.message}, cause = ${ex.cause}")
                     }
-                    return@async null
+                    return@async DeleteUsersResponseDto(value, DeleteUsersEnum.FATAL_ERROR.status)
                 }
             }
-            val successfulValues = deferredResults.awaitAll()
-            successfulValues.filterNotNull().toSet()
+            // дожидаемся завершения всех async-блоков
+            deferredResults.awaitAll()
         }
     }
+
+
+    /**
+     * Выполняет проверку условия, по которому пользователь совершал аутентификацию в течение установленного
+     * параметром конфигурации периода времени в часах @see [lastEnterTimePeriodHours]
+     * Если в течение установленного периода пользователь совершал вход в систему ДБО, он не будет удален
+     * из Keycloak и для него будет установлен соответствующий статус выполнения в ответе
+     *
+     * @param user сущность пользователя, для которого выполняется проверка
+     * @return true если пользователь входил в систему ДБО в установленный период времени [lastEnterTimePeriodHours]
+     * @author Belotserkovskii Vitaly
+     */
+    suspend fun isUserAliveByEnterTime(user: UserRepresentation): Boolean {
+
+        var offlineMillis: Long?
+        var offlineHours: Long? = null
+        val dateTimeString = user.attributes["enterTime"]?.firstOrNull()
+        if (!dateTimeString.isNullOrEmpty()) {
+            try {
+                val instant = Instant.parse(dateTimeString)
+                offlineMillis = Instant.now().toEpochMilli() - instant.toEpochMilli()
+                if (logger.isDebugEnabled) {
+                    offlineHours = offlineMillis / Timer.ONE_HOUR
+                }
+                if (offlineMillis < lastEnterTimePeriodMillis) {
+                    logger.debug(
+                        "isUserAliveByEnterTime() :: user ${user.username} no longer was offline = $offlineHours hours")
+                    return true
+                }
+            } catch (ex: DateTimeException) {
+                logger.error("Attribute \"enterTime\" = $dateTimeString for ${user.username} cannot be parsed correctly")
+            }
+        }
+        logger.debug("isUserAliveByEnterTime() :: user ${user.username} too longer was offline = $offlineHours")
+        return false
+    }
+
 
 }
 

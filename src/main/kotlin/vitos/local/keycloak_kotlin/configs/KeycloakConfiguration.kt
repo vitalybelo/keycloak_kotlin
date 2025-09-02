@@ -14,13 +14,13 @@ import org.springframework.web.client.RestTemplate
 @Configuration
 class KeycloakConfiguration (
 
-    @Value("\${keycloak.server.url:http://localhost:8443}")
+    @param:Value("\${keycloak.server.url:http://localhost:8443}")
     private val keycloakServerUrl: String,
-    @Value("\${keycloak.realm:SpringBootKeycloak}")
+    @param:Value("\${keycloak.realm:SpringBootKeycloak}")
     private val keycloakRealm: String,
-    @Value("\${keycloak.admin.client_id:login-admin}")
+    @param:Value("\${keycloak.admin.client_id:login-admin}")
     private val keycloakAdminClientId: String,
-    @Value("\${keycloak.admin.client_secret}")
+    @param:Value("\${keycloak.admin.client_secret}")
     private val keycloakAdminClientSecret: String
 
 ) {

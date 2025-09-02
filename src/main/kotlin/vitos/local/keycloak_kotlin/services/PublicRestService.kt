@@ -16,14 +16,14 @@ import vitos.local.keycloak_kotlin.models.OpenIdConfiguration
 @Service
 class PublicRestService(
 
-    @Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+    @param:Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
     private val issuerURL: String? = null,
     private val restTemplate: RestTemplate,
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
 ) {
 
-    private val log = LoggerFactory.getLogger(KeycloakRestService::class.java)
+    private val logger = LoggerFactory.getLogger(KeycloakRestService::class.java)
 
     /**
      * Возвращает информацию о конечных точках сервера авторизации Keycloak
@@ -40,7 +40,7 @@ class PublicRestService(
                 return ResponseEntity(result, HttpStatus.OK)
             }
         } catch (e: Exception) {
-            log.info(">>>> Ошибка чтения конфигурации области сервисов >>>> {}", e.message)
+            logger.info(">>>> Ошибка чтения конфигурации области сервисов >>>> {}", e.message)
         }
         return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
     }
