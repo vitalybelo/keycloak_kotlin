@@ -6,7 +6,6 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <include file="v1.0_01_create_scheme_keycloakadp.xml" relativeToChangelogFile="true"/>
-    <include file="v1.0_02_create_table_migrate_exchange.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0_01_create_table_migrate_exchange.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

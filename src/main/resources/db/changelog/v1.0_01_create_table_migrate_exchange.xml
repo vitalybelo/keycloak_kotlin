@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
 
 
-    <changeSet author="your_name" id="create-keycloakadp-migrate_exchange-table">
+    <changeSet author="Vitaly Belotserkovskii" id="create-keycloakadp-migrate_exchange-table">
         <preConditions onFail="MARK_RAN" onError="CONTINUE">
             <not>
                 <tableExists tableName="migrate_exchange"/>
@@ -26,7 +26,7 @@
                     remarks="Тип сохраненных данных Keycloak"/>
             <column name="json_payload"
                     type="text(2147483647)"
-                    remarks="Сериализованная сущность сохраняемых данных"/>
+                    remarks="JSON сущность сохраняемых данных сериализованная в строку"/>
             <column name="realm"
                     type="VARCHAR(255)"
                     remarks="Название области сервисов (realm)"/>
@@ -34,11 +34,6 @@
                     type="TIMESTAMP WITH TIME ZONE"
                     remarks="Дата создания записи"/>
         </createTable>
-
-        <sql>
-            ALTER TABLE keycloakadp.migrate_exchange OWNER TO postgres;
-            GRANT ALL ON TABLE keycloakadp.migrate_exchange TO postgres;
-        </sql>
     </changeSet>
 
 
