@@ -1,57 +1,62 @@
 {
   "realm" : "SpringBootKeycloak",
   "users" : [ {
-    "id" : "bf2d1493-67b3-43c3-969b-71bcf911c148",
+    "id" : "db6e588f-ba15-4deb-93dd-0d64c9add75e",
     "username" : "alex",
     "firstName" : "Alex",
     "lastName" : "White",
     "email" : "alex@gmail.com",
-    "emailVerified" : true,
+    "emailVerified" : false,
     "attributes" : {
-      "position2" : [ "blablabla" ],
-      "position" : [ "Group manager " ],
-      "middle_name" : [ "Beans" ],
-      "phone" : [ "+7 900 100-2040" ],
-      "middle_name2" : [ "blablabla" ]
+      "abscustId" : [ "0001" ],
+      "phone" : [ "89035392244" ],
+      "enterTime" : [ "2025-08-28T14:47:40+03:00" ]
     },
-    "createdTimestamp" : 1739887493014,
+    "createdTimestamp" : 1756900514782,
     "enabled" : true,
     "totp" : false,
     "credentials" : [ {
-      "id" : "9ca3f9b7-cc11-4728-8e07-989faaef5f95",
+      "id" : "5e3b66be-2e35-41be-b066-ba587bf498a9",
       "type" : "password",
-      "createdDate" : 1746425561948,
-      "secretData" : "{\"value\":\"7qQ+Tk4Hdg1A7yj75UJYgexwDYuBotwZNw/Xhvw37xs=\",\"salt\":\"QUAgLFBEivWmBY4JjdU9AQ==\",\"additionalParameters\":{}}",
+      "userLabel" : "My password",
+      "createdDate" : 1756900531726,
+      "secretData" : "{\"value\":\"id3l63RQKgXPm3SVODgQgdoPqpdYCkwE0Lax1+K8rJE=\",\"salt\":\"2qasiaPD/aC1FQSHlsZ8uQ==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "USER", "default-roles-springbootkeycloak" ],
-    "clientRoles" : {
-      "account" : [ "USER" ]
-    },
+    "realmRoles" : [ "default-roles-springbootkeycloak" ],
     "notBefore" : 0,
-    "groups" : [ "/root/child_3" ]
+    "groups" : [ ]
   }, {
-    "id" : "d63861d3-0925-44a5-991b-16783b1b7e72",
+    "id" : "25c00143-3181-4fa3-a74f-9148f27111c7",
     "username" : "nikola",
     "firstName" : "Никола",
     "lastName" : "Питерский",
     "email" : "nikola@gmail.com",
     "emailVerified" : true,
     "attributes" : {
-      "phone" : [ "+79651757301" ],
+      "abscustId" : [ "0004" ],
       "max_sessions" : [ "2" ],
-      "position" : [ "Начальник группы" ],
+      "phone" : [ "+79651757301" ],
       "ip_address" : [ "123.123.123.123" ],
+      "position" : [ "Начальник группы" ],
       "middle_name" : [ "3" ],
       "department" : [ "ВП" ],
-      "max_idle_time" : [ "300" ]
+      "max_idle_time" : [ "300" ],
+      "enterTime" : [ "2025-09-02T14:47:40+03:00" ]
     },
-    "createdTimestamp" : 1741958472048,
+    "createdTimestamp" : 1756900690165,
     "enabled" : true,
     "totp" : false,
-    "credentials" : [ ],
+    "credentials" : [ {
+      "id" : "e40e6894-d43a-4558-bf82-2ea619ec5303",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1756900715371,
+      "secretData" : "{\"value\":\"vPQegmP+LrOeN5CkKk22xtQ88N0qtOIrLwtaqROcmRI=\",\"salt\":\"3PpjGWuTSPB5sAowZAqGGA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-springbootkeycloak" ],
@@ -77,54 +82,60 @@
     "notBefore" : 0,
     "groups" : [ ]
   }, {
-    "id" : "1a5442f0-6ec9-4969-974c-9412dc910615",
+    "id" : "39b7961b-181e-48ea-a70c-cbf0bae3b050",
     "username" : "user",
     "firstName" : "User",
     "lastName" : "Family",
     "email" : "user@gmail.com",
-    "emailVerified" : true,
-    "createdTimestamp" : 1740658529975,
+    "emailVerified" : false,
+    "attributes" : {
+      "abscustId" : [ "0002" ],
+      "phone" : [ "89035392244" ],
+      "enterTime" : [ "2025-08-27T14:47:40+03:00" ]
+    },
+    "createdTimestamp" : 1756900579356,
     "enabled" : true,
     "totp" : false,
     "credentials" : [ {
-      "id" : "2855dbb8-c4bc-416f-a163-91c111400b29",
+      "id" : "8ff6356d-57b5-411c-8f0a-4cf1faeb63b5",
       "type" : "password",
       "userLabel" : "My password",
-      "createdDate" : 1740658544183,
-      "secretData" : "{\"value\":\"lO7SSO0GcnfZvQDa2gQnf99OJn6NR+sGn7WnwZtD1aU=\",\"salt\":\"SsumtpWFN3RBv9TLdC2zfA==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
-    } ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "USER", "default-roles-springbootkeycloak" ],
-    "notBefore" : 0,
-    "groups" : [ "/root/child_1" ]
-  }, {
-    "id" : "1026fe4a-f98c-4954-93f5-7c6d945113d4",
-    "username" : "vitos",
-    "firstName" : "Виталий",
-    "lastName" : "Белоцерковский",
-    "email" : "vitos@gmail.com",
-    "emailVerified" : true,
-    "attributes" : {
-      "middle_name" : [ "Анатольевич" ],
-      "phone" : [ "+7 903 539-2244" ],
-      "position" : [ "Самый мелкий сотрудник" ]
-    },
-    "createdTimestamp" : 1740658342508,
-    "enabled" : true,
-    "totp" : false,
-    "credentials" : [ {
-      "id" : "7e8ef3ea-fc58-4baa-baba-63aa5e3263b6",
-      "type" : "password",
-      "createdDate" : 1744124187414,
-      "secretData" : "{\"value\":\"2R4pgKeovqaUMtUe2LGtJDJwqlfKCyUfZWT8Yrda61E=\",\"salt\":\"b29ROwFzYpRC5pz4CocVEg==\",\"additionalParameters\":{}}",
+      "createdDate" : 1756900594247,
+      "secretData" : "{\"value\":\"HKW0CkOtDwxUnn6SCpjIy4kxkZ0znpGL71lC5M4NWxA=\",\"salt\":\"7U7+7SGFd2pT8KZ2J/w47g==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "REVIEWER", "CUSTOMER", "default-roles-springbootkeycloak" ],
+    "realmRoles" : [ "default-roles-springbootkeycloak" ],
     "notBefore" : 0,
-    "groups" : [ "/root/child_1", "/root/child_2", "/root/child_3" ]
+    "groups" : [ ]
+  }, {
+    "id" : "f1a822fe-62dc-423d-91b0-ceb6f2f8f83a",
+    "username" : "vitos",
+    "firstName" : "Vitaly",
+    "lastName" : "Belotserkovsky",
+    "email" : "vitaly.belo@gmail.com",
+    "emailVerified" : false,
+    "attributes" : {
+      "abscustId" : [ "0003" ],
+      "phone" : [ "89035392244" ],
+      "enterTime" : [ "2025-08-27T14:47:40+03:00" ]
+    },
+    "createdTimestamp" : 1756900617963,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "5092a8bd-7df2-412c-994f-5a80ec9d0d61",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1756900630256,
+      "secretData" : "{\"value\":\"KmVh0AN1ufA5DfwGUVyekDXCReMkexuxXqNUhzY8hQM=\",\"salt\":\"L6CPZ5h13Cmy19mrV7eu2g==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "ADMIN", "default-roles-springbootkeycloak" ],
+    "notBefore" : 0,
+    "groups" : [ ]
   } ]
 }
