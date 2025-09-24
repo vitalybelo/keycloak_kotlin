@@ -27,7 +27,8 @@ class ExperimentsRestService {
         } catch (exception: InterruptedException) {
             return ResponseEntity(exception, HttpStatus.INTERNAL_SERVER_ERROR)
         }
-        return ResponseEntity("Delayed at ${millis / TIME_MILLIS} seconds HELLO", HttpStatus.OK)
+        val float: Float = millis.toFloat() / TIME_MILLIS
+        return ResponseEntity("Delayed at $float seconds HELLO", HttpStatus.OK)
     }
 
 
