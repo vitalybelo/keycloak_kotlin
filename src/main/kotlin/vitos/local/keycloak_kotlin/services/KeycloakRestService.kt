@@ -42,7 +42,7 @@ class KeycloakRestService(
     private val issuerURL: String? = null,
     @param:Value("\${keycloak.server.url}")
     private val keycloakServerURL: String? = null,
-    @param:Value("\${keycloak.realm}")
+    @param:Value("\${keycloak.admin.realm}")
     private val keycloakRealm: String? = null,
     @param:Value("\${dormant.delete.ft-userdel-event:false}")
     private val isDeleteEventToggleON: Boolean,

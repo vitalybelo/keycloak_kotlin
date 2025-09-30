@@ -13,7 +13,7 @@
 
     <groupId>vitos.local</groupId>
     <artifactId>keycloak_kotlin</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>keycloak_kotlin</name>
     <description>keycloak_kotlin</description>
 
@@ -194,6 +194,7 @@
                 <configuration>
                     <args>
                         <arg>-Xjsr305=strict</arg>
+                        <arg>-Xannotation-default-target=param-property</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>

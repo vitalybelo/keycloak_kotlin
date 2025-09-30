@@ -27,9 +27,9 @@ import org.springframework.security.web.SecurityFilterChain
 @EnableWebSecurity
 class SecurityBasicConfiguration(
 
-    @Value("\${digital.ruble.pcrconnect.callback.login:callback_login}")
+    @Value($$"${digital.ruble.pcrconnect.callback.login:callback_login}")
     private val callbackLogin: String,
-    @Value("\${digital.ruble.pcrconnect.callback.password:callback_password}")
+    @Value($$"${digital.ruble.pcrconnect.callback.password:callback_password}")
     private val callbackPassword: String
 ) {
 
@@ -62,7 +62,6 @@ class SecurityBasicConfiguration(
      * Создаем AuthenticationManager, специфичный для Basic Auth
      */
     @Bean
-    @Suppress("UsePropertyAccessSyntax")
     fun basicAuthenticationManager(userDetailsService: UserDetailsService): AuthenticationManager {
         val daoProvider = DaoAuthenticationProvider(userDetailsService)
         daoProvider.setPasswordEncoder(passwordEncoder())

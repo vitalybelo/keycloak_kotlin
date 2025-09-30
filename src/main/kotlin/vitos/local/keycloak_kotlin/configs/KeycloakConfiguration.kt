@@ -10,29 +10,36 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.client.RestTemplate
 
 
-
 @Configuration
 class KeycloakConfiguration (
 
-    @param:Value("\${keycloak.server.url:http://localhost:8443}")
+    @param:Value($$"${keycloak.server.url:http://localhost:8443}")
     private val keycloakServerUrl: String,
-    @param:Value("\${keycloak.realm:SpringBootKeycloak}")
+    @param:Value($$"${keycloak.admin.realm:SpringBootKeycloak}")
     private val keycloakRealm: String,
-    @param:Value("\${keycloak.admin.client_id:login-admin}")
+    @param:Value($$"${keycloak.admin.client_id:login-admin}")
     private val keycloakAdminClientId: String,
-    @param:Value("\${keycloak.admin.client_secret}")
-    private val keycloakAdminClientSecret: String
-
+    @param:Value($$"${keycloak.admin.client_secret}")
+    private val keycloakAdminClientSecret: String,
+    @param:Value($$"${keycloak.master.admin.realm}")
+    private val keycloakMasterAdmin: String,
+    @param:Value($$"${keycloak.master.admin.client-id}")
+    private val keycloakMasterAdminClientId: String,
+    @param:Value($$"${keycloak.master.admin.username}")
+    private val keycloakMasterAdminUsername: String,
+    @param:Value($$"${keycloak.master.admin.password}")
+    private val keycloakMasterAdminPassword: String
 ) {
 
     @Bean
     fun keycloak(): Keycloak {
         return KeycloakBuilder.builder()
             .serverUrl(keycloakServerUrl)
-            .realm(keycloakRealm)
-            .clientId(keycloakAdminClientId)
-            .clientSecret(keycloakAdminClientSecret)
-            .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
+            .realm(keycloakMasterAdmin)
+            .clientId(keycloakMasterAdminClientId)
+            .username(keycloakMasterAdminUsername)
+            .password(keycloakMasterAdminPassword)
+            .grantType(OAuth2Constants.PASSWORD)
             .build()
     }
 
