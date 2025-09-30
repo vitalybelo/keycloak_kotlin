@@ -1,4 +1,4 @@
-package vitos.local.keycloak_kotlin.configs
+package vitos.local.keycloak_kotlin.services
 
 import org.keycloak.admin.client.Keycloak
 import org.springframework.http.HttpHeaders

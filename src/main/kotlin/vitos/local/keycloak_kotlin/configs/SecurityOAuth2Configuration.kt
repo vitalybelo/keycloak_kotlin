@@ -49,12 +49,15 @@ class SecurityOAuth2Configuration(
             it.logoutSuccessUrl("/")
         }
 
-        // определяет URI для открытых, закрытых jwt токеном и ролями, отсекает все остальные end-points
+        // определяет URI для открытых, URI закрытых jwt tokens и авторизацию ролями
+        // отсекает все остальные конечные точки end-points, запрещая к ним любой доступ
         http.authorizeHttpRequests { request ->
             request
                 .requestMatchers(
                     "/public/**",
-                    "/experiments/**").permitAll()
+                    "/experiments/**",
+                    "/migrate/**")
+                .permitAll()
                 .requestMatchers("/users/create").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/**").authenticated()
                 .anyRequest().denyAll()

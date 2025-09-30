@@ -12,6 +12,8 @@ import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import vitos.local.keycloak_kotlin.models.DeleteUsersRequestDto
+import vitos.local.keycloak_kotlin.models.DeleteUsersResponseDto
 
 
 @Tag(
@@ -332,9 +334,8 @@ interface KeycloakRestController {
      * Метод выполняет поиск пользователей по заданному списку атрибутов, переданных в метод.
      * Для каждого найденного пользователя, вызывается метода REST API удаления из Keycloak
 
-     * @param key ключ атрибута для поиска пользователя
-     * @param values список значений атрибута для поиска пользователя
-     * @return список значений атрибутов, по которым выполнено успешное удаление
+     * @param abscustIdValues список значений атрибута abscust_id для поиска пользователя
+     * @return список значений abscust_id и статус выполнения логики удаление
      */
     @ApiResponses(
         value = [
@@ -353,8 +354,7 @@ interface KeycloakRestController {
     @RequestMapping(value = ["/by-attribute-list"], method = [RequestMethod.DELETE])
     @Operation(summary = "Выполняет поиск пользователей по атрибуту и удаляет каждого найденного из Keycloak")
     fun deleteUsersByAttributeList(
-        @RequestParam(required = true) key: String?,
-        @RequestBody(required = true) values: List<String?>?
-    ): ResponseEntity<out Collection<String>>
+        @RequestBody(required = false) abscustIdValues: DeleteUsersRequestDto?
+    ): ResponseEntity<out Collection<DeleteUsersResponseDto>>
 
 }

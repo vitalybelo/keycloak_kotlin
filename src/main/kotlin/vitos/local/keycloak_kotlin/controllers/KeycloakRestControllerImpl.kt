@@ -8,6 +8,8 @@ import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import vitos.local.keycloak_kotlin.interfaces.KeycloakRestController
+import vitos.local.keycloak_kotlin.models.DeleteUsersRequestDto
+import vitos.local.keycloak_kotlin.models.DeleteUsersResponseDto
 import vitos.local.keycloak_kotlin.services.KeycloakRestService
 
 @Controller
@@ -94,10 +96,15 @@ class KeycloakRestControllerImpl(
     }
 
     override fun deleteUsersByAttributeList(
-        key: String?,
-        values: List<String?>?
-    ): ResponseEntity<out Collection<String>> {
-        return keycloakService.deleteUsersByAttributeList(key, values)
+        @RequestBody(required = false) abscustIdValues: DeleteUsersRequestDto?
+    ): ResponseEntity<out Collection<DeleteUsersResponseDto>> {
+
+        abscustIdValues?.getValueSet()?.let { values ->
+            val isHardDelete = abscustIdValues.isHardDelete ?: true
+            return keycloakService
+                .deleteUsersByAttributeList("abscustId", values, isHardDelete)
+        }
+        return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
 
 

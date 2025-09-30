@@ -1,0 +1,40 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+
+    <changeSet author="Vitaly Belotserkovskii" id="create-keycloakadp-migrate_exchange-table">
+        <preConditions onFail="MARK_RAN" onError="CONTINUE">
+            <not>
+                <tableExists tableName="migrate_exchange"/>
+            </not>
+        </preConditions>
+
+        <createTable schemaName="keycloakadp" tableName="migrate_exchange">
+
+            <column name="id"
+                    type="VARCHAR(36)"
+                    remarks="Идентификатор записи">
+                <constraints nullable="false"
+                             primaryKey="true"
+                             primaryKeyName="pk_migrate_exchange"/>
+            </column>
+            <column name="json_type"
+                    type="VARCHAR(40)"
+                    remarks="Тип сохраненных данных Keycloak"/>
+            <column name="json_payload"
+                    type="text(2147483647)"
+                    remarks="JSON сущность сохраняемых данных сериализованная в строку"/>
+            <column name="realm"
+                    type="VARCHAR(255)"
+                    remarks="Название области сервисов (realm)"/>
+            <column name="created_date"
+                    type="TIMESTAMP WITH TIME ZONE"
+                    remarks="Дата создания записи"/>
+        </createTable>
+    </changeSet>
+
+
+</databaseChangeLog>

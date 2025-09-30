@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 class BasicRestService(
 ) {
 
-    private val log = LoggerFactory.getLogger(BasicRestService::class.java)
+    private val logger = LoggerFactory.getLogger(BasicRestService::class.java)
 
 
     /**
@@ -22,7 +22,7 @@ class BasicRestService(
      */
     fun getBasicAuthorization(headers: Map<String, String>?): ResponseEntity<Any> {
 
-        log.info(">>>> Getting basic authorization :: $headers")
+        logger.info(">>>> Getting basic authorization :: $headers")
         return ResponseEntity("GRANTED", HttpStatus.OK)
     }
 
