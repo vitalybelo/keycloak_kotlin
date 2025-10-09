@@ -6,13 +6,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.keycloak.representations.idm.ClientScopeRepresentation
+import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
+import vitos.local.keycloak_kotlin.models.ClientExportDto
 
 @Tag(
     name = "MigrationRestController",
@@ -79,10 +82,31 @@ interface MigrationRestController {
         ]
     )
     @GetMapping("/{realm}/clients/{client_id}")
-    @Operation(summary = "Читает данные по Clients в заданном realm")
-    fun getAllRealmClients(
+    @Operation(summary = "Читает расширенные данные Clients в заданном realm")
+    fun getRealmClient(
         @PathVariable("realm", required = true) realm: String,
         @PathVariable("client_id", required = true) clientId: String): ResponseEntity<Any>
+
+
+    /**
+     * Выполняет создание или обновление сервиса в Clients для заданной входным параметром области сервисов Realm.
+     *
+     * @param realm название области сервисов
+     * @param client экспортная сущность нового сервиса
+     * @return статус выполнения или сообщение об ошибке
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Realm Roles List added|updated successfully", content = [Content()]),
+            ApiResponse(responseCode = "400", description = "Invalid request parameter - realm name or realm roles list", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @PostMapping("/{realm}/clients")
+    @Operation(summary = "Создает сервис Client в заданной параметром области сервисов realm")
+    fun createOrUpdateRealmClient(
+        @PathVariable(required = true, value = "realm") realm: String,
+        @RequestBody(required = true) client: ClientExportDto): ResponseEntity<Any>
 
 
     /**
@@ -123,5 +147,49 @@ interface MigrationRestController {
     fun createOrUpdateAllRealmRoles(
         @PathVariable(required = true, value = "realm") realm: String,
         @RequestBody(required = true) realmRoleList: List<RoleRepresentation>): ResponseEntity<Any>
+
+
+    /**
+     * Выполняет чтение настроек области сервисов realm
+     *
+     * @param realm название области сервисов
+     * @return статус выполнения, сущность настроек или сообщение об ошибке
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Realm configuration received successfully", content = [Content()]),
+            ApiResponse(responseCode = "400", description = "Invalid request parameter - realm name", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Not found preassigned realm", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @GetMapping("/{realm}/configuration")
+    @Operation(summary = "Читает конфигурацию для заданной параметром области сервисов realm")
+    fun getRealmConfiguration(
+        @RequestHeader(name = "User-Agent", required = true) userAgent: String,
+        @PathVariable("realm", required = true) realm: String): ResponseEntity<Any>
+
+
+    /**
+     * Выполняет изменение настроек области сервисов realm
+     *
+     * @param realm название области сервисов
+     * @param representation сущность новых настроек для области
+     * @return статус выполнения, сущность настроек или сообщение об ошибке
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Realm configuration updated successfully", content = [Content()]),
+            ApiResponse(responseCode = "400", description = "Invalid request parameter - realm name", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Not found preassigned realm", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @PostMapping("/{realm}/configuration")
+    @Operation(summary = "Вносит изменения в конфигурацию для заданной параметром области сервисов realm")
+    fun updateRealmConfiguration(
+        @RequestHeader(name = "User-Agent", required = true) userAgent: String,
+        @PathVariable("realm", required = true) realm: String,
+        @RequestBody(required = true) representation: RealmRepresentation): ResponseEntity<Any>
 
 }

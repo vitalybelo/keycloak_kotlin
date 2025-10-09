@@ -4,5 +4,7 @@ enum class JsonType() {
 
     CLIENT_SCOPES,
     REALM_ROLES,
-    CLIENTS
+    CLIENTS,
+    REALM_CONFIG
+
 }

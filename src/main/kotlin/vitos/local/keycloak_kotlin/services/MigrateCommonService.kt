@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 
 
 /**
@@ -53,7 +54,7 @@ class MigrateCommonService(
      */
     fun writeErrorLoggerWithTextAndStatus(
         ex: Exception,
-        errorMessage: String = "Unexpected error occurred",
+        errorMessage: String = FATAL_ERROR,
         errorStatus: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR
     ): ResponseEntity<Any> {
 

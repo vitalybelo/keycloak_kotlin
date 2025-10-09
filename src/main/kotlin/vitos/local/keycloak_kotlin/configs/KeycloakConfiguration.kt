@@ -22,24 +22,21 @@ class KeycloakConfiguration (
     @param:Value($$"${keycloak.admin.client_secret}")
     private val keycloakAdminClientSecret: String,
     @param:Value($$"${keycloak.master.admin.realm}")
-    private val keycloakMasterAdmin: String,
+    private val keycloakMasterAdminRealm: String,
     @param:Value($$"${keycloak.master.admin.client-id}")
     private val keycloakMasterAdminClientId: String,
-    @param:Value($$"${keycloak.master.admin.username}")
-    private val keycloakMasterAdminUsername: String,
-    @param:Value($$"${keycloak.master.admin.password}")
-    private val keycloakMasterAdminPassword: String
+    @param:Value($$"${keycloak.master.admin.secret}")
+    private val keycloakMasterAdminClientSecret: String,
 ) {
 
     @Bean
     fun keycloak(): Keycloak {
         return KeycloakBuilder.builder()
             .serverUrl(keycloakServerUrl)
-            .realm(keycloakMasterAdmin)
+            .realm(keycloakMasterAdminRealm)
             .clientId(keycloakMasterAdminClientId)
-            .username(keycloakMasterAdminUsername)
-            .password(keycloakMasterAdminPassword)
-            .grantType(OAuth2Constants.PASSWORD)
+            .clientSecret(keycloakMasterAdminClientSecret)
+            .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
             .build()
     }
 

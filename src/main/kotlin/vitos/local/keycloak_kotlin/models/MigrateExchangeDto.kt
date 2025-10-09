@@ -2,8 +2,8 @@ package vitos.local.keycloak_kotlin.models
 
 import java.io.Serializable
 import java.time.ZonedDateTime
-import java.util.*
 
+@Suppress("unused")
 data class MigrateExchangeDto(
 
     val id: String? = null,

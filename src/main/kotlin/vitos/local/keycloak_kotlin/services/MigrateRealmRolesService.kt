@@ -13,6 +13,7 @@ import vitos.local.keycloak_kotlin.models.MigrateExchange
 import vitos.local.keycloak_kotlin.repositories.MigrateExchangeRepository
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_REALM_ROLES
+import vitos.local.keycloak_kotlin.models.MigrationRoleResponseDto
 
 
 /**
@@ -82,22 +83,29 @@ class MigrateRealmRolesService(
         if (realmRoles.isNotEmpty() && realm.isNotEmpty()) {
             try {
                 val realmResource = migrateService.getRealmResource(realm)
+                val responseDto = MigrationRoleResponseDto()
                 if (realmResource != null) {
 
-                    val foundRealmRoles = realmResource.roles()
+                    val foundRoles = realmResource.roles()
                         .list(0, Integer.MAX_VALUE, false)
-                        ?.map { it.name }?.toList() ?: emptyList()
+                        ?.associateBy { it.name } ?: emptyMap()
 
-                    val successAdded = mutableListOf<String>()
                     realmRoles.forEach { role ->
-                        if (!foundRealmRoles.contains(role.name)) {
+                        val roleName = role.name
+                        if (foundRoles.containsKey(roleName)) {
+                            // роль существует, необходимо обновить
+                            role.id = foundRoles[roleName]?.id
+                            realmResource.roles().get(roleName).update(role)
+                            responseDto.updated.add(roleName)
+                        } else {
+                            // роль не существует, необходимо создать новую
                             role.id = null
                             realmResource.roles().create(role)
-                            successAdded.add(role.name)
+                            responseDto.created.add(roleName)
                         }
                     }
-                    logger.info("Successfully added Realm Roles count = ${successAdded.size}")
-                    return ResponseEntity(successAdded, HttpStatus.OK)
+                    logger.info("Successfully added Realm Roles count = ${responseDto.finally()}")
+                    return ResponseEntity(responseDto, HttpStatus.OK)
                 }
             } catch (ex: Exception) {
                 return migrateService.writeErrorLoggerWithTextAndStatus(ex)
