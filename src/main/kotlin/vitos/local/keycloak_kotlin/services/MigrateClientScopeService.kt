@@ -14,6 +14,7 @@ import vitos.local.keycloak_kotlin.models.JsonType
 import vitos.local.keycloak_kotlin.models.MigrateExchange
 import vitos.local.keycloak_kotlin.repositories.MigrateExchangeRepository
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
+import vitos.local.keycloak_kotlin.models.MigrationResponseDto
 
 
 /**
@@ -80,24 +81,34 @@ class MigrateClientScopeService(
             return ResponseEntity(INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
         }
         try {
+            val responseDto = MigrationResponseDto()
             // получаем ресурс управления realm - если он реально существует или null
             val realmResource: RealmResource? = migrateService.getRealmResource(realm)
             if (realmResource != null) {
 
                 // получаем список названий существующих client scopes в целевом realm
-                val foundScopeNames =
-                    realmResource.clientScopes().findAll()?.map { it.name }?.toList() ?: emptyList()
+                val foundScopes = realmResource.clientScopes().findAll()
+                    ?.associateBy { it.name } ?: emptyMap()
 
-                val addedSuccessfully = mutableListOf<String>()
                 // вызываем метод создания client scope для каждого переданного в метод маппинга
                 clientScopes.forEach { scope ->
-                    if (!foundScopeNames.contains(scope.name)) {
+                    val scopeName = scope.name
+                    if (foundScopes.containsKey(scopeName)) {
+                        // обновляем существующий scope
+                        val found = foundScopes[scopeName]
+                        if (found != null &&
+                            updateClientScopeWithMappers(scope, found, realmResource)) {
+                            responseDto.addUpdated(scopeName)
+                        }
+                    } else {
+                        // добавляем новый scope
                         if (createClientScopeWithMappers(scope, realmResource)) {
-                            addedSuccessfully.add(scope.name)
+                            responseDto.addCreated(scopeName)
                         }
                     }
+                    responseDto.addFailedConditional(scopeName)
                 }
-                return ResponseEntity(addedSuccessfully, HttpStatus.OK)
+                return ResponseEntity(responseDto, HttpStatus.OK)
             }
         } catch (ex: Exception) {
             return migrateService.writeErrorLoggerWithTextAndStatus(ex)
@@ -129,7 +140,45 @@ class MigrateClientScopeService(
             }
             return true
         } catch (ex: Exception) {
-            logger.error("Exception while creating client scope with protocolMappers: ${ex.message}, cause: ${ex.cause}, stackTrace: $ex")
+            logger.error("createClientScopeWithMappers() creating client scope failed: ${ex.message}, cause: ${ex.cause}", ex)
+        }
+        return false
+    }
+
+
+    /**
+     * Выполняет обновление существующего Client Scope с набором ProtocolMappers.
+     * Если добавляемый ProtocolMappers совпадает существующим, перезаписываем сохраняя старый id.
+     *
+     * @param clientScope сущность создаваемого маппинга Client Scope
+     * @param realmResource ресурс управления областью сервисов
+     * @return true если выполнено успешно
+     *
+     */
+    private fun updateClientScopeWithMappers(
+        clientScope: ClientScopeRepresentation,
+        foundClientScope: ClientScopeRepresentation,
+        realmResource: RealmResource
+    ): Boolean {
+        try {
+            clientScope.id = foundClientScope.id
+            val foundMappers =
+                foundClientScope.protocolMappers?.associateBy { it.name } ?: emptyMap()
+
+            clientScope.protocolMappers?.forEach { protocolMapper ->
+                val name = protocolMapper.name
+                if (foundMappers.containsKey(name)) {
+                    protocolMapper.id = foundMappers[name]!!.id
+                } else {
+                    protocolMapper.id = null
+                }
+            }
+            realmResource.clientScopes().get(clientScope.id)?.update(clientScope)
+            logger.debug("Updated client scope with name: ${clientScope.name}, id: ${clientScope.id}")
+            return true
+
+        } catch (ex: Exception) {
+            logger.error("updateClientScopeWithMappers() creating client scope failed: ${ex.message}, cause: ${ex.cause}", ex)
         }
         return false
     }

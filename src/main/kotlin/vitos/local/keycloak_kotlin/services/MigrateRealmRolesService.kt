@@ -3,6 +3,7 @@ package vitos.local.keycloak_kotlin.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.RoleRepresentation
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -13,7 +14,7 @@ import vitos.local.keycloak_kotlin.models.MigrateExchange
 import vitos.local.keycloak_kotlin.repositories.MigrateExchangeRepository
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_REALM_ROLES
-import vitos.local.keycloak_kotlin.models.MigrationRoleResponseDto
+import vitos.local.keycloak_kotlin.models.MigrationResponseDto
 
 
 /**
@@ -83,7 +84,7 @@ class MigrateRealmRolesService(
         if (realmRoles.isNotEmpty() && realm.isNotEmpty()) {
             try {
                 val realmResource = migrateService.getRealmResource(realm)
-                val responseDto = MigrationRoleResponseDto()
+                val responseDto = MigrationResponseDto()
                 if (realmResource != null) {
 
                     val foundRoles = realmResource.roles()
@@ -94,17 +95,20 @@ class MigrateRealmRolesService(
                         val roleName = role.name
                         if (foundRoles.containsKey(roleName)) {
                             // роль существует, необходимо обновить
-                            role.id = foundRoles[roleName]?.id
-                            realmResource.roles().get(roleName).update(role)
-                            responseDto.updated.add(roleName)
+                            val found = foundRoles[roleName]
+                            if (found != null &&
+                                updateRealmRoles(role, found, realmResource)) {
+                                responseDto.addUpdated(roleName)
+                            }
                         } else {
                             // роль не существует, необходимо создать новую
-                            role.id = null
-                            realmResource.roles().create(role)
-                            responseDto.created.add(roleName)
+                            if (createRealmRoles(role, realmResource)) {
+                                responseDto.addCreated(roleName)
+                            }
                         }
+                        responseDto.addFailedConditional(roleName)
                     }
-                    logger.info("Successfully added Realm Roles count = ${responseDto.finally()}")
+                    logger.info("Successfully added Realm Roles count = ${responseDto.totalCount}")
                     return ResponseEntity(responseDto, HttpStatus.OK)
                 }
             } catch (ex: Exception) {
@@ -114,5 +118,34 @@ class MigrateRealmRolesService(
         return ResponseEntity(INVALID_REALM_OR_REALM_ROLES, HttpStatus.BAD_REQUEST)
     }
 
+
+    private fun createRealmRoles(
+        role: RoleRepresentation,
+        realmResource: RealmResource
+    ): Boolean {
+        try {
+            role.id = null
+            realmResource.roles().create(role)
+            return true
+        } catch (ex: Exception) {
+            logger.error("Creating Realm Roles failed ${ex.message}", ex)
+        }
+        return false
+    }
+
+    private fun updateRealmRoles(
+        role: RoleRepresentation,
+        foundRole: RoleRepresentation,
+        realmResource: RealmResource
+    ): Boolean {
+        try {
+            role.id = foundRole.id
+            realmResource.roles().get(foundRole.name).update(role)
+            return true
+        } catch (ex: Exception) {
+            logger.error("Creating Realm Roles failed ${ex.message}", ex)
+        }
+        return false
+    }
 }
 
