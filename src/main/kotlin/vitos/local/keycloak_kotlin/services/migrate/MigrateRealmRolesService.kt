@@ -1,9 +1,8 @@
-package vitos.local.keycloak_kotlin.services
+package vitos.local.keycloak_kotlin.services.migrate
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.RoleRepresentation
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -15,6 +14,7 @@ import vitos.local.keycloak_kotlin.repositories.MigrateExchangeRepository
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_REALM_ROLES
 import vitos.local.keycloak_kotlin.models.MigrationResponseDto
+import vitos.local.keycloak_kotlin.services.keycloak.KeycloakRolesService
 
 
 /**
@@ -25,6 +25,7 @@ import vitos.local.keycloak_kotlin.models.MigrationResponseDto
 class MigrateRealmRolesService(
 
     private val migrateService: MigrateCommonService,
+    private val keycloakRolesService: KeycloakRolesService,
     private val migrateRepository: MigrateExchangeRepository,
     private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 ) {
@@ -94,15 +95,22 @@ class MigrateRealmRolesService(
                     realmRoles.forEach { role ->
                         val roleName = role.name
                         if (foundRoles.containsKey(roleName)) {
+
                             // роль существует, необходимо обновить
-                            val found = foundRoles[roleName]
-                            if (found != null &&
-                                updateRealmRoles(role, found, realmResource)) {
+                            val found = foundRoles[roleName]!!
+                            val updated = keycloakRolesService
+                                .updateRealmRoles(role, found, realmResource)
+
+                            if (updated != null) {
                                 responseDto.addUpdated(roleName)
                             }
                         } else {
+
                             // роль не существует, необходимо создать новую
-                            if (createRealmRoles(role, realmResource)) {
+                            val created = keycloakRolesService
+                                .createRealmRole(role, realmResource)
+
+                            if (created != null) {
                                 responseDto.addCreated(roleName)
                             }
                         }
@@ -119,33 +127,5 @@ class MigrateRealmRolesService(
     }
 
 
-    private fun createRealmRoles(
-        role: RoleRepresentation,
-        realmResource: RealmResource
-    ): Boolean {
-        try {
-            role.id = null
-            realmResource.roles().create(role)
-            return true
-        } catch (ex: Exception) {
-            logger.error("Creating Realm Roles failed ${ex.message}", ex)
-        }
-        return false
-    }
-
-    private fun updateRealmRoles(
-        role: RoleRepresentation,
-        foundRole: RoleRepresentation,
-        realmResource: RealmResource
-    ): Boolean {
-        try {
-            role.id = foundRole.id
-            realmResource.roles().get(foundRole.name).update(role)
-            return true
-        } catch (ex: Exception) {
-            logger.error("Creating Realm Roles failed ${ex.message}", ex)
-        }
-        return false
-    }
 }
 

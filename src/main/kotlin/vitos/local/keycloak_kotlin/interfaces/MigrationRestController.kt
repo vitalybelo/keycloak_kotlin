@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.keycloak.representations.idm.ClientScopeRepresentation
+import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.http.ResponseEntity
@@ -191,5 +192,47 @@ interface MigrationRestController {
         @RequestHeader(name = "User-Agent", required = true) userAgent: String,
         @PathVariable("realm", required = true) realm: String,
         @RequestBody(required = true) representation: RealmRepresentation): ResponseEntity<Any>
+
+
+    /**
+     * Выполняет чтение сущностей всех групп и подгрупп в области сервисов realm
+     *
+     * @param realm название области сервисов
+     * @return статус выполнения, список сущностей groups или сообщение об ошибке
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Realm group's list received successfully", content = [Content()]),
+            ApiResponse(responseCode = "400", description = "Invalid request parameter - realm name", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Not found preassigned realm", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @GetMapping("/{realm}/groups")
+    @Operation(summary = "Выполняет чтение сущностей всех групп и подгрупп в области сервисов realm")
+    fun getAllRealmGroups(
+        @PathVariable("realm", required = true) realm: String): ResponseEntity<Any>
+
+
+    /**
+     * Выполняет создание или обновление сущностей всех групп и подгрупп в области сервисов realm
+     *
+     * @param realm название области сервисов
+     * @param importGroupList список групп с включенными подгруппами
+     * @return статус выполнения, список сущностей groups или сообщение об ошибке
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Realm group's list updated successfully", content = [Content()]),
+            ApiResponse(responseCode = "400", description = "Invalid request parameter - realm or group list", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Not found preassigned realm", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @PostMapping("/{realm}/groups")
+    @Operation(summary = "Выполняет создание или обновление сущностей всех групп и подгрупп в области сервисов realm")
+    fun createOrUpdateAllRealmGroups(
+        @PathVariable("realm", required = true) realm: String,
+        @RequestBody(required = true) importGroupList: List<GroupRepresentation>): ResponseEntity<Any>
 
 }

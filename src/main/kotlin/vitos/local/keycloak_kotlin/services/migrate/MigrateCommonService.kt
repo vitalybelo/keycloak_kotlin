@@ -1,12 +1,12 @@
-package vitos.local.keycloak_kotlin.services
+package vitos.local.keycloak_kotlin.services.migrate
 
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.RealmResource
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
+import vitos.local.keycloak_kotlin.logging.Log
 
 
 /**
@@ -19,9 +19,7 @@ class MigrateCommonService(
     private val keycloak: Keycloak
 ) {
 
-    companion object {
-        private val logger = LoggerFactory.getLogger(MigrateCommonService::class.java)
-    }
+    companion object: Log()
 
 
     /**
@@ -38,7 +36,7 @@ class MigrateCommonService(
             logger.debug("Representation: {} found successfully", realmRepresentation.realm)
             return realmResource
         } catch (ex: Exception) {
-            logger.error("getRealmResource() ${ex.message}, cause = ${ex.cause}")
+            logger.errorM("Error getting realm resource ${ex.message}, cause = ${ex.cause}", ex)
         }
         return null
     }
@@ -58,7 +56,7 @@ class MigrateCommonService(
         errorStatus: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR
     ): ResponseEntity<Any> {
 
-        logger.error("Unexpected error occurred ${ex.message}, cause = ${ex.cause}", ex)
+        logger.errorM("Unexpected error occurred ${ex.message}, cause = ${ex.cause}", ex)
         return ResponseEntity(errorMessage, errorStatus)
     }
 }

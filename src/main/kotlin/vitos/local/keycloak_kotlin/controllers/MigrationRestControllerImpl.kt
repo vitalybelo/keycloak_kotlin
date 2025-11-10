@@ -2,16 +2,18 @@ package vitos.local.keycloak_kotlin.controllers
 
 import nl.basjes.parse.useragent.UserAgentAnalyzer
 import org.keycloak.representations.idm.ClientScopeRepresentation
+import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import vitos.local.keycloak_kotlin.interfaces.MigrationRestController
 import vitos.local.keycloak_kotlin.models.ClientExportDto
-import vitos.local.keycloak_kotlin.services.MigrateClientScopeService
-import vitos.local.keycloak_kotlin.services.MigrateClientsService
-import vitos.local.keycloak_kotlin.services.MigrateRealmRolesService
-import vitos.local.keycloak_kotlin.services.MigrateRealmService
+import vitos.local.keycloak_kotlin.services.migrate.MigrateClientScopeService
+import vitos.local.keycloak_kotlin.services.migrate.MigrateClientsService
+import vitos.local.keycloak_kotlin.services.migrate.MigrateGroupsService
+import vitos.local.keycloak_kotlin.services.migrate.MigrateRealmRolesService
+import vitos.local.keycloak_kotlin.services.migrate.MigrateRealmService
 
 
 @RestController
@@ -21,7 +23,9 @@ class MigrationRestControllerImpl(
     private val migrateClientsService: MigrateClientsService,
     private val migrateClientScopeService: MigrateClientScopeService,
     private val migrateRealmRolesService: MigrateRealmRolesService,
-    private val migrateRealmService: MigrateRealmService
+    private val migrateRealmService: MigrateRealmService,
+    private val migrateGroupsService: MigrateGroupsService
+
 ) : MigrationRestController {
 
 
@@ -75,6 +79,17 @@ class MigrationRestControllerImpl(
     ): ResponseEntity<Any> {
 
         return migrateRealmService.updateRealmConfiguration(realm, representation)
+    }
+
+    override fun getAllRealmGroups(realm: String): ResponseEntity<Any> {
+        return migrateGroupsService.getAllRealmGroups(realm)
+    }
+
+    override fun createOrUpdateAllRealmGroups(
+        realm: String,
+        importGroupList: List<GroupRepresentation>
+    ): ResponseEntity<Any> {
+        return migrateGroupsService.createOrUpdateAllRealmGroups(realm, importGroupList)
     }
 
 }

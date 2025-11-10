@@ -29,6 +29,7 @@ import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
 import vitos.local.keycloak_kotlin.models.DeleteUsersEventDto
 import vitos.local.keycloak_kotlin.models.DeleteUsersEnum
 import vitos.local.keycloak_kotlin.models.DeleteUsersResponseDto
+import vitos.local.keycloak_kotlin.services.keycloak.KeycloakTokenService
 import java.time.DateTimeException
 import java.time.Instant
 import javax.management.timer.Timer
@@ -38,15 +39,15 @@ import javax.management.timer.Timer
 @Suppress("unused", "DuplicatedCode")
 class KeycloakRestService(
 
-    @param:Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+    @param:Value($$"${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
     private val issuerURL: String? = null,
-    @param:Value("\${keycloak.server.url}")
+    @param:Value($$"${keycloak.server.url}")
     private val keycloakServerURL: String? = null,
-    @param:Value("\${keycloak.admin.realm}")
+    @param:Value($$"${keycloak.admin.realm}")
     private val keycloakRealm: String? = null,
-    @param:Value("\${dormant.delete.ft-userdel-event:false}")
+    @param:Value($$"${dormant.delete.ft-userdel-event:false}")
     private val isDeleteEventToggleON: Boolean,
-    @param:Value("\${dormant.delete.last-enter-time-period:48}")
+    @param:Value($$"${dormant.delete.last-enter-time-period:48}")
     private val lastEnterTimePeriodHours: Long,
 
     private val realmResource: RealmResource,
