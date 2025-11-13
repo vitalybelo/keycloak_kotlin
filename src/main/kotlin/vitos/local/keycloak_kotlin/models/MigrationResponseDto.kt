@@ -1,5 +1,7 @@
 package vitos.local.keycloak_kotlin.models
 
+import vitos.local.keycloak_kotlin.logging.Log
+
 
 /**
  * Дто ответа за запрос создания или обновления сущностей realm roles
@@ -15,6 +17,8 @@ data class MigrationResponseDto(
     var failedCount: Int = 0,
     var totalCount: Int = 0
 ) {
+
+    companion object: Log()
 
     fun addCreated(name: String) {
         created.add(name)
@@ -34,5 +38,20 @@ data class MigrationResponseDto(
             ++failedCount
             ++totalCount
         }
+    }
+
+    fun details(): String {
+        return """/n
+            ResponseDto:
+            -----------------------------------------------------------
+            created: $created
+            updated: $updated
+            failed: $failed
+            successCount: $successCount
+            updatedCount: $updatedCount
+            failedCount: $failedCount
+            totalCount: $totalCount
+            -----------------------------------------------------------
+        """.trimIndent()
     }
 }

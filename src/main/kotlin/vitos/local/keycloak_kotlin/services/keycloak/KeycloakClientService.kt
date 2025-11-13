@@ -29,11 +29,13 @@ class KeycloakClientService {
      * @return сущность сервиса или null
      */
     fun findOrCreateClient(
+
         clientID: String,
-        realmResource: RealmResource,
+        realmResource: RealmResource
+
     ): ClientRepresentation? {
 
-        // пробуем найти клиенты в области, и если находим, возвращаем его сущность
+        // пробуем найти клиента в области
         realmResource.clients().findByClientId(clientID).firstOrNull()?.let { return it }
         try {
             realmResource.clients().create(ClientRepresentation().apply {
@@ -58,8 +60,10 @@ class KeycloakClientService {
      * @return сущность созданной роли или null
      */
     fun createClientRoles(
+
         roleName: String,
         clientResource: ClientResource
+
     ): RoleRepresentation? {
         try {
             clientResource.roles().create(RoleRepresentation().apply {

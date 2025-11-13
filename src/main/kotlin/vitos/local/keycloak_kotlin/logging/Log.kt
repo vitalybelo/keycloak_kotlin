@@ -81,4 +81,3 @@ abstract class Log {
 class Logger {
     companion object: Log()
 }
-

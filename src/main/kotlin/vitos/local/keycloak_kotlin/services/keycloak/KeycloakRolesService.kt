@@ -1,6 +1,5 @@
 package vitos.local.keycloak_kotlin.services.keycloak
 
-import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.stereotype.Service
@@ -24,13 +23,14 @@ class KeycloakRolesService {
      * @return сущность созданной роли или null если роль существует
      */
     fun createRealmRole(
+
         roleRepresentation: RoleRepresentation,
         realmResource: RealmResource
+
     ): RoleRepresentation? {
 
         val roleName = roleRepresentation.name
         try {
-            roleRepresentation.id = null
             realmResource.roles().create(roleRepresentation)
             return realmResource.roles().get(roleName).toRepresentation()
         } catch (ex: Exception) {
@@ -49,14 +49,15 @@ class KeycloakRolesService {
      * @return сущность обновленной роли или null если failed
      */
     fun updateRealmRoles(
+
         newRepresentation: RoleRepresentation,
         existRepresentation: RoleRepresentation,
         realmResource: RealmResource
+
     ): RoleRepresentation? {
 
         val roleName = existRepresentation.name
         try {
-            newRepresentation.name = roleName
             newRepresentation.id = existRepresentation.id
             realmResource.roles().get(roleName)?.let { roleResource ->
                 roleResource.update(newRepresentation)

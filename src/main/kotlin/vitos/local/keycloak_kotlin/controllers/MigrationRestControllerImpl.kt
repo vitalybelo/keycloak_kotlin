@@ -8,6 +8,7 @@ import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import vitos.local.keycloak_kotlin.interfaces.MigrationRestController
+import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.models.ClientExportDto
 import vitos.local.keycloak_kotlin.services.migrate.MigrateClientScopeService
 import vitos.local.keycloak_kotlin.services.migrate.MigrateClientsService
@@ -28,6 +29,7 @@ class MigrationRestControllerImpl(
 
 ) : MigrationRestController {
 
+    companion object: Log()
 
     override fun getAllRealmClientScopes(realm: String): ResponseEntity<Any> {
         return migrateClientScopeService.getRealmClientScopes(realm)
@@ -68,7 +70,8 @@ class MigrationRestControllerImpl(
     ): ResponseEntity<Any> {
 
         val user = userAgentAnalyzer.parse(userAgent)
-        println("UserAgent header :: ${user.toJson()}")
+        val browser = user.getValue("AgentNameVersion")
+        logger.infoM("UserAgent header browser info :: $browser")
         return migrateRealmService.getRealmConfiguration(realm)
     }
 

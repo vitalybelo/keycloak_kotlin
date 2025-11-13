@@ -56,7 +56,8 @@ class SecurityOAuth2Configuration(
                 .requestMatchers(
                     "/public/**",
                     "/experiments/**",
-                    "/migrate/**")
+                    "/migrate/**"
+                )
                 .permitAll()
                 .requestMatchers("/users/create").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/**").authenticated()
