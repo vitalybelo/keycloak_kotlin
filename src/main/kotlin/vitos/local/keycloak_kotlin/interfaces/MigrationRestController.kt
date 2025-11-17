@@ -10,6 +10,7 @@ import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -192,6 +193,27 @@ interface MigrationRestController {
         @RequestHeader(name = "User-Agent", required = true) userAgent: String,
         @PathVariable("realm", required = true) realm: String,
         @RequestBody(required = true) representation: RealmRepresentation): ResponseEntity<Any>
+
+
+    /**
+     * Безвозвратно удаляет заданный параметром realm, если он существует
+     *
+     * @param realm название области сервисов
+     * @return статус выполнения и сообщение
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Realm deleted successfully", content = [Content()]),
+            ApiResponse(responseCode = "400", description = "Invalid request parameter - realm name", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Not found preassigned realm", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @DeleteMapping("/{realm}")
+    @Operation(summary = "Безвозвратно удаляет realm")
+    fun deleteRealm(
+        @RequestHeader(name = "User-Agent", required = true) userAgent: String,
+        @PathVariable("realm", required = true) realm: String): ResponseEntity<Any>
 
 
     /**

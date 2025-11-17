@@ -35,6 +35,7 @@ class MigrationRestControllerImpl(
         return migrateClientScopeService.getRealmClientScopes(realm)
     }
 
+
     override fun updateAllRealmClientScopes(
         realm: String,
         clientScopes: List<ClientScopeRepresentation>
@@ -42,9 +43,11 @@ class MigrationRestControllerImpl(
         return migrateClientScopeService.updateAllRealmClientScopes(realm, clientScopes)
     }
 
+
     override fun getRealmClient(realm: String, clientId: String): ResponseEntity<Any> {
         return migrateClientsService.getRealmClients(realm, clientId)
     }
+
 
     override fun createOrUpdateRealmClient(
         realm: String,
@@ -53,9 +56,11 @@ class MigrationRestControllerImpl(
         return migrateClientsService.createOrUpdateRealmClient(realm, client)
     }
 
+
     override fun getAllRealmRoles(realm: String): ResponseEntity<Any> {
         return migrateRealmRolesService.getRealmRoles(realm)
     }
+
 
     override fun createOrUpdateAllRealmRoles(
         realm: String,
@@ -64,29 +69,37 @@ class MigrationRestControllerImpl(
         return migrateRealmRolesService.createOrUpdateRealmRoles(realm, realmRoleList)
     }
 
+
     override fun getRealmConfiguration(
         userAgent: String,
         realm: String
     ): ResponseEntity<Any> {
-
         val user = userAgentAnalyzer.parse(userAgent)
         val browser = user.getValue("AgentNameVersion")
         logger.infoM("UserAgent header browser info :: $browser")
         return migrateRealmService.getRealmConfiguration(realm)
     }
 
+
     override fun updateRealmConfiguration(
         userAgent: String,
         realm: String,
         representation: RealmRepresentation
     ): ResponseEntity<Any> {
-
         return migrateRealmService.updateRealmConfiguration(realm, representation)
+    }
+
+    override fun deleteRealm(userAgent: String, realm: String): ResponseEntity<Any> {
+        val user = userAgentAnalyzer.parse(userAgent)
+        val browser = user.getValue("AgentNameVersion")
+        logger.infoM("UserAgent header browser info :: $browser")
+        return migrateRealmService.deleteRealm(realm)
     }
 
     override fun getAllRealmGroups(realm: String): ResponseEntity<Any> {
         return migrateGroupsService.getAllRealmGroups(realm)
     }
+
 
     override fun createOrUpdateAllRealmGroups(
         realm: String,

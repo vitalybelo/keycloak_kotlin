@@ -1,5 +1,6 @@
 package vitos.local.keycloak_kotlin.models
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import vitos.local.keycloak_kotlin.logging.Log
 
 
@@ -7,6 +8,7 @@ import vitos.local.keycloak_kotlin.logging.Log
  * Дто ответа за запрос создания или обновления сущностей realm roles
  * @author Belotserkovskii Vitaly
  */
+@JsonIgnoreProperties(ignoreUnknown = true, value = ["ignored"])
 data class MigrationResponseDto(
 
     val created: MutableList<String> = mutableListOf(),
@@ -15,7 +17,8 @@ data class MigrationResponseDto(
     var successCount: Int = 0,
     var updatedCount: Int = 0,
     var failedCount: Int = 0,
-    var totalCount: Int = 0
+    var totalCount: Int = 0,
+    var ignored: String? = "Ignored but showed"
 ) {
 
     companion object: Log()

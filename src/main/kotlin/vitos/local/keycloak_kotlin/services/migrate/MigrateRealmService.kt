@@ -5,7 +5,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.RealmRepresentation
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -13,6 +12,8 @@ import vitos.local.keycloak_kotlin.models.JsonType
 import vitos.local.keycloak_kotlin.models.MigrateExchange
 import vitos.local.keycloak_kotlin.repositories.MigrateExchangeRepository
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
+import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NOT_FOUND
+import vitos.local.keycloak_kotlin.logging.Log
 
 
 /**
@@ -28,9 +29,7 @@ class MigrateRealmService(
     private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 ) {
 
-    companion object {
-        private val logger = LoggerFactory.getLogger(MigrateRealmService::class.java)
-    }
+    companion object: Log()
 
 
     /**
@@ -90,7 +89,7 @@ class MigrateRealmService(
                     realmRepresentation.defaultRole.id = null
                     realmRepresentation.defaultRole.containerId = null
                     keycloak.realms().create(realmRepresentation)
-                    logger.info("updateRealmConfiguration() :: Successfully created realm \"$realmName\" configuration")
+                    logger.infoM("Successfully created realm \"$realmName\" configuration")
                 } else {
                     // обновляем область сервисов
                     val foundRealm = realmResource.toRepresentation()
@@ -99,17 +98,42 @@ class MigrateRealmService(
                     realmRepresentation.defaultRole?.id = foundRealm.defaultRole?.id
                     realmRepresentation.defaultRole?.containerId = foundRealm.defaultRole?.containerId
                     realmResource.update(realmRepresentation)
-                    logger.info("updateRealmConfiguration() :: Successfully updated realm \"$realmName\" configuration")
+                    logger.infoM("Successfully updated realm \"$realmName\" configuration")
                 }
                 return ResponseEntity(realmRepresentation, HttpStatus.OK)
 
             } catch (ex: Exception) {
-                logger.error("Failed to update Realm configuration for \"$realmName\"", ex)
+                logger.errorM("Failed to update Realm configuration for \"$realmName\"", ex)
                 return migrateService.writeErrorLoggerWithTextAndStatus(ex)
             }
         }
         return ResponseEntity(INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
     }
 
+
+    /**
+     * Выполняет безвозвратное удаление realm, заданного параметром, если он существует
+     * @param realmName название рабочей области
+     * @return статус выполнения и сообщение
+     */
+    fun deleteRealm(
+        realmName: String): ResponseEntity<Any> {
+
+        if (!realmName.isEmpty()) {
+            val realmResource = migrateService.getRealmResource(realmName)
+            if (realmResource != null) {
+                try {
+                    realmResource.remove()
+                    return ResponseEntity("Realm $realmName deleted successfully", HttpStatus.OK)
+
+                } catch (ex: Exception) {
+                    return migrateService.writeErrorLoggerWithTextAndStatus(ex, "Failed to remove $realmName")
+                }
+            }
+            return ResponseEntity(INVALID_REALM_NOT_FOUND, HttpStatus.NOT_FOUND)
+        }
+        return ResponseEntity(INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
+
+    }
 }
 

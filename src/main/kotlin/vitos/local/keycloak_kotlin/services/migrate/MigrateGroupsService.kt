@@ -76,7 +76,7 @@ class MigrateGroupsService(
 
 
     /**
-     * Выполняет создание или обновление сущностей всех групп и подгрупп в области сервисов realm
+     * Выполняет создание или обновление сущностей всех групп и подгрупп в заданной области сервисов realm
      *
      * @param realm название области сервисов
      * @param importGroupList список групп с включенными подгруппами
@@ -103,11 +103,15 @@ class MigrateGroupsService(
                         val groupName = group.name
                         if (foundGroups.containsKey(groupName)) {
                             // здесь обновляем корневую группу и обновляем дочерние группы
-                            // TODO добавить метод обновления
-                            responseDto.addUpdated(groupName)
+                            if (updateGroupWithAssignRoles(
+                                    group,
+                                    foundGroups[groupName]!!,
+                                    realmResource)) {
+                                responseDto.addUpdated(groupName)
+                            }
                         } else {
                             // создаем новую корневую группу и далее создаем все дочерние
-                            if (createRootGroupWithAssignRoles(group, realmResource)) {
+                            if (createGroupWithAssignRoles(group, realmResource)) {
                                 responseDto.addCreated(groupName)
                             }
                         }
@@ -129,6 +133,99 @@ class MigrateGroupsService(
 
 
     /**
+     * Выполняет обновление корневых групп (доступ, роли, атрибуты, подгруппы), а затем запускает методы
+     * обновления или создания для списка подгрупп
+     *
+     * @param importGroupRepresentation новая сущность группы (подгруппы)
+     * @param foundGroupRepresentation найденная сущность, подлежащая изменению
+     * @param realmResource ресурс управления областью сервисов
+     * @return true если выполнено успешно
+     */
+    private fun updateGroupWithAssignRoles(
+        importGroupRepresentation: GroupRepresentation,
+        foundGroupRepresentation: GroupRepresentation,
+        realmResource: RealmResource
+    ): Boolean {
+
+        val groupName = importGroupRepresentation.name
+        logger.infoM("Update root group $groupName method started")
+        try {
+            realmResource.groups().group(foundGroupRepresentation.id)?.let { resource ->
+
+                logger.infoM("Control resource for group $groupName accepted successfully")
+                foundGroupRepresentation.attributes = importGroupRepresentation.attributes
+                foundGroupRepresentation.access = importGroupRepresentation.access
+                foundGroupRepresentation.subGroups = resource.getSubGroups(0, Integer.MAX_VALUE, false)
+                resource.update(foundGroupRepresentation)
+                removeGroupRoles(resource)
+                keycloakGroupService.assignRealmRolesToGroup(importGroupRepresentation, resource, realmResource)
+                keycloakGroupService.assignClientRolesToGroup(importGroupRepresentation, resource, realmResource)
+
+                val importSubGroups =
+                    importGroupRepresentation.subGroups?.associateBy { it.name } ?: emptyMap()
+                val foundSubGroups =
+                    foundGroupRepresentation.subGroups?.associateBy { it.name } ?: emptyMap()
+
+                if (importSubGroups.isNotEmpty()) {
+                    importSubGroups.forEach { importGroup ->
+                        val importName = importGroup.value.name
+                        if (foundSubGroups.containsKey(importName)) {
+                            // TODO update sub group
+                            updateGroupWithAssignRoles(
+                                importGroup.value,
+                                foundSubGroups[importName]!!,
+                                realmResource
+                            )
+                        } else {
+                            // такой подгруппы не было, создаем новую подгруппу и вложенными подгруппами
+                            createSubGroupWithAssignRoles(
+                                importGroupRepresentation,
+                                resource,
+                                realmResource
+                            )
+                        }
+                    }
+                } else {
+                    // нужно удалить из группы все подгруппы, если они существуют
+                    if (foundSubGroups.isNotEmpty()) {
+                        foundSubGroups.forEach { foundGroup ->
+                            realmResource.groups().group(foundGroup.value.id).remove()
+                        }
+                    }
+                }
+                logger.infoM("Update root group $groupName method finished successfully")
+                return true
+            }
+        } catch (ex: Exception) {
+            logger.errorM("Error updating group: $groupName", ex)
+        }
+        return false
+    }
+
+
+    /**
+     * Удаляет все роли назначенные для группы (all realm roles and all client roles)
+     * @param groupResource ресурс управления группой
+     */
+    private fun removeGroupRoles(
+        groupResource: GroupResource
+    ) {
+        try {
+            val realmRoles = groupResource.roles().all.realmMappings
+            groupResource.roles().realmLevel().remove(realmRoles)
+            groupResource.roles().all.clientMappings?.forEach {
+                val clientMappings = it.value
+                groupResource.roles()
+                    .clientLevel(clientMappings.id)
+                    .remove(clientMappings.mappings)
+            }
+        } catch (ex: Exception) {
+            logger.errorM("Error removing group roles: ${ex.message}", ex)
+        }
+    }
+
+
+    /**
      * Выполняет создание корневой группы в области сервисов. После успешного создания, метод
      * вызывает функцию, которая выполняет присваивание realm ролей группе, а затем метод
      * присвоения client ролей (назначаются только существующие в области client роли).
@@ -138,7 +235,7 @@ class MigrateGroupsService(
      * @param realmResource ресурс управления рабочей областью сервисов
      * @return true если группа создана успешно
      */
-    private fun createRootGroupWithAssignRoles(
+    private fun createGroupWithAssignRoles(
         groupRepresentation: GroupRepresentation,
         realmResource: RealmResource
     ): Boolean {
@@ -190,8 +287,8 @@ class MigrateGroupsService(
     ) {
         var response: Response? = null
         val groupName = parentGroupRepresentation.name
-        val subGroupList: List<GroupRepresentation>? = parentGroupRepresentation.subGroups
-        if (subGroupList.isNullOrEmpty()) {
+        val subGroupList = getSubGroupList(parentGroupRepresentation, parentGroupResource)
+        if (subGroupList.isEmpty()) {
             logger.infoM("Group: \"$groupName\" has no one sub groups")
             return
         }
@@ -215,7 +312,7 @@ class MigrateGroupsService(
                     )
                 } else {
                     response?.close()
-                    logger.infoM("Creating Subgroup: ${subGroup.name} not failed")
+                    logger.infoM("Creating Subgroup: ${subGroup.name} failed")
                 }
             }
         } catch (ex: Exception) {
@@ -225,5 +322,35 @@ class MigrateGroupsService(
         }
     }
 
+
+    /**
+     * Создает список подгрупп, которые необходимо создать для корневой группы
+     *
+     * @param parentGroupRepresentation сущность родительской группы
+     * @param parentGroupResource ресурс управления родительской группой
+     * @return список подгрупп для создания
+     */
+    private fun getSubGroupList(
+        parentGroupRepresentation: GroupRepresentation,
+        parentGroupResource: GroupResource,
+    ): List<GroupRepresentation> {
+
+        val subGroupList = parentGroupRepresentation.subGroups ?: emptyList()
+        try {
+            if (subGroupList.isNotEmpty()) {
+                // на тот случай, если мы создаем новые подгруппы в потоке обновления группы
+                val subNames = parentGroupResource
+                    .getSubGroups(0, Integer.MAX_VALUE, false)
+                    ?.map { it.name }?.toList() ?: emptyList()
+
+                if (subNames.isNotEmpty()) {
+                    return subGroupList.filter { !subNames.contains(it.name) }.toList()
+                }
+            }
+        } catch (ex: Exception) {
+            logger.errorM("Getting list of sub groups failed: ${ex.message}", ex)
+        }
+        return subGroupList
+    }
 }
 

@@ -33,10 +33,10 @@ class MigrateCommonService(
         try {
             val realmResource = keycloak.realm(realmName)
             val realmRepresentation = realmResource.toRepresentation()
-            logger.debug("Representation: {} found successfully", realmRepresentation.realm)
+            logger.debugM("Representation: ${realmRepresentation.realm} found successfully")
             return realmResource
         } catch (ex: Exception) {
-            logger.errorM("Error getting realm resource ${ex.message}, cause = ${ex.cause}", ex)
+            logger.errorM("Error getting realm resource ${ex.message}", ex)
         }
         return null
     }
