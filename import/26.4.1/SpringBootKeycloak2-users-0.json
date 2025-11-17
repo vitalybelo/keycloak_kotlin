@@ -1,0 +1,20 @@
+{
+  "realm" : "SpringBootKeycloak2",
+  "users" : [ {
+    "id" : "e590617f-43d7-4775-9337-ac39fd1eb36b",
+    "username" : "adminka",
+    "firstName" : "Админкос",
+    "lastName" : "Админкин",
+    "email" : "adminkin@gmail.com",
+    "emailVerified" : false,
+    "enabled" : true,
+    "createdTimestamp" : 1762501574218,
+    "totp" : false,
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-springbootkeycloak2" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ]
+}
