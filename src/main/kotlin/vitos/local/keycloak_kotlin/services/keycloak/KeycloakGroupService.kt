@@ -14,6 +14,7 @@ import vitos.local.keycloak_kotlin.logging.Log
  * @author Vitaly Belotserkovskii
  */
 @Service
+@Suppress("unused")
 class KeycloakGroupService(
 
     private val keycloakRolesService: KeycloakRolesService,
@@ -52,7 +53,7 @@ class KeycloakGroupService(
 
                 val clientId = role.key
                 keycloakClientService.findOrCreateClient(clientId, realmResource)?.let { client ->
-                    logger.infoM("Found client $clientId :: going to perform add roles for it")
+                    logger.infoM("Found or created client $clientId :: going to perform add roles for it")
 
                     val clientUUID = client.id
                     val rolesToAdd= mutableListOf<RoleRepresentation>()
@@ -189,7 +190,7 @@ class KeycloakGroupService(
                     resource.getSubGroups(0, Integer.MAX_VALUE, false, true)
                 subGroups.forEach { subGroup ->
                     groupRepresentation.subGroups.add(subGroup)
-                    logger.debugM("Sub group: ${subGroup.name} added to parent group $groupName")
+                    logger.infoM("Sub group: ${subGroup.name} added to parent group $groupName")
                     collectSubGroups(subGroup, realmResource)
                 }
             }
@@ -200,6 +201,12 @@ class KeycloakGroupService(
     }
 
 
+    /**
+     * Выполняет поиск группы Keycloak по идентификатору, и запрашивает ресурс управления группой
+     * @param groupRepresentation сущность группы
+     * @param realmResource ресурс управления областью
+     * @return сущность найденной группы или null если такой группы нет
+     */
     fun getGroupResource(
         groupRepresentation: GroupRepresentation,
         realmResource: RealmResource
@@ -207,8 +214,7 @@ class KeycloakGroupService(
 
         try {
             val groupResource = realmResource.groups().group(groupRepresentation.id)
-            val representation = groupResource.toRepresentation()
-            if (representation != null) {
+            groupResource.toRepresentation()?.let {
                 return groupResource
             }
         } catch (ex: Exception) {
@@ -216,5 +222,26 @@ class KeycloakGroupService(
         }
         return null
     }
+
+
+    /**
+     * Ищет сущность группы по заданному параметром пути. Метод API для поиска выкидывает
+     * исключение в случае, если группа не найдена.
+     * @param groupPath полный путь группы Keycloak
+     * @param realmResource ресурс управления областью
+     * @return сущность группы если она найдена
+     */
+    fun findGroupByPath(
+        groupPath: String,
+        realmResource: RealmResource
+    ): GroupRepresentation? {
+        try {
+            return realmResource.getGroupByPath(groupPath)
+        } catch (ex: Exception) {
+            logger.errorM("Error while searching group by path: $groupPath :: ${ex.message}")
+        }
+        return null
+    }
+
 }
 

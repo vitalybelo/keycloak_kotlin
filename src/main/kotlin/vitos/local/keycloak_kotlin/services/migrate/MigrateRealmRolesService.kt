@@ -49,8 +49,7 @@ class MigrateRealmRolesService(
 
                     val realmRoleList = realmResource.roles()
                         .list(0, Integer.MAX_VALUE, false)
-                        ?.filter { it.description.isNullOrEmpty()
-                                || !it.description.startsWith("$") }
+                        ?.filter { it.description.isNullOrEmpty() || !it.description.startsWith("$") }
                         ?.toList() ?: emptyList()
                     if (realmRoleList.isNotEmpty()) {
 

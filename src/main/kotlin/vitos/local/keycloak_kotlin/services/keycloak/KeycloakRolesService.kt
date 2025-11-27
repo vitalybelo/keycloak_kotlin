@@ -1,5 +1,6 @@
 package vitos.local.keycloak_kotlin.services.keycloak
 
+import org.keycloak.admin.client.resource.ClientResource
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.stereotype.Service
@@ -32,7 +33,9 @@ class KeycloakRolesService {
         val roleName = roleRepresentation.name
         try {
             realmResource.roles().create(roleRepresentation)
-            return realmResource.roles().get(roleName).toRepresentation()
+            realmResource.roles().get(roleName)?.toRepresentation()?.let {
+                return it
+            }
         } catch (ex: Exception) {
             logger.errorM("Creating of Realm role $roleName failed ${ex.message}", ex)
         }
@@ -69,4 +72,28 @@ class KeycloakRolesService {
         return null
     }
 
+
+    /**
+     * Выполняет создание client роли в области сервисов
+     *
+     * @param roleRepresentation сущность новой роли
+     * @param clientResource ресурс управления сервисом
+     * @return сущность созданной роли или null если роль существует
+     */
+    fun createClientRole(
+        roleRepresentation: RoleRepresentation,
+        clientResource: ClientResource,
+    ): RoleRepresentation? {
+
+        val roleName = roleRepresentation.name
+        try {
+            clientResource.roles().create(roleRepresentation)
+            clientResource.roles().get(roleName)?.toRepresentation()?.let {
+                return it
+            }
+        } catch (ex: Exception) {
+            logger.errorM("Creating of RoleRepresentation $roleName failed by = ${ex.message}", ex)
+        }
+        return null
+    }
 }

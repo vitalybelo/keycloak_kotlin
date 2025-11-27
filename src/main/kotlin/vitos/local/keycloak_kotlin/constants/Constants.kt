@@ -11,6 +11,7 @@ class Constants {
         const val INVALID_REALM_OR_REALM_ROLES = "Invalid request parameter: realm or realm role list is empty"
         const val CREATE_ROLE_DESC = "Role created automatically during group migration"
         const val CREATE_CLIENT_DESC = "Client created automatically during group migration"
+        const val CLIENT_NOT_CONFIGURED = "Import client representation not configured"
     }
 
 }
