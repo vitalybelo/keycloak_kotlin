@@ -1,5 +1,6 @@
-package vitos.local.keycloak_kotlin.models
+package vitos.local.keycloak_kotlin.models.migrate
 
+import vitos.local.keycloak_kotlin.models.JsonType
 import java.io.Serializable
 import java.time.ZonedDateTime
 

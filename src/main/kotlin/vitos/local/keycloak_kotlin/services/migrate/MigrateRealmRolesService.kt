@@ -9,12 +9,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.models.JsonType
-import vitos.local.keycloak_kotlin.models.MigrateExchange
+import vitos.local.keycloak_kotlin.models.migrate.MigrateExchange
 import vitos.local.keycloak_kotlin.repositories.MigrateExchangeRepository
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NOT_FOUND
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_REALM_ROLES
-import vitos.local.keycloak_kotlin.models.MigrationResponseDto
+import vitos.local.keycloak_kotlin.models.migrate.MigrationResponseDto
 import vitos.local.keycloak_kotlin.services.keycloak.KeycloakRolesService
 
 

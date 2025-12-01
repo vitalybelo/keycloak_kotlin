@@ -9,7 +9,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import vitos.local.keycloak_kotlin.interfaces.MigrationRestController
 import vitos.local.keycloak_kotlin.logging.Log
-import vitos.local.keycloak_kotlin.models.ClientExportDto
+import vitos.local.keycloak_kotlin.models.migrate.ClientExportDto
+import vitos.local.keycloak_kotlin.services.migrate.MigrateAuthFlowsService
 import vitos.local.keycloak_kotlin.services.migrate.MigrateClientScopeService
 import vitos.local.keycloak_kotlin.services.migrate.MigrateClientsService
 import vitos.local.keycloak_kotlin.services.migrate.MigrateGroupsService
@@ -25,7 +26,8 @@ class MigrationRestControllerImpl(
     private val migrateClientScopeService: MigrateClientScopeService,
     private val migrateRealmRolesService: MigrateRealmRolesService,
     private val migrateRealmService: MigrateRealmService,
-    private val migrateGroupsService: MigrateGroupsService
+    private val migrateGroupsService: MigrateGroupsService,
+    private val migrateAuthFlowsService: MigrateAuthFlowsService
 
 ) : MigrationRestController {
 
@@ -106,6 +108,13 @@ class MigrationRestControllerImpl(
         importGroupList: List<GroupRepresentation>
     ): ResponseEntity<Any> {
         return migrateGroupsService.createOrUpdateAllRealmGroups(realm, importGroupList)
+    }
+
+
+    override fun getRealmAuthenticationFlow(
+        realm: String,
+        alias: String): ResponseEntity<Any> {
+        return migrateAuthFlowsService.getRealmAuthenticationFlow(realm, alias)
     }
 
 }

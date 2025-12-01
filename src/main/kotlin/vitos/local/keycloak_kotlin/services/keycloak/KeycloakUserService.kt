@@ -8,7 +8,7 @@ import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.CREATE_ROLE_DESC
 import vitos.local.keycloak_kotlin.logging.Log
-import vitos.local.keycloak_kotlin.models.ClientExportDto
+import vitos.local.keycloak_kotlin.models.migrate.ClientExportDto
 
 
 /**

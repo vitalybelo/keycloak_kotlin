@@ -14,7 +14,7 @@
     },
     "enabled" : true,
     "createdTimestamp" : 1756900514782,
-    "totp" : false,
+    "totp" : true,
     "credentials" : [ {
       "id" : "5e3b66be-2e35-41be-b066-ba587bf498a9",
       "type" : "password",
@@ -22,6 +22,13 @@
       "createdDate" : 1756900531726,
       "secretData" : "{\"value\":\"id3l63RQKgXPm3SVODgQgdoPqpdYCkwE0Lax1+K8rJE=\",\"salt\":\"2qasiaPD/aC1FQSHlsZ8uQ==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    }, {
+      "id" : "447d85e2-6e6d-46eb-80c8-58cc58ff16a0",
+      "type" : "otp",
+      "userLabel" : "",
+      "createdDate" : 1764247309373,
+      "secretData" : "{\"value\":\"aB9nnQoARjfKU1i0MpRf\"}",
+      "credentialData" : "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
@@ -59,15 +66,18 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "REVIEWER", "default-roles-springbootkeycloak" ],
+    "realmRoles" : [ "ADMIN", "REVIEWER", "default-roles-springbootkeycloak" ],
+    "clientRoles" : {
+      "gateway" : [ "gateway_role_3" ]
+    },
     "notBefore" : 0,
     "groups" : [ "/root_parent/child_1", "/root_parent/child_2", "/root_parent/child_3", "/customer" ]
   }, {
-    "id" : "b1f5d3a9-0978-48d7-931b-1a2ccc7fd5b3",
+    "id" : "88e7f24f-0f94-428a-b1c2-336f0794e878",
     "username" : "service-account-gateway",
     "emailVerified" : false,
     "enabled" : true,
-    "createdTimestamp" : 1762416555086,
+    "createdTimestamp" : 1764165341057,
     "totp" : false,
     "serviceAccountClientId" : "gateway",
     "credentials" : [ ],
@@ -83,6 +93,10 @@
     "id" : "eafafb6a-e3d6-46b1-abfe-bbfdad76858a",
     "username" : "service-account-login-admin",
     "emailVerified" : false,
+    "attributes" : {
+      "position1" : [ "service_account_1" ],
+      "position2" : [ "service_account_2" ]
+    },
     "enabled" : true,
     "createdTimestamp" : 1740658138485,
     "totp" : false,
@@ -90,12 +104,14 @@
     "credentials" : [ ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-springbootkeycloak" ],
+    "realmRoles" : [ "REVIEWER", "default-roles-springbootkeycloak" ],
     "clientRoles" : {
-      "realm-management" : [ "realm-admin", "query-groups", "manage-clients", "query-realms", "manage-identity-providers", "manage-users", "manage-authorization", "query-users", "manage-realm", "view-clients", "view-events", "manage-events", "view-identity-providers", "create-client", "view-users", "view-authorization", "view-realm", "impersonation", "query-clients" ]
+      "realm-management" : [ "realm-admin", "manage-clients", "manage-users", "query-users", "manage-realm", "view-clients", "view-events", "manage-events", "view-identity-providers", "create-client", "impersonation", "query-groups", "query-realms", "manage-identity-providers", "manage-authorization", "view-users", "view-authorization", "view-realm", "query-clients" ],
+      "login-web" : [ "LOGIN_WEB_ROLE_2", "LOGIN_WEB_ROLE_1", "LOGIN_WEB_ROLE_3" ],
+      "login-admin" : [ "LOGIN_ADMIN_3", "LOGIN_ADMIN_2", "LOGIN_ADMIN_1" ]
     },
     "notBefore" : 0,
-    "groups" : [ ]
+    "groups" : [ "/customer", "/group_root/group_A", "/group_root/group_A/group_A1" ]
   }, {
     "id" : "39b7961b-181e-48ea-a70c-cbf0bae3b050",
     "username" : "user",
@@ -104,13 +120,14 @@
     "email" : "user@gmail.com",
     "emailVerified" : true,
     "attributes" : {
+      "required_otp" : [ "true" ],
       "abscustId" : [ "0002" ],
       "phone" : [ "89035392244" ],
       "enterTime" : [ "2025-08-27T14:47:40+03:00" ]
     },
     "enabled" : true,
     "createdTimestamp" : 1756900579356,
-    "totp" : false,
+    "totp" : true,
     "credentials" : [ {
       "id" : "8ff6356d-57b5-411c-8f0a-4cf1faeb63b5",
       "type" : "password",
@@ -118,6 +135,13 @@
       "createdDate" : 1756900594247,
       "secretData" : "{\"value\":\"HKW0CkOtDwxUnn6SCpjIy4kxkZ0znpGL71lC5M4NWxA=\",\"salt\":\"7U7+7SGFd2pT8KZ2J/w47g==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    }, {
+      "id" : "1d0ec576-45da-4f1b-971f-a35a121c1764",
+      "type" : "otp",
+      "userLabel" : "",
+      "createdDate" : 1764253171252,
+      "secretData" : "{\"value\":\"1ndxFJmxDUPF8CULzVNs\"}",
+      "credentialData" : "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],

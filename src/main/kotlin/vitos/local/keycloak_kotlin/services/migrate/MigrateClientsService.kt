@@ -12,12 +12,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.models.JsonType
-import vitos.local.keycloak_kotlin.models.MigrateExchange
+import vitos.local.keycloak_kotlin.models.migrate.MigrateExchange
 import vitos.local.keycloak_kotlin.repositories.MigrateExchangeRepository
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_CLIENT_ID
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.CLIENT_NOT_CONFIGURED
-import vitos.local.keycloak_kotlin.models.ClientExportDto
+import vitos.local.keycloak_kotlin.models.migrate.ClientExportDto
 import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.services.keycloak.KeycloakClientService
 import vitos.local.keycloak_kotlin.services.keycloak.KeycloakUserService

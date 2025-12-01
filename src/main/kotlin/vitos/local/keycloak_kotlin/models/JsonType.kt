@@ -6,5 +6,6 @@ enum class JsonType() {
     REALM_ROLES,
     CLIENTS,
     REALM_CONFIG,
-    GROUPS
+    GROUPS,
+    AUTH_FLOWS
 }

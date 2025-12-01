@@ -16,5 +16,45 @@
     "realmRoles" : [ "default-roles-springbootkeycloak2" ],
     "notBefore" : 0,
     "groups" : [ ]
+  }, {
+    "id" : "50153323-1b31-4d1c-8ebb-5e5766a8c9bb",
+    "username" : "service-account-gateway",
+    "emailVerified" : false,
+    "enabled" : true,
+    "createdTimestamp" : 1764166268000,
+    "totp" : false,
+    "serviceAccountClientId" : "gateway",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-springbootkeycloak2" ],
+    "clientRoles" : {
+      "gateway" : [ "uma_protection" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "7e5b7f4a-1e45-4a9a-81fa-c1e4bffac330",
+    "username" : "service-account-login-admin",
+    "emailVerified" : false,
+    "attributes" : {
+      "position1" : [ "service_account_1" ],
+      "position2" : [ "service_account_2" ]
+    },
+    "enabled" : true,
+    "createdTimestamp" : 1764153813720,
+    "totp" : false,
+    "serviceAccountClientId" : "login-admin",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "REVIEWER", "default-roles-springbootkeycloak2" ],
+    "clientRoles" : {
+      "realm-management" : [ "manage-events", "impersonation", "manage-users", "manage-authorization", "create-client", "query-groups", "view-events", "realm-admin", "query-users", "view-users", "query-realms", "view-authorization", "manage-identity-providers", "view-identity-providers", "manage-realm", "query-clients", "view-clients", "manage-clients", "view-realm" ],
+      "login-web" : [ "LOGIN_WEB_ROLE_2", "LOGIN_WEB_ROLE_1", "LOGIN_WEB_ROLE_3" ],
+      "login-admin" : [ "LOGIN_ADMIN_1", "LOGIN_ADMIN_2", "LOGIN_ADMIN_3" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ "/customer", "/group_root/group_A", "/group_root/group_A/group_A1" ]
   } ]
 }

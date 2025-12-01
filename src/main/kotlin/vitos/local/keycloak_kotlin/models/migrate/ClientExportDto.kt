@@ -1,4 +1,4 @@
-package vitos.local.keycloak_kotlin.models
+package vitos.local.keycloak_kotlin.models.migrate
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.keycloak.representations.idm.ClientRepresentation

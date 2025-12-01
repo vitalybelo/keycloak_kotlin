@@ -1,6 +1,7 @@
 package vitos.local.keycloak_kotlin.interfaces
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -17,7 +18,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
-import vitos.local.keycloak_kotlin.models.ClientExportDto
+import org.springframework.web.bind.annotation.RequestParam
+import vitos.local.keycloak_kotlin.models.migrate.ClientExportDto
 
 @Tag(
     name = "MigrationRestController",
@@ -256,5 +258,30 @@ interface MigrationRestController {
     fun createOrUpdateAllRealmGroups(
         @PathVariable("realm", required = true) realm: String,
         @RequestBody(required = true) importGroupList: List<GroupRepresentation>): ResponseEntity<Any>
+
+
+    /**
+     * Выполняет чтение сущностей потока аутентификации realm
+     *
+     * @param realm название области сервисов
+     * @param alias название потока аутентификации
+     * @return статус выполнения, список сущностей groups или сообщение об ошибке
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Realm authenticate flow received successfully", content = [Content()]),
+            ApiResponse(responseCode = "400", description = "Invalid request parameter - realm or flow name", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Not found preassigned realm or flow", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @GetMapping("/{realm}/authentication/flow")
+    @Operation(summary = "Выполняет чтение сущностей потока аутентификации realm")
+    fun getRealmAuthenticationFlow(
+        @Parameter(description = "Название рабочей области")
+        @PathVariable("realm", required = true) realm: String,
+        @Parameter(description = "Название потока аутентификации")
+        @RequestParam("alias", required = true) alias: String): ResponseEntity<Any>
+
 
 }
