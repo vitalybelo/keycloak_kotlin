@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import vitos.local.keycloak_kotlin.models.migrate.ClientExportDto
+import vitos.local.keycloak_kotlin.models.migrate.ImportFlowDto
 
 @Tag(
     name = "MigrationRestController",
@@ -283,5 +284,29 @@ interface MigrationRestController {
         @Parameter(description = "Название потока аутентификации")
         @RequestParam("alias", required = true) alias: String): ResponseEntity<Any>
 
+
+    /**
+     * Выполняет создание нового потока аутентификации realm (копию переданного в параметрах)
+     *
+     * @param realm название области сервисов
+     * @param importFlowDto импортируемый dto класс потока аутентификации
+     * @return статус выполнения, список сущностей groups или сообщение об ошибке
+     *
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Realm authenticate flow created successfully", content = [Content()]),
+            ApiResponse(responseCode = "400", description = "Invalid request parameter - realm or flow", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Not found preassigned realm or flow", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @PostMapping("/{realm}/authentication/flow")
+    @Operation(summary = "Выполняет создание копии потока аутентификации realm")
+    fun createRealmAuthenticationFlow(
+        @Parameter(description = "Название рабочей области")
+        @PathVariable("realm", required = true) realm: String,
+        @Parameter(description = "Импортная сущность потока аутентификации")
+        @RequestBody(required = true) importFlowDto: ImportFlowDto): ResponseEntity<Any>
 
 }
