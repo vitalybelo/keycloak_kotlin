@@ -12,8 +12,8 @@ import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import vitos.local.keycloak_kotlin.models.DeleteUsersRequestDto
-import vitos.local.keycloak_kotlin.models.DeleteUsersResponseDto
+import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersRequestDto
+import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersResponseDto
 
 
 @Tag(

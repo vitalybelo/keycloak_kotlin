@@ -13,7 +13,7 @@ import org.keycloak.representations.idm.AuthenticatorConfigRepresentation
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import vitos.local.keycloak_kotlin.models.JsonType
+import vitos.local.keycloak_kotlin.models.migrate.JsonType
 import vitos.local.keycloak_kotlin.models.migrate.MigrateExchange
 import vitos.local.keycloak_kotlin.repositories.MigrateExchangeRepository
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_FLOW_NAME
@@ -103,7 +103,6 @@ class MigrateAuthFlowsService(
      * @param realm название области сервисов
      * @param importFlowDto импортируемый dto класс потока аутентификации
      * @return статус выполнения, список сущностей потоков или сообщение об ошибке
-     *
      */
     fun createRealmAuthenticationFlow(
 
@@ -130,7 +129,7 @@ class MigrateAuthFlowsService(
                         importFlowDto
                     )
                 }
-                return ResponseEntity("Created Flow", HttpStatus.OK)
+                return ResponseEntity("Created flow successfully", HttpStatus.OK)
             }
             return ResponseEntity(INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
         } catch (ex: Exception) {
@@ -171,7 +170,7 @@ class MigrateAuthFlowsService(
                         execution, adminRealmResource, importFlowDto
                     )
                 } else {
-                    // здесь, находим вложенный и отправляем
+                    // находим вложенный поток, создаем его, назначаем шаг и отправляемся в рекурсию
                     receiveImportedFlow(execution.flowAlias, importFlowDto)?.let { importedFlow ->
                         createAuthenticationFlow(
                             importedFlow, adminRealmResource
@@ -199,6 +198,9 @@ class MigrateAuthFlowsService(
     }
 
 
+    /**
+     * @return сущность вложенного потока, или null
+     */
     private fun receiveImportedFlow(
         flowAlias: String,
         importFlowDto: ImportFlowDto

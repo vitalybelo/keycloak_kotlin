@@ -2,7 +2,7 @@ package vitos.local.keycloak_kotlin.models.migrate
 
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
-import vitos.local.keycloak_kotlin.models.JsonType
+import vitos.local.keycloak_kotlin.models.migrate.JsonType
 import java.time.ZonedDateTime
 import java.util.UUID
 

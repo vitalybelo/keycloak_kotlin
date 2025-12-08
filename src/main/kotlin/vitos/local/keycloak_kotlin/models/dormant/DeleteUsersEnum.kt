@@ -1,4 +1,4 @@
-package vitos.local.keycloak_kotlin.models
+package vitos.local.keycloak_kotlin.models.dormant
 
 /**
  * Класс перечисления статусов обработки удаления пользователей

@@ -26,9 +26,9 @@ import vitos.local.keycloak_kotlin.authorization.AccessTokenService
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 import vitos.local.keycloak_kotlin.handlers.ParameterChecker
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
-import vitos.local.keycloak_kotlin.models.DeleteUsersEventDto
-import vitos.local.keycloak_kotlin.models.DeleteUsersEnum
-import vitos.local.keycloak_kotlin.models.DeleteUsersResponseDto
+import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersEventDto
+import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersEnum
+import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersResponseDto
 import vitos.local.keycloak_kotlin.services.keycloak.KeycloakTokenService
 import java.time.DateTimeException
 import java.time.Instant

@@ -8,8 +8,8 @@ import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import vitos.local.keycloak_kotlin.interfaces.KeycloakRestController
-import vitos.local.keycloak_kotlin.models.DeleteUsersRequestDto
-import vitos.local.keycloak_kotlin.models.DeleteUsersResponseDto
+import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersRequestDto
+import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersResponseDto
 import vitos.local.keycloak_kotlin.services.KeycloakRestService
 
 @Controller

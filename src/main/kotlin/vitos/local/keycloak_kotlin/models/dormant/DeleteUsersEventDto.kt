@@ -1,4 +1,4 @@
-package vitos.local.keycloak_kotlin.models
+package vitos.local.keycloak_kotlin.models.dormant
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
