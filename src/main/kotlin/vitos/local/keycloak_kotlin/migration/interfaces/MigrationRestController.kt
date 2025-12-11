@@ -432,4 +432,39 @@ interface MigrationRestController {
         @RequestBody(required = true) importFlowDto: ImportFlowDto
     ): ResponseEntity<Any>
 
+
+    /**
+     * Выполняет очистку кэша заданной параметром области сервисов
+     *
+     * @param realm название области сервисов
+     * @return статус выполнения
+     *
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Realm caches cleared successfully",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid request parameter - realm is null or empty",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Not found preassigned realm in keycloak",
+                content = [Content()]
+            ),
+            ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
+        ]
+    )
+    @PostMapping("/{realm}/clear/cache")
+    @Operation(summary = "Выполняет создание копии потока аутентификации realm")
+    fun clearKeycloakCache(
+        @Parameter(description = "Название рабочей области")
+        @PathVariable("realm", required = true) realm: String
+    ): ResponseEntity<Any>
+
 }

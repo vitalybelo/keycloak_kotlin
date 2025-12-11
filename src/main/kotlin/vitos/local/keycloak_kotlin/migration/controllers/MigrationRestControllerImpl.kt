@@ -14,6 +14,7 @@ import vitos.local.keycloak_kotlin.migration.models.ClientScopeExportDto
 import vitos.local.keycloak_kotlin.migration.services.MigrateAuthFlowsService
 import vitos.local.keycloak_kotlin.migration.services.MigrateClientScopeService
 import vitos.local.keycloak_kotlin.migration.services.MigrateClientsService
+import vitos.local.keycloak_kotlin.migration.services.MigrateCommonService
 import vitos.local.keycloak_kotlin.migration.services.MigrateGroupsService
 import vitos.local.keycloak_kotlin.migration.services.MigrateRealmRolesService
 import vitos.local.keycloak_kotlin.migration.services.MigrateRealmService
@@ -27,7 +28,8 @@ class MigrationRestControllerImpl(
     private val migrateRealmRolesService: MigrateRealmRolesService,
     private val migrateRealmService: MigrateRealmService,
     private val migrateGroupsService: MigrateGroupsService,
-    private val migrateAuthFlowsService: MigrateAuthFlowsService
+    private val migrateAuthFlowsService: MigrateAuthFlowsService,
+    private val migrateCommonService: MigrateCommonService
 
 ) : MigrationRestController {
 
@@ -135,6 +137,10 @@ class MigrationRestControllerImpl(
         importFlowDto: ImportFlowDto
     ): ResponseEntity<Any> {
         return migrateAuthFlowsService.createRealmAuthenticationFlow(realm, importFlowDto)
+    }
+
+    override fun clearKeycloakCache(realm: String): ResponseEntity<Any> {
+        return migrateCommonService.clearKeycloakCache(realm)
     }
 
 }

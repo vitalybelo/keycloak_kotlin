@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
+import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
 import vitos.local.keycloak_kotlin.logging.Log
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -64,7 +65,39 @@ class MigrateCommonService(
         return ResponseEntity(errorMessage, errorStatus)
     }
 
+    /**
+     * @return time stamp для копирования потоков и клиентов
+     */
     fun getTimeStamp(): String = LocalDateTime.now().format(FORMATTER)
+
+
+    /**
+     * Выполняет очистку всех кэшей для заданно области сервисов
+     *
+     * @param realmName название рабочей области сервисов
+     * @return код выполнения и сообщение
+     */
+    fun clearKeycloakCache(
+        realmName: String
+    ): ResponseEntity<Any> {
+
+        getRealmResource(realmName)?.let { realmResource ->
+            try {
+                realmResource.clearRealmCache()
+                realmResource.clearKeysCache()
+                realmResource.clearCrlCache()
+                realmResource.clearUserCache()
+
+                logger.infoM("Successfully cleared keycloak cache for [$realmName]")
+                return ResponseEntity("Cleared successfully", HttpStatus.OK)
+            } catch (ex: Exception){
+                logger.errorM("Failed to clear all caches for [$realmName]", ex)
+                return writeErrorLoggerWithTextAndStatus(ex)
+            }
+        }
+        logger.infoM("Received realm name is invalid parameter = [$realmName[")
+        return ResponseEntity(INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
+    }
 
 }
 

@@ -96,7 +96,7 @@ class MigrateClientsService(
             return ResponseEntity(INVALID_REALM_OR_CLIENT_ID, HttpStatus.BAD_REQUEST)
         }
         if (isAlwaysCreate) {
-            importClientRepresentation.clientId += "-${migrateService.getTimeStamp()}"
+            importClientRepresentation.clientId += "-migrated-${migrateService.getTimeStamp()}"
         }
         try {
             val realmResource = migrateService.getRealmResource(realm)

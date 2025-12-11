@@ -46,6 +46,7 @@ class MigrateRealmService(
                 migrateService.getRealmResource(realmName)?.let { realmResource ->
 
                     val configuration = realmResource.toRepresentation()
+                    val keys = realmResource.keys().keyMetadata
 
                     val jsonAsString = objectMapper.writeValueAsString(configuration)
                     val migrateRecord = MigrateExchange(realmName, JsonType.REALM_CONFIG, jsonAsString)
