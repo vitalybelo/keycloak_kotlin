@@ -11,6 +11,8 @@ import vitos.local.keycloak_kotlin.migration.models.ClientExportDto
 import vitos.local.keycloak_kotlin.migration.models.ImportFlowDto
 import vitos.local.keycloak_kotlin.migration.interfaces.MigrationRestController
 import vitos.local.keycloak_kotlin.migration.models.ClientScopeExportDto
+import vitos.local.keycloak_kotlin.migration.models.ExportRealmConditions
+import vitos.local.keycloak_kotlin.migration.models.ImportRealmConditions
 import vitos.local.keycloak_kotlin.migration.services.MigrateAuthFlowsService
 import vitos.local.keycloak_kotlin.migration.services.MigrateClientScopeService
 import vitos.local.keycloak_kotlin.migration.services.MigrateClientsService
@@ -50,19 +52,22 @@ class MigrationRestControllerImpl(
 
     override fun getRealmClient(realm: String, clientId: String
     ): ResponseEntity<Any> {
-        return migrateClientsService.getRealmClients(realm, clientId)
+        return migrateClientsService.getRealmClient(realm, clientId)
     }
 
 
     override fun createOrUpdateRealmClient(
-        isAlwaysCreate: Boolean,
         realm: String,
+        stamp: String?,
+        isAlwaysCreate: Boolean,
         client: ClientExportDto
     ): ResponseEntity<Any> {
         return migrateClientsService.createOrUpdateRealmClient(
-            isAlwaysCreate,
             realm,
-            client)
+            stamp,
+            isAlwaysCreate,
+            client
+        )
     }
 
 
@@ -82,26 +87,52 @@ class MigrationRestControllerImpl(
 
     override fun getRealmConfiguration(
         userAgent: String,
-        realm: String
+        realm: String,
+        isMigrateRealmRoles: Boolean,
+        isMigrateClientScopes: Boolean,
+        isMigrateRealmGroups: Boolean,
+        isMigrateFlows: Boolean
     ): ResponseEntity<Any> {
 
         val user = userAgentAnalyzer.parse(userAgent)
         val browser = user.getValue("AgentNameVersion")
         logger.infoM("UserAgent header browser info :: $browser")
-        return migrateRealmService.getRealmConfiguration(realm)
+        return migrateRealmService.getRealmConfiguration(
+            realm,
+            ExportRealmConditions().apply {
+                this.isMigrateRealmRoles = isMigrateRealmRoles
+                this.isMigrateClientScopes = isMigrateClientScopes
+                this.isMigrateRealmGroups = isMigrateRealmGroups
+                this.isMigrateFlows = isMigrateFlows
+            }
+        )
     }
 
 
     override fun updateRealmConfiguration(
         userAgent: String,
         realm: String,
-        representation: RealmRepresentation
+        representation: RealmRepresentation,
+        isMigrateRealmRoles: Boolean,
+        isMigrateClientScopes: Boolean,
+        isMigrateRealmGroups: Boolean,
+        isMigrateFlows: Boolean
     ): ResponseEntity<Any> {
-        return migrateRealmService.updateRealmConfiguration(realm, representation)
+        return migrateRealmService.updateRealmConfiguration(
+            realm,
+            representation,
+            ImportRealmConditions().apply {
+                this.isMigrateRealmRoles = isMigrateRealmRoles
+                this.isMigrateClientScopes = isMigrateClientScopes
+                this.isMigrateRealmGroups = isMigrateRealmGroups
+                this.isMigrateFlows = isMigrateFlows
+            }
+        )
     }
 
     override fun deleteRealm(
-        userAgent: String, realm: String
+        userAgent: String,
+        realm: String
     ): ResponseEntity<Any> {
 
         val user = userAgentAnalyzer.parse(userAgent)
@@ -134,9 +165,10 @@ class MigrationRestControllerImpl(
 
     override fun createRealmAuthenticationFlow(
         realm: String,
+        stamp: String?,
         importFlowDto: ImportFlowDto
     ): ResponseEntity<Any> {
-        return migrateAuthFlowsService.createRealmAuthenticationFlow(realm, importFlowDto)
+        return migrateAuthFlowsService.createRealmAuthenticationFlow(realm, stamp, importFlowDto)
     }
 
     override fun clearKeycloakCache(realm: String): ResponseEntity<Any> {

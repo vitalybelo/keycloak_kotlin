@@ -14,9 +14,7 @@ import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.migration.models.JsonType
 import vitos.local.keycloak_kotlin.migration.models.MigrateExchange
 import vitos.local.keycloak_kotlin.migration.repositories.MigrateExchangeRepository
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NOT_FOUND
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_GROUPS
+import vitos.local.keycloak_kotlin.constants.Constants
 import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.migration.models.MigrationResponseDto
 import vitos.local.keycloak_kotlin.migration.services.keycloak.KeycloakGroupService
@@ -46,32 +44,34 @@ class MigrateGroupsService(
      */
     fun getAllRealmGroups(realm: String): ResponseEntity<Any> {
 
-        if (realm.isNotEmpty()) {
-            try {
-                migrateService.getRealmResource(realm)?.let { realmResource ->
-
-                    val groupList = keycloakGroupService.collectGroups(realmResource)
-                    if (groupList.isNotEmpty()) {
-
-                        val jsonAsString = objectMapper.writeValueAsString(groupList)
-                        val migrateRecord = MigrateExchange(realm, JsonType.GROUPS, jsonAsString)
-                        migrateRepository.save(migrateRecord)
-
-                        logger.infoM("In realm: $realm found: ${groupList.size} root groups")
-                        return ResponseEntity(groupList, HttpStatus.OK)
-                    }
-                    logger.infoCM("In realm: $realm found no one group")
-                    return ResponseEntity("Found no one groups in realm = $realm", HttpStatus.NOT_FOUND)
-                }
-                logger.warnM("Realm with $realm name not found")
-                return ResponseEntity(INVALID_REALM_NOT_FOUND, HttpStatus.NOT_FOUND)
-            } catch (ex: Exception) {
-                logger.errorM("Error getting realm groups: ${ex.message}, cause = ${ex.cause}", ex)
-                return migrateService.writeErrorLoggerWithTextAndStatus(ex)
-            }
+        if (realm.isEmpty()) {
+            logger.warnM("Invalid parameter realm name = [$realm]")
+            return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
         }
-        logger.warnM("Realm name is empty")
-        return ResponseEntity(INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
+        try {
+            migrateService.getRealmResource(realm)?.let { realmResource ->
+
+                val groupList = keycloakGroupService.collectGroups(realmResource)
+                if (groupList.isNotEmpty()) {
+
+                    val jsonAsString = objectMapper.writeValueAsString(groupList)
+                    val migrateRecord = MigrateExchange(realm, JsonType.GROUPS, jsonAsString)
+                    migrateRepository.save(migrateRecord)
+
+                    logger.infoM("Exported [${groupList.size}] root groups for [$realm]")
+                    return ResponseEntity(groupList, HttpStatus.OK)
+                }
+                logger.infoM("Not found any groups in [$realm] for export")
+                return ResponseEntity("Not found groups in realm = $realm", HttpStatus.NOT_FOUND)
+            }
+            logger.warnM("Realm [$realm] resource not found")
+            return ResponseEntity(Constants.INVALID_REALM_NOT_FOUND, HttpStatus.NOT_FOUND)
+
+        } catch (ex: Exception) {
+            return migrateService.writeErrorLoggerWithTextAndStatus(
+                ex, "Unknown error during exporting realm roles"
+            )
+        }
     }
 
 
@@ -87,48 +87,55 @@ class MigrateGroupsService(
         importGroupList: List<GroupRepresentation>
     ): ResponseEntity<Any> {
 
-        if (realm.isNotEmpty() && importGroupList.isNotEmpty()) {
-
-            logger.infoM("Start creating new groups")
-            migrateService.getRealmResource(realm)?.let { realmResource ->
-                try {
-                    realmResource.clearRealmCache()
-                    val foundGroups = realmResource.groups()
-                            .groups("", 0, Integer.MAX_VALUE, false)
-                            .associateBy { it.name }
-
-                    val responseDto = MigrationResponseDto()
-                    importGroupList.forEach { group ->
-
-                        val groupName = group.name
-                        if (foundGroups.containsKey(groupName)) {
-                            // здесь обновляем корневую группу и обновляем дочерние группы
-                            if (updateGroupWithAssignRoles(
-                                    group,
-                                    foundGroups[groupName]!!,
-                                    realmResource)) {
-                                responseDto.addUpdated(groupName)
-                            }
-                        } else {
-                            // создаем новую корневую группу и далее создаем все дочерние
-                            if (createGroupWithAssignRoles(group, realmResource)) {
-                                responseDto.addCreated(groupName)
-                            }
-                        }
-                        responseDto.addFailedConditional(groupName)
-                    }
-                    logger.infoM("Successfully created new groups: ${responseDto.details()}")
-                    return ResponseEntity(responseDto, HttpStatus.OK)
-
-                } catch (ex: Exception) {
-                    logger.error("Error creating realm groups: ${ex.message}", ex)
-                }
-            }
-            logger.warnM("Realm \"$realm\" not found")
-            return ResponseEntity(INVALID_REALM_NOT_FOUND, HttpStatus.NOT_FOUND)
+        if (realm.isEmpty() || importGroupList.isEmpty()) {
+            logger.warnM("Invalid parameters realm = [$realm], group list size = [${importGroupList.size}]")
+            return ResponseEntity(Constants.INVALID_REALM_OR_GROUPS, HttpStatus.BAD_REQUEST)
         }
-        logger.warnM("Realm name and|or import group list is empty")
-        return ResponseEntity(INVALID_REALM_OR_GROUPS, HttpStatus.BAD_REQUEST)
+
+        logger.infoM("Procedure importing groups started")
+        migrateService.getRealmResource(realm)?.let { realmResource ->
+            try {
+                val foundGroups = realmResource.groups()
+                    ?.groups("", 0, Integer.MAX_VALUE, false)
+                    ?.associateBy { it.name } ?: emptyMap()
+
+                val responseDto = MigrationResponseDto()
+                importGroupList.forEach { group ->
+
+                    val groupName = group.name
+                    if (foundGroups.containsKey(groupName)) {
+                        // здесь обновляем корневую группу и обновляем дочерние группы
+                        val isUpdated = updateGroupWithAssignRoles(
+                            group,
+                            foundGroups[groupName]!!,
+                            realmResource
+                        )
+                        if (isUpdated) {
+                            responseDto.addUpdated(groupName)
+                        }
+                    } else {
+                        // создаем новую корневую группу и далее создаем все дочерние
+                        val isCreated = createGroupWithAssignRoles(
+                            group,
+                            realmResource
+                        )
+                        if (isCreated) {
+                            responseDto.addCreated(groupName)
+                        }
+                    }
+                    responseDto.addFailedConditional(groupName)
+                }
+                logger.infoM("Successfully created new groups: ${responseDto.details()}")
+                return ResponseEntity(responseDto, HttpStatus.OK)
+
+            } catch (ex: Exception) {
+                migrateService.writeErrorLoggerWithTextAndStatus(
+                    ex, "Unknown error during importing groups"
+                )
+            }
+        }
+        logger.warnM("Realm [$realm] resource not found")
+        return ResponseEntity(Constants.INVALID_REALM_NOT_FOUND, HttpStatus.NOT_FOUND)
     }
 
 
@@ -142,13 +149,14 @@ class MigrateGroupsService(
      * @return true если выполнено успешно
      */
     private fun updateGroupWithAssignRoles(
+
         importGroupRepresentation: GroupRepresentation,
         foundGroupRepresentation: GroupRepresentation,
         realmResource: RealmResource
     ): Boolean {
 
         val groupName = importGroupRepresentation.name
-        logger.infoM("Update root group $groupName method started")
+        logger.infoM("Update root group [$groupName] method started")
         try {
             realmResource.groups().group(foundGroupRepresentation.id)?.let { resource ->
 
@@ -157,6 +165,7 @@ class MigrateGroupsService(
                 foundGroupRepresentation.access = importGroupRepresentation.access
                 foundGroupRepresentation.subGroups = resource.getSubGroups(0, Integer.MAX_VALUE, false)
                 resource.update(foundGroupRepresentation)
+
                 removeGroupRoles(resource)
                 keycloakGroupService.assignRealmRolesToGroup(importGroupRepresentation, resource, realmResource)
                 keycloakGroupService.assignClientRolesToGroup(importGroupRepresentation, resource, realmResource)
@@ -211,8 +220,10 @@ class MigrateGroupsService(
         groupResource: GroupResource
     ) {
         try {
+            // удаляем все realm roles
             val realmRoles = groupResource.roles().all.realmMappings
             groupResource.roles().realmLevel().remove(realmRoles)
+            // удаляем все client roles
             groupResource.roles().all.clientMappings?.forEach {
                 val clientMappings = it.value
                 groupResource.roles()
@@ -236,9 +247,11 @@ class MigrateGroupsService(
      * @return true если группа создана успешно
      */
     private fun createGroupWithAssignRoles(
+
         groupRepresentation: GroupRepresentation,
         realmResource: RealmResource
     ): Boolean {
+
         var response: Response? = null
         val groupName = groupRepresentation.name
         try {
@@ -289,7 +302,7 @@ class MigrateGroupsService(
         val groupName = parentGroupRepresentation.name
         val subGroupList = getSubGroupList(parentGroupRepresentation, parentGroupResource)
         if (subGroupList.isEmpty()) {
-            logger.infoM("Group: \"$groupName\" has no one sub groups")
+            logger.infoM("Group: [$groupName] has no one sub groups")
             return
         }
         try {
@@ -352,5 +365,6 @@ class MigrateGroupsService(
         }
         return subGroupList
     }
+
 }
 

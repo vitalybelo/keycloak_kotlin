@@ -14,9 +14,7 @@ import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.migration.models.JsonType
 import vitos.local.keycloak_kotlin.migration.models.MigrateExchange
 import vitos.local.keycloak_kotlin.migration.repositories.MigrateExchangeRepository
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_CLIENT_ID
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.CLIENT_NOT_CONFIGURED
+import vitos.local.keycloak_kotlin.constants.Constants
 import vitos.local.keycloak_kotlin.migration.models.ClientExportDto
 import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.migration.services.keycloak.KeycloakClientService
@@ -47,31 +45,34 @@ class MigrateClientsService(
      * @param clientId название сервиса
      * @return статус выполнения, список сервисов Clients - либо сообщение об ошибке
      */
-    fun getRealmClients(realm: String, clientId: String): ResponseEntity<Any> {
+    fun getRealmClient(realm: String, clientId: String): ResponseEntity<Any> {
 
-        if (realm.isNotEmpty() && clientId.isNotEmpty()) {
-            try {
-                val realmResource = migrateService.getRealmResource(realm)
-                if (realmResource != null) {
-
-                    keycloakClientsService.getClientRepresentationByClientId(clientId, realmResource)?.let { client ->
-
-                        val jsonAsString = objectMapper.writeValueAsString(client)
-                        val migrateRecord = MigrateExchange(realm, JsonType.CLIENTS, jsonAsString)
-                        migrateRepository.save(migrateRecord)
-
-                        return ResponseEntity(client, HttpStatus.OK)
-                    }
-                    return ResponseEntity(
-                        "Client: $clientId not found in realm = $realm",
-                        HttpStatus.NOT_FOUND
-                    )
-                }
-            } catch (ex: Exception) {
-                return migrateService.writeErrorLoggerWithTextAndStatus(ex)
-            }
+        if (realm.isEmpty() || clientId.isEmpty()) {
+            return ResponseEntity(Constants.INVALID_REALM_OR_CLIENT_ID, HttpStatus.BAD_REQUEST)
         }
-        return ResponseEntity(INVALID_REALM_OR_CLIENT_ID, HttpStatus.BAD_REQUEST)
+        logger.infoM("Procedure export clientId: [$clientId] started")
+        try {
+            migrateService.getRealmResource(realm)?.let { realmResource ->
+
+                keycloakClientsService.getClientRepresentationByClientId(clientId, realmResource)?.let { client ->
+
+                    val jsonAsString = objectMapper.writeValueAsString(client)
+                    val migrateRecord = MigrateExchange(realm, JsonType.CLIENTS, jsonAsString)
+                    migrateRepository.save(migrateRecord)
+
+                    logger.infoM("Client [$clientId] has been successfully exported")
+                    return ResponseEntity(client, HttpStatus.OK)
+                }
+                logger.infoM("Client [$clientId] not found in realm [$realm]")
+                return ResponseEntity("Client: [$clientId] not found in realm [$realm]",HttpStatus.NOT_FOUND)
+            }
+        } catch (ex: Exception) {
+            return migrateService.writeErrorLoggerWithTextAndStatus(
+                ex,"Unknown error occurred during getting realm client [$clientId]"
+            )
+        }
+        logger.infoM("Realm [$realm] not found for export [$clientId]")
+        return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
     }
 
 
@@ -80,29 +81,29 @@ class MigrateClientsService(
      *
      * @param isAlwaysCreate всегда создавать нового клиента с добавлением timestamp
      * @param realm название области сервисов
+     * @param stamp заданный в параметрах запроса штамп модификации имени
      * @param clientExportDto экспортная сущность нового сервиса
      * @return статус выполнения или сообщение об ошибке
      */
     fun createOrUpdateRealmClient(
 
-        isAlwaysCreate: Boolean,
         realm: String,
+        stamp: String?,
+        isAlwaysCreate: Boolean,
         clientExportDto: ClientExportDto
     ): ResponseEntity<Any> {
 
         val importClientRepresentation = clientExportDto.clientRepresentation
         if (realm.isEmpty() || importClientRepresentation == null) {
-            // входные параметры не заданы корректно, выходим с ошибкой и статусом 400
-            return ResponseEntity(INVALID_REALM_OR_CLIENT_ID, HttpStatus.BAD_REQUEST)
+            return ResponseEntity(Constants.INVALID_REALM_OR_CLIENT_ID, HttpStatus.BAD_REQUEST)
         }
-        if (isAlwaysCreate) {
-            importClientRepresentation.clientId += "-migrated-${migrateService.getTimeStamp()}"
-        }
-        try {
-            val realmResource = migrateService.getRealmResource(realm)
-            if (realmResource != null) {
 
-                val clientId = importClientRepresentation.clientId
+        val clientId = importClientRepresentation.clientId
+        logger.infoM("Procedure creating | updating client [$clientId] started")
+
+        try {
+            migrateService.getRealmResource(realm)?.let { realmResource ->
+
                 var finalClientRepresentation: ClientRepresentation?
                 // определяем, существует уже такой сервис в заданной области
                 val foundClientRepresentation =
@@ -110,6 +111,15 @@ class MigrateClientsService(
 
                 finalClientRepresentation =
                     if (isAlwaysCreate || foundClientRepresentation == null) {
+                        if (foundClientRepresentation != null) {
+                            // isAlwaysCreate = true, но сервис существует - модифицируем название
+                            migrateService.setNameModificationStamp(stamp)
+                            importClientRepresentation.clientId += "-${migrateService.modificationStamp}-migrated"
+                            importClientRepresentation.description = importClientRepresentation.clientId
+                        } else {
+                            // модифицируем описание, чтобы было понятно откуда взялся сервис
+                            importClientRepresentation.description = "$clientId-migrated"
+                        }
                         // импортируемого сервиса в realm нет, поэтому создаем новый
                         createClientImported(
                             clientExportDto,
@@ -124,14 +134,17 @@ class MigrateClientsService(
                         )
                     }
                 if (finalClientRepresentation != null) {
+                    logger.infoM("Client [$clientId] has been successfully created|updated")
                     return ResponseEntity(finalClientRepresentation, HttpStatus.OK)
                 }
+                logger.infoM("Unknown error during import [$clientId] occurred")
+                return ResponseEntity("Ups", HttpStatus.INTERNAL_SERVER_ERROR)
             }
-            logger.errorM("Realm = \"$realm\" not found in Keycloak :: return")
-            return ResponseEntity(INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
         } catch (ex: Exception) {
             return migrateService.writeErrorLoggerWithTextAndStatus(ex)
         }
+        logger.errorM("Realm [$realm] not found for import [$clientId]")
+        return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
     }
 
 
@@ -152,7 +165,8 @@ class MigrateClientsService(
 
         val clientId = foundClientRepresentation.clientId
         val importClientRepresentation = clientExportDto.clientRepresentation
-            ?: throw IllegalArgumentException(CLIENT_NOT_CONFIGURED)
+            ?: throw IllegalArgumentException(Constants.CLIENT_NOT_CONFIGURED)
+        logger.infoM("Procedure updating for [$clientId] started")
         try {
             val id = foundClientRepresentation.id
             val clientResource = realmResource.clients().get(id)
@@ -170,11 +184,11 @@ class MigrateClientsService(
             keycloakUserService.updateServiceAccountUser(clientExportDto, clientResource, realmResource)
             updateAuthorizationSettings(clientExportDto, clientResource)
 
-            logger.infoM("Client = \"$clientId\" updated successfully")
+            logger.infoM("Client = [$clientId] updated successfully")
             return clientResource.toRepresentation()
 
         } catch (ex: Exception) {
-            logger.errorM("Update of client $clientId failed by ${ex.message}", ex)
+            logger.errorM("Update of client $clientId failed by [${ex.message}]", ex)
         }
         return null
     }
@@ -196,10 +210,13 @@ class MigrateClientsService(
 
         var response: Response? = null
         val importClientRepresentation = clientExportDto.clientRepresentation
-            ?: throw IllegalArgumentException(CLIENT_NOT_CONFIGURED)
+            ?: throw IllegalArgumentException(Constants.CLIENT_NOT_CONFIGURED)
+
+        val clientId = importClientRepresentation.clientId
+        logger.infoM("Procedure creating for [$clientId] started")
         try {
             importClientRepresentation.id = null
-            val clientId = importClientRepresentation.clientId
+            // сохраняем новые mappers и создаем сервис с пустыми
             val keepMappers = importClientRepresentation.protocolMappers
             // добавляем новый сервис Client в рабочую область
             response = realmResource.clients().create(importClientRepresentation.apply {
@@ -214,7 +231,7 @@ class MigrateClientsService(
                 // получаем ресурс управления сервисом
                 val id: String = CreatedResponseUtil.getCreatedId(response)
                 val clientResource = realmResource.clients().get(id)
-                logger.infoM("Client client id = \"$clientId\" successfully created in Realm")
+                logger.infoM("Client client id = [$clientId] successfully created in Realm")
 
                 // добавляем созданному сервису: roles, mappers, системного пользователя
                 createOrUpdateClientProtocolMappers(importClientRepresentation, clientResource)
@@ -223,13 +240,16 @@ class MigrateClientsService(
                 updateAuthorizationSettings(clientExportDto, clientResource)
 
                 response.close()
+                logger.infoM("Client [$clientId] created successfully")
                 return clientResource.toRepresentation()
             }
         } catch (ex: Exception) {
-            logger.error("Creating client representation failed for ${importClientRepresentation.clientId}", ex)
+            logger.error("Exception during creating client $clientId", ex)
+            return null
         } finally {
             response?.close()
         }
+        logger.infoM("Creating client [$clientId] failed")
         return null
     }
 
@@ -348,11 +368,11 @@ class MigrateClientsService(
                         // mappers найден в сервисе - нужно обновить
                         val id = foundProtocolMappers[name]!!.id
                         clientResource.protocolMappers.update(id, importMapper.apply { this.id = id })
-                        logger.infoM("ProtocolMapper name = \"$name\" updated for client id = $clientId")
+                        logger.infoM("ProtocolMapper name = [$name] updated for client id = $clientId")
                     } else {
                         // mappers не найден в сервисе - создаем новый
                         clientResource.protocolMappers.createMapper(importMapper.apply { this.id = null })
-                        logger.infoM("ProtocolMapper name = \"$name\" created for client id = $clientId")
+                        logger.infoM("ProtocolMapper name = [$name] created for client id = $clientId")
                     }
                 }
                 // теперь нужно удалить mappers, которые уже не актуальны для clients
@@ -372,7 +392,7 @@ class MigrateClientsService(
             }
         } catch (ex: Exception) {
             logger.errorM(
-                "Mapping of ProtocolMappers for client: \"$clientId\" failed by: ${ex.message}", ex)
+                "Mapping of ProtocolMappers for client: [$clientId] failed by: ${ex.message}", ex)
         }
     }
 

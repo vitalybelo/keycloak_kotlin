@@ -16,12 +16,11 @@ import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.migration.models.JsonType
 import vitos.local.keycloak_kotlin.migration.models.MigrateExchange
 import vitos.local.keycloak_kotlin.migration.repositories.MigrateExchangeRepository
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_OR_FLOW_NAME
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_FLOW
+import vitos.local.keycloak_kotlin.constants.Constants
 import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.migration.models.CollectFlowDto
 import vitos.local.keycloak_kotlin.migration.models.ImportFlowDto
+import java.util.stream.Collectors
 
 
 /**
@@ -36,7 +35,6 @@ class MigrateAuthFlowsService(
     private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 ) {
 
-    private var aliasCopyStamp: String? = "STAMP"
 
     companion object: Log()
 
@@ -54,42 +52,77 @@ class MigrateAuthFlowsService(
     ): ResponseEntity<Any> {
 
         if (realm.isEmpty() || alias.isEmpty()) {
-            return ResponseEntity(INVALID_REALM_OR_FLOW_NAME, HttpStatus.BAD_REQUEST)
+            return ResponseEntity(Constants.INVALID_REALM_OR_FLOW_NAME, HttpStatus.BAD_REQUEST)
         }
         try {
             migrateService.getRealmResource(realm)?.let { realmResource ->
 
-                logger.infoM("Start collect subflows and configuration for :: $alias")
-                val flowRepresentation = realmResource.flows().flows
-                    .stream().filter { it.alias.equals(alias,true) }
-                    .findFirst().orElse(null)
+                // получаем список корневых потоков из общего списка
+                val rootFlowsList =
+                    getRealmAuthenticationFlowList(
+                        alias,
+                        realmResource
+                    )
+                // если корневые потоки найдены, выполняем создание копий
+                if (!rootFlowsList.isEmpty()) {
 
-                if (flowRepresentation != null) {
+                    val authenticationFlowsExport = CollectFlowDto(rootFlowsList.size)
+                    rootFlowsList.forEach { rootFlowRepresentation ->
 
-                    logger.infoM("Flow :: $alias :: found :: continue collect executors")
-                    val authenticationFlowsExport = CollectFlowDto()
-
-                    collectAuthenticationSubFlows(
-                        flowRepresentation,
-                        authenticationFlowsExport,
-                        realmResource)
+                        logger.infoM("Start collect collect executors and configs for ${rootFlowRepresentation.alias}")
+                        collectAuthenticationSubFlows(
+                            rootFlowRepresentation,
+                            authenticationFlowsExport,
+                            realmResource)
+                    }
+                    logger.infoM("Finished collection flows and configurations")
 
                     val exportFlowDto = authenticationFlowsExport.getExportDto()
                     val jsonAsString = objectMapper.writeValueAsString(exportFlowDto)
                     val migrateRecord = MigrateExchange(realm, JsonType.AUTH_FLOWS, jsonAsString)
                     migrateRepository.save(migrateRecord)
 
-                    logger.infoM("Successfully received flow \"$alias\" configuration")
+                    val rootCount = authenticationFlowsExport.rootFlowsCount
+                    logger.infoM("Received = $rootCount root flows with executions & configurations for [$alias] successfully")
                     return ResponseEntity(exportFlowDto, HttpStatus.OK)
                 }
-                return ResponseEntity("Flow alias = \"$alias\" not found",HttpStatus.NOT_FOUND)
+                return ResponseEntity("Flow alias = [$alias] not found",HttpStatus.NOT_FOUND)
             }
-            return ResponseEntity("Realm name = \"$realm\" not found",HttpStatus.NOT_FOUND)
+            return ResponseEntity("Realm name = [$realm] not found",HttpStatus.NOT_FOUND)
 
         } catch (ex: Exception) {
-            logger.errorM("Failed to get flow configuration for \"$alias\"", ex)
+            logger.errorM("Failed to get flow configuration for [$alias]", ex)
             return migrateService.writeErrorLoggerWithTextAndStatus(ex)
         }
+    }
+
+    /**
+     * Выполняет поиск всех корневых потоков аутентификации, удовлетворяющих условию поиска по alias.
+     * В качестве названия потока, методу можно передать "*" для получения списка всех потоков области,
+     * или список имен потоков, разделенных запятой. Названия имен в списке должны точно совпадать
+     * с оригинальным названием потока
+     *
+     * @param flowPattern паттерн поиска потоков аутентификации
+     * @param adminRealmResource административный ресурс управления областью сервисов
+     * @return список найденных корневых потоков по условию поиска
+     */
+    private fun getRealmAuthenticationFlowList(
+
+        flowPattern: String,
+        adminRealmResource: RealmResource
+    ): List<AuthenticationFlowRepresentation> {
+
+        logger.infoM("Start collect root flow and configuration for pattern :: $flowPattern")
+
+        val aliasList = flowPattern.split(",").stream().map { it.trim() }.toList()
+        val rootFlowsList = adminRealmResource.flows().flows
+            .stream().filter { representation ->
+                representation.isTopLevel &&
+                        (flowPattern == "*" || aliasList.contains(representation.alias))
+            }.collect(Collectors.toList()) ?: emptyList()
+
+        logger.infoM("Totally found = ${rootFlowsList.size} root flows and configurations")
+        return rootFlowsList
     }
 
 
@@ -97,44 +130,74 @@ class MigrateAuthFlowsService(
      * Выполняет создание нового потока аутентификации realm (копию переданного в параметрах)
      *
      * @param realm название области сервисов
+     * @param stamp заданный в параметрах запроса штамп модификации имени
      * @param importFlowDto импортируемый dto класс потока аутентификации
      * @return статус выполнения, список сущностей потоков или сообщение об ошибке
      */
     fun createRealmAuthenticationFlow(
 
         realm: String,
+        stamp: String?,
         importFlowDto: ImportFlowDto
     ): ResponseEntity<Any> {
 
-        aliasCopyStamp = " ${migrateService.getTimeStamp()}"
-        val importedRootFlow = findTopLevelFlow(importFlowDto)
-        if (importFlowDto.authenticationFlows.isNullOrEmpty() || importedRootFlow == null) {
-            return ResponseEntity(INVALID_FLOW, HttpStatus.BAD_REQUEST)
+        val importedRootFlows = findTopLevelFlow(importFlowDto)
+        if (importFlowDto.authenticationFlows.isNullOrEmpty() || importedRootFlows.isEmpty()) {
+            return ResponseEntity(Constants.INVALID_FLOW, HttpStatus.BAD_REQUEST)
         }
         try {
             migrateService.getRealmResource(realm)?.let { realmResource ->
 
-                createAuthenticationFlow(
-                    importedRootFlow,
-                    realmResource
-                )?.let { createdRootFlow ->
-                    createAuthenticationFlowEnvironment(
+                migrateService.setNameModificationStamp(stamp)
+                importedRootFlows.forEach { importedRootFlow ->
+
+                    createAuthenticationFlow(
                         importedRootFlow,
-                        createdRootFlow,
-                        realmResource,
-                        importFlowDto
-                    )
+                        realmResource
+                    )?.let { createdRootFlow ->
+                        createAuthenticationFlowEnvironment(
+                            importedRootFlow,
+                            createdRootFlow,
+                            realmResource,
+                            importFlowDto
+                        )
+                    }
                 }
-                return ResponseEntity("Created flow successfully", HttpStatus.OK)
+                return ResponseEntity("Flows created successfully", HttpStatus.OK)
             }
-            return ResponseEntity(INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
+            return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
         } catch (ex: Exception) {
-            logger.errorM("Failed to create flow configuration for \"$realm\"", ex)
+            logger.errorM("Failed to create flow configuration for [$realm]", ex)
             return migrateService.writeErrorLoggerWithTextAndStatus(ex)
         } finally {
 
         }
     }
+
+
+    /**
+     * Выполняет изменения названия потока аутентификации или конфига, добавляя в него штамп времени
+     * @param flowName текущее название потока или конфигурации
+     */
+    fun createFlowAliasTimeStamped(
+        flowName: String
+    ): String {
+
+        val migrated = "migrated"
+        val migratedTimeStamp = " ${migrateService.modificationStamp} $migrated"
+        val lengthTimeStamp = migratedTimeStamp.length
+        val lengthFlowName = flowName.length
+
+        if (lengthFlowName > lengthTimeStamp && flowName.endsWith(migrated)) {
+            // найден старый фирменный знак миграции, удаляем и заменяем на новый
+            val endIndex = lengthFlowName - lengthTimeStamp
+            val originalFlowName = flowName.take(endIndex) + migratedTimeStamp
+            return originalFlowName
+        }
+        val firstTimeStamped = flowName + migratedTimeStamp
+        return firstTimeStamped
+    }
+
 
     /**
      * Выполняет создание потока аутентификации. Добавляет к нему executions и конфигурации - если они имеются
@@ -247,7 +310,7 @@ class MigrateAuthFlowsService(
                         receiveImportedConfig(configAlias, importFlowDto)?.let {
                             authenticationConfig ->
                             authenticationConfig.id = null
-                            authenticationConfig.alias += aliasCopyStamp
+                            authenticationConfig.alias = createFlowAliasTimeStamped(configAlias)
                             realmResource.flows().newExecutionConfig(
                                 createdExecution.id, authenticationConfig
                             )
@@ -323,6 +386,7 @@ class MigrateAuthFlowsService(
      */
 
     private fun createAuthenticationFlow(
+
         authenticationFlowRepresentation: AuthenticationFlowRepresentation,
         adminRealmResource: RealmResource
     ): AuthenticationFlowRepresentation? {
@@ -331,7 +395,8 @@ class MigrateAuthFlowsService(
         val flowAlias = authenticationFlowRepresentation.alias
         try {
             authenticationFlowRepresentation.id = null
-            authenticationFlowRepresentation.alias += aliasCopyStamp
+            authenticationFlowRepresentation.isBuiltIn = false
+            authenticationFlowRepresentation.alias = createFlowAliasTimeStamped(flowAlias)
             response = adminRealmResource.flows().createFlow(authenticationFlowRepresentation)
 
             if (response?.status == HttpStatus.CREATED.value()) {
@@ -355,37 +420,35 @@ class MigrateAuthFlowsService(
 
 
     /**
-     * @return сущность верхне-уровневого потока аутентификации (корневого)
+     * @return список корневых сущностей верхне-уровневого потока аутентификации
      */
     private fun findTopLevelFlow(
         importFlowDto: ImportFlowDto
-    ): AuthenticationFlowRepresentation? {
+    ): List<AuthenticationFlowRepresentation> {
 
-        importFlowDto.authenticationFlows?.firstOrNull { it.isTopLevel }?.let { return it }
-        return null
+        return importFlowDto.authenticationFlows?.filter { it.isTopLevel } ?: emptyList()
     }
-
 
 
     /**
      * Рекурсивный метод, позволяющий собрать конфигурации и под-потоки для основного flow
      *
-     * @param rootFlowRepresentation сущность потока, для которого выполняется сбор данных
+     * @param authenticationRootFlow сущность потока, для которого выполняется сбор данных
      * @param collectFlowDto экспортная коллекционная сущность
-     * @param realmResource ресурс управления областью сервисов
+     * @param adminRealmResource ресурс управления областью сервисов
      */
     private fun collectAuthenticationSubFlows(
 
-        rootFlowRepresentation: AuthenticationFlowRepresentation,
+        authenticationRootFlow: AuthenticationFlowRepresentation,
         collectFlowDto: CollectFlowDto,
-        realmResource: RealmResource
+        adminRealmResource: RealmResource
     ) {
         // сохраняем поток в экспортной карте, если его там ещё нет
-        collectFlowDto.flowsMap[rootFlowRepresentation.id] = rootFlowRepresentation
+        collectFlowDto.addFlow(authenticationRootFlow)
 
         // получаем список "исполнителей" входящих в поток аутентификации
-        val flowAlias = rootFlowRepresentation.alias
-        val flowExecutions = realmResource.flows().getExecutions(flowAlias)
+        val flowAlias = authenticationRootFlow.alias
+        val flowExecutions = adminRealmResource.flows().getExecutions(flowAlias)
         if (flowExecutions.isNullOrEmpty()) return // выходим если поток пустой
         logger.infoM("Start collecting authentication flows and configurations for :: [$flowAlias]")
 
@@ -394,7 +457,7 @@ class MigrateAuthFlowsService(
             try {
                 execution.authenticationConfig?.let { id ->
                     if (!collectFlowDto.configsMap.contains(id)) {
-                        realmResource.flows().getAuthenticatorConfig(id)?.let { config ->
+                        adminRealmResource.flows().getAuthenticatorConfig(id)?.let { config ->
                             collectFlowDto.configsMap[id] = config
                             logger.infoM("Successfully collected configuration :: [${config.alias}]")
                         }
@@ -402,8 +465,8 @@ class MigrateAuthFlowsService(
                 }
                 execution.flowId?.let { id ->
                     if (!collectFlowDto.flowsMap.contains(id)) {
-                        realmResource.flows().getFlow(id)?.let { flow ->
-                            collectAuthenticationSubFlows(flow, collectFlowDto, realmResource)
+                        adminRealmResource.flows().getFlow(id)?.let { flow ->
+                            collectAuthenticationSubFlows(flow, collectFlowDto, adminRealmResource)
                             logger.infoM("Successfully collected authentication flow [${flow.alias}]")
                         }
                     }
@@ -415,7 +478,4 @@ class MigrateAuthFlowsService(
         logger.infoM("Finish collecting authentication flows and configurations for :: [$flowAlias]")
     }
 
-
-
 }
-

@@ -2,6 +2,7 @@ package vitos.local.keycloak_kotlin.migration.models
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import vitos.local.keycloak_kotlin.logging.Log
+import java.util.concurrent.atomic.AtomicInteger
 
 
 /**
@@ -14,10 +15,10 @@ data class MigrationResponseDto(
     val created: MutableList<String> = mutableListOf(),
     val updated: MutableList<String> = mutableListOf(),
     val failed: MutableList<String> = mutableListOf(),
-    var successCount: Int = 0,
-    var updatedCount: Int = 0,
-    var failedCount: Int = 0,
-    var totalCount: Int = 0,
+    var successCount: AtomicInteger = AtomicInteger(0),
+    var updatedCount: AtomicInteger = AtomicInteger(0),
+    var failedCount: AtomicInteger = AtomicInteger(0),
+    var totalCount: AtomicInteger = AtomicInteger(0),
     var ignored: String? = "Ignored but showed"
 ) {
 
@@ -25,21 +26,21 @@ data class MigrationResponseDto(
 
     fun addCreated(name: String) {
         created.add(name)
-        ++successCount
-        ++totalCount
+        successCount.getAndIncrement()
+        totalCount.getAndIncrement()
     }
 
     fun addUpdated(name: String) {
         updated.add(name)
-        ++updatedCount
-        ++totalCount
+        updatedCount.getAndIncrement()
+        totalCount.getAndIncrement()
     }
 
     fun addFailedConditional(name: String) {
         if (!created.contains(name) && !updated.contains(name)) {
             failed.add(name)
-            ++failedCount
-            ++totalCount
+            failedCount.getAndIncrement()
+            totalCount.getAndIncrement()
         }
     }
 
@@ -50,10 +51,10 @@ data class MigrationResponseDto(
             created: $created
             updated: $updated
             failed: $failed
-            successCount: $successCount
-            updatedCount: $updatedCount
-            failedCount: $failedCount
-            totalCount: $totalCount
+            successCount: ${successCount.get()}
+            updatedCount: ${updatedCount.get()}
+            failedCount: ${failedCount.get()}
+            totalCount: ${totalCount.get()}
             -----------------------------------------------------------
         """.trimIndent()
     }

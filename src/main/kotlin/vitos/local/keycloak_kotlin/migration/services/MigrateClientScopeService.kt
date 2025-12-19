@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 import vitos.local.keycloak_kotlin.migration.models.JsonType
 import vitos.local.keycloak_kotlin.migration.models.MigrateExchange
 import vitos.local.keycloak_kotlin.migration.repositories.MigrateExchangeRepository
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.INVALID_REALM_NAME
+import vitos.local.keycloak_kotlin.constants.Constants
 import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.migration.models.ClientScopeExportDto
 import vitos.local.keycloak_kotlin.migration.models.MigrationResponseDto
@@ -21,7 +21,7 @@ import vitos.local.keycloak_kotlin.migration.models.MigrationResponseDto
 
 /**
  * Сервисный слой для обеспечения методов миграции Client Scope
- * @author Vitaly Belotserkovskii
+ * @author Vitaly Belotserkovskii (c) 2025
  */
 @Service
 class MigrateClientScopeService(
@@ -33,6 +33,7 @@ class MigrateClientScopeService(
 
     companion object: Log()
 
+
     /**
      * Выполняет чтение списка сущностей маппинга для заданной входным параметром области сервисов.
      *
@@ -41,30 +42,39 @@ class MigrateClientScopeService(
      */
     fun getRealmClientScopes(realm: String): ResponseEntity<Any> {
 
-        if (realm.isNotEmpty()) {
-            try {
-                migrateService.getRealmResource(realm)?.let { realmResource ->
-
-                    val clientScopeExportDto = ClientScopeExportDto()
-                    clientScopeExportDto.clientScopes = realmResource.clientScopes().findAll()
-                    clientScopeExportDto.default = realmResource.defaultDefaultClientScopes.map { it.name }.toList()
-                    clientScopeExportDto.optional = realmResource.defaultOptionalClientScopes.map { it.name }.toList()
-
-                    if (!clientScopeExportDto.clientScopes.isNullOrEmpty()) {
-
-                        val jsonAsString = objectMapper.writeValueAsString(clientScopeExportDto)
-                        val migrateRecord = MigrateExchange(realm, JsonType.CLIENT_SCOPES, jsonAsString)
-                        migrateRepository.save(migrateRecord)
-
-                        return ResponseEntity(clientScopeExportDto, HttpStatus.OK)
-                    }
-                    return ResponseEntity("Found no one scopes in realm = $realm",HttpStatus.NOT_FOUND)
-                }
-            } catch (ex: Exception) {
-                return migrateService.writeErrorLoggerWithTextAndStatus(ex)
-            }
+        if (realm.isEmpty()) {
+            logger.warnM("Invalid realm name = [$realm]")
+            return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
         }
-        return ResponseEntity(INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
+        logger.infoM("Procedure exporting client scope for realm [$realm] started")
+        try {
+            migrateService.getRealmResource(realm)?.let { realmResource ->
+
+                val scopeExportDto = ClientScopeExportDto()
+                scopeExportDto.clientScopes = realmResource.clientScopes()?.findAll() ?: emptyList()
+                scopeExportDto.default = realmResource.defaultDefaultClientScopes?.map { it.name }?.toList() ?: emptyList()
+                scopeExportDto.optional = realmResource.defaultOptionalClientScopes?.map { it.name }?.toList() ?: emptyList()
+
+                if (scopeExportDto.clientScopes!!.isNotEmpty()) {
+
+                    val jsonAsString = objectMapper.writeValueAsString(scopeExportDto)
+                    val migrateRecord = MigrateExchange(realm, JsonType.CLIENT_SCOPES, jsonAsString)
+                    migrateRepository.save(migrateRecord)
+
+                    logger.infoM("Client scope for realm [$realm] exported successfully")
+                    return ResponseEntity(scopeExportDto, HttpStatus.OK)
+                }
+                logger.warnM("Not found client scopes in [$realm]")
+                return ResponseEntity("Client scopes not found in [$realm]",HttpStatus.NOT_FOUND)
+            }
+            logger.warnM("Realm [$realm] resource not available")
+            return ResponseEntity(Constants.INVALID_REALM_NOT_FOUND, HttpStatus.NOT_FOUND)
+
+        } catch (ex: Exception) {
+            return migrateService.writeErrorLoggerWithTextAndStatus(
+                ex, "Unknown error during exporting client scopes in [$realm]"
+            )
+        }
     }
 
 
@@ -77,54 +87,64 @@ class MigrateClientScopeService(
      * @return статус выполнения и отчет
      */
     fun updateAllRealmClientScopes(
+
         realm: String,
         importedClientScopes: ClientScopeExportDto
     ): ResponseEntity<Any> {
 
         val clientScopes = importedClientScopes.clientScopes
         if (realm.isEmpty() || clientScopes.isNullOrEmpty()) {
-            return ResponseEntity(INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
+            logger.warnM("Invalid parameters realm name = [$realm], client scopes size = ${clientScopes?.size}")
+            return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.BAD_REQUEST)
         }
+        logger.infoM("Procedure importing client scopes to [$realm] started")
         try {
             val responseDto = MigrationResponseDto()
             // получаем ресурс управления realm - если он реально существует или null
-            val realmResource: RealmResource? = migrateService.getRealmResource(realm)
-            if (realmResource != null) {
+            migrateService.getRealmResource(realm)?.let { realmResource ->
 
                 // получаем список названий существующих client scopes в целевом realm
                 val foundScopes = realmResource.clientScopes().findAll()
                     ?.associateBy { it.name } ?: emptyMap()
 
                 // вызываем метод создания client scope для каждого переданного в метод маппинга
-                clientScopes.forEach {
-                    scope ->
+                clientScopes.forEach { scope ->
+
                     val scopeName = scope.name
                     if (foundScopes.containsKey(scopeName)) {
                         // обновляем существующий scope
-                        val found = foundScopes[scopeName]
-                        if (found != null &&
-                            updateClientScopeWithMappers(
-                                scope,
-                                found,
-                                importedClientScopes, realmResource)) {
+                        val found = foundScopes[scopeName]!!
+                        val isUpdated = updateClientScopeWithMappers(
+                            scope,
+                            found,
+                            importedClientScopes, realmResource
+                        )
+                        if (isUpdated) {
                             responseDto.addUpdated(scopeName)
                         }
                     } else {
                         // добавляем новый scope
-                        if (createClientScopeWithMappers(
-                                scope,
-                                importedClientScopes, realmResource)) {
+                        val isCreated = createClientScopeWithMappers(
+                            scope,
+                            importedClientScopes, realmResource
+                        )
+                        if (isCreated) {
                             responseDto.addCreated(scopeName)
                         }
                     }
                     responseDto.addFailedConditional(scopeName)
                 }
+                logger.infoM("Client scope for realm [$realm] updated successfully")
                 return ResponseEntity(responseDto, HttpStatus.OK)
             }
+            logger.warnM("Realm [$realm] resource not available")
+            return ResponseEntity(Constants.INVALID_REALM_NOT_FOUND,HttpStatus.NOT_FOUND)
+
         } catch (ex: Exception) {
-            return migrateService.writeErrorLoggerWithTextAndStatus(ex)
+            return migrateService.writeErrorLoggerWithTextAndStatus(
+                ex, "Unknown error during importing client scopes in [$realm]"
+            )
         }
-        return ResponseEntity("Realm \"$realm\" not found",HttpStatus.NOT_FOUND)
     }
 
 
@@ -153,6 +173,7 @@ class MigrateClientScopeService(
             if (response.status == HttpStatus.CREATED.value()) {
                 val scopeId = CreatedResponseUtil.getCreatedId(response)
                 val scope = realmResource.clientScopes().get(scopeId).toRepresentation()
+
                 logger.debug("Created new client scope with name: ${clientScope.name}, id: $scopeId")
                 assignClientScope(scope, importedExportDto, realmResource)
                 return true
@@ -168,6 +189,7 @@ class MigrateClientScopeService(
 
     /**
      * Выполняет назначение созданному или обновляемому client scope значение Default или Optional
+     *
      * @param clientScope сущность создаваемого маппинга Client Scope
      * @param importedExportDto импортируемая сущность client scopes
      * @param realmResource ресурс управления областью сервисов
@@ -231,6 +253,7 @@ class MigrateClientScopeService(
      *
      */
     private fun updateClientScopeWithMappers(
+
         clientScope: ClientScopeRepresentation,
         foundClientScope: ClientScopeRepresentation,
         importedExportDto: ClientScopeExportDto,

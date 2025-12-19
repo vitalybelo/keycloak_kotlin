@@ -12,7 +12,6 @@ import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -56,10 +55,13 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @GetMapping("/{realm}/client-scopes")
+    @GetMapping("/realm/client-scopes")
     @Operation(summary = "Читает настройки маппинга, сделанные для Client Scopes в заданном realm")
     fun getAllRealmClientScopes(
-        @PathVariable("realm", required = true) realm: String
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String
+
     ): ResponseEntity<Any>
 
 
@@ -82,10 +84,14 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @PostMapping("/{realm}/client-scopes")
+    @PostMapping("/realm/client-scopes")
     @Operation(summary = "Устанавливает настройки маппинга, для Client Scopes в заданном realm")
     fun updateAllRealmClientScopes(
-        @PathVariable("realm", required = true) realm: String,
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @Parameter(description = "импортируемый список client scopes")
         @RequestBody(required = true) clientScopes: ClientScopeExportDto
     ): ResponseEntity<Any>
 
@@ -108,11 +114,15 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @GetMapping("/{realm}/clients/{client_id}")
+    @GetMapping("/realm/clients")
     @Operation(summary = "Читает расширенные данные Clients в заданном realm")
     fun getRealmClient(
-        @PathVariable("realm", required = true) realm: String,
-        @PathVariable("client_id", required = true) clientId: String
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @Parameter(description = "название client - настройки которого необходимо получить")
+        @RequestParam(value = "client_id", required = true) clientId: String
     ): ResponseEntity<Any>
 
 
@@ -138,11 +148,20 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @PostMapping("/{realm}/clients")
+    @PostMapping("/realm/clients")
     @Operation(summary = "Создает сервис Client в заданной параметром области сервисов realm")
     fun createOrUpdateRealmClient(
-        @RequestParam("isAlwaysCreate", required = false, defaultValue = "true") isAlwaysCreate: Boolean,
-        @PathVariable(required = true, value = "realm") realm: String,
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @Parameter(description = "модификатор названия импортируемого потока")
+        @RequestParam(value = "stamp", required = false) stamp: String?,
+
+        @Parameter(description = "если true - тогда при импорте сервиса, всегда создается новый")
+        @RequestParam("isAlwaysCreate", required = false, defaultValue = "false") isAlwaysCreate: Boolean,
+
+        @Parameter(description = "импортируемая сущность сервиса")
         @RequestBody(required = true) client: ClientExportDto
     ): ResponseEntity<Any>
 
@@ -173,10 +192,13 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @GetMapping("/{realm}/realm-roles")
+    @GetMapping("/realm/realm-roles")
     @Operation(summary = "Читает все realm roles для заданной параметром области сервисов")
     fun getAllRealmRoles(
-        @PathVariable("realm", required = true) realm: String
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
     ): ResponseEntity<Any>
 
 
@@ -202,11 +224,16 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @PostMapping("/{realm}/realm-roles")
+    @PostMapping("/realm/realm-roles")
     @Operation(summary = "Создает realm roles в заданной параметром области сервисов")
     fun createOrUpdateAllRealmRoles(
-        @PathVariable(required = true, value = "realm") realm: String,
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @Parameter(description = "список сущностей ролей области сервисов")
         @RequestBody(required = true) realmRoleList: List<RoleRepresentation>
+
     ): ResponseEntity<Any>
 
 
@@ -232,19 +259,33 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @GetMapping("/{realm}/configuration")
+    @GetMapping("/realm/configuration")
     @Operation(summary = "Читает конфигурацию для заданной параметром области сервисов realm")
     fun getRealmConfiguration(
+
         @RequestHeader(name = "User-Agent", required = true) userAgent: String,
-        @PathVariable("realm", required = true) realm: String
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @RequestParam(value = "isMigrateRealmRoles", required = false, defaultValue = "false") isMigrateRealmRoles: Boolean,
+        @RequestParam(value = "isMigrateClientScopes", required = false, defaultValue = "false") isMigrateClientScopes: Boolean,
+        @RequestParam(value = "isMigrateRealmGroups", required = false, defaultValue = "false") isMigrateRealmGroups: Boolean,
+        @RequestParam(value = "isMigrateFlows", required = false, defaultValue = "false") isMigrateFlows: Boolean
+
     ): ResponseEntity<Any>
 
 
     /**
      * Выполняет изменение настроек области сервисов realm
      *
+     * @param userAgent заголовок userAgent
      * @param realm название области сервисов
      * @param representation сущность новых настроек для области
+     * @param isMigrateRealmRoles true если надо импортировать роли области
+     * @param isMigrateClientScopes true если надо импортировать client scopes
+     * @param isMigrateRealmGroups true если надо импортировать группы
+     * @param isMigrateFlows true если надо импортировать потоки
      * @return статус выполнения, сущность настроек или сообщение об ошибке
      */
     @ApiResponses(
@@ -263,12 +304,23 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @PostMapping("/{realm}/configuration")
+    @PostMapping("/realm/configuration")
     @Operation(summary = "Вносит изменения в конфигурацию для заданной параметром области сервисов realm")
     fun updateRealmConfiguration(
+
         @RequestHeader(name = "User-Agent", required = true) userAgent: String,
-        @PathVariable("realm", required = true) realm: String,
-        @RequestBody(required = true) representation: RealmRepresentation
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @Parameter(description = "импортируемая сущность настроек рабочей области сервисов")
+        @RequestBody(required = true) representation: RealmRepresentation,
+
+        @RequestParam(value = "isMigrateRealmRoles", required = false, defaultValue = "false") isMigrateRealmRoles: Boolean,
+        @RequestParam(value = "isMigrateClientScopes", required = false, defaultValue = "false") isMigrateClientScopes: Boolean,
+        @RequestParam(value = "isMigrateRealmGroups", required = false, defaultValue = "false") isMigrateRealmGroups: Boolean,
+        @RequestParam(value = "isMigrateFlows", required = false, defaultValue = "false") isMigrateFlows: Boolean
+
     ): ResponseEntity<Any>
 
 
@@ -290,11 +342,14 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @DeleteMapping("/{realm}")
+    @DeleteMapping("/realm/configuration")
     @Operation(summary = "Безвозвратно удаляет realm")
     fun deleteRealm(
         @RequestHeader(name = "User-Agent", required = true) userAgent: String,
-        @PathVariable("realm", required = true) realm: String
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
     ): ResponseEntity<Any>
 
 
@@ -320,10 +375,13 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @GetMapping("/{realm}/groups")
+    @GetMapping("/realm/groups")
     @Operation(summary = "Выполняет чтение сущностей всех групп и подгрупп в области сервисов realm")
     fun getAllRealmGroups(
-        @PathVariable("realm", required = true) realm: String
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String
+
     ): ResponseEntity<Any>
 
 
@@ -350,11 +408,16 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @PostMapping("/{realm}/groups")
+    @PostMapping("/realm/groups")
     @Operation(summary = "Выполняет создание или обновление сущностей всех групп и подгрупп в области сервисов realm")
     fun createOrUpdateAllRealmGroups(
-        @PathVariable("realm", required = true) realm: String,
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @Parameter(description = "список импортируемых корневых групп с подгруппами")
         @RequestBody(required = true) importGroupList: List<GroupRepresentation>
+
     ): ResponseEntity<Any>
 
 
@@ -385,13 +448,16 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @GetMapping("/{realm}/authentication/flow")
+    @GetMapping("/realm/authentication/flow")
     @Operation(summary = "Выполняет чтение сущностей потока аутентификации realm")
     fun getRealmAuthenticationFlow(
-        @Parameter(description = "Название рабочей области")
-        @PathVariable("realm", required = true) realm: String,
-        @Parameter(description = "Название потока аутентификации")
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @Parameter(description = "Название потока аутентификации, который необходимо экспортировать")
         @RequestParam("alias", required = true) alias: String
+
     ): ResponseEntity<Any>
 
 
@@ -423,13 +489,19 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @PostMapping("/{realm}/authentication/flow")
+    @PostMapping("/realm/authentication/flow")
     @Operation(summary = "Выполняет создание копии потока аутентификации realm")
     fun createRealmAuthenticationFlow(
-        @Parameter(description = "Название рабочей области")
-        @PathVariable("realm", required = true) realm: String,
-        @Parameter(description = "Импортная сущность потока аутентификации")
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
+        @Parameter(description = "модификатор названия импортируемого потока")
+        @RequestParam(value = "stamp", required = false) stamp: String?,
+
+        @Parameter(description = "Импортируемая сущность потоков и конфигураций аутентификации")
         @RequestBody(required = true) importFlowDto: ImportFlowDto
+
     ): ResponseEntity<Any>
 
 
@@ -460,11 +532,13 @@ interface MigrationRestController {
             ApiResponse(responseCode = "500", description = "Internal error not defined", content = [Content()])
         ]
     )
-    @PostMapping("/{realm}/clear/cache")
+    @PostMapping("/realm/clear/cache")
     @Operation(summary = "Выполняет создание копии потока аутентификации realm")
     fun clearKeycloakCache(
-        @Parameter(description = "Название рабочей области")
-        @PathVariable("realm", required = true) realm: String
+
+        @Parameter(description = "название realm - рабочей области сервисов")
+        @RequestParam(value = "realm", required = true) realm: String,
+
     ): ResponseEntity<Any>
 
 }

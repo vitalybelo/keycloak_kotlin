@@ -3,7 +3,7 @@ package vitos.local.keycloak_kotlin.constants
 class Constants {
 
     companion object {
-        const val FATAL_ERROR = "Непредвиденная ошибка"
+        const val FATAL_ERROR = "Unfortunately something went wrong"
         const val INVALID_REALM_NAME = "Invalid request parameter: realm name wrong or empty"
         const val INVALID_REALM_NOT_FOUND = "Invalid request parameter: realm not fount in Keycloak"
         const val INVALID_REALM_OR_GROUPS = "Invalid request parameter: realm or group list is empty"

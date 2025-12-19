@@ -218,7 +218,7 @@ class KeycloakGroupService(
                 return groupResource
             }
         } catch (ex: Exception) {
-            logger.errorM("Impossible to get group \"${groupRepresentation.name}\" resource", ex)
+            logger.errorM("Impossible to get group [${groupRepresentation.name}] resource", ex)
         }
         return null
     }

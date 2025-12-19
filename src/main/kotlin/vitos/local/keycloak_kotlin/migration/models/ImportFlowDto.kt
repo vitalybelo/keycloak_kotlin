@@ -5,7 +5,7 @@ import org.keycloak.representations.idm.AuthenticationFlowRepresentation
 import org.keycloak.representations.idm.AuthenticatorConfigRepresentation
 
 /**
- * Класс данных для создании потока и конфигурации аутентификации
+ * Класс данных импортироуемого потока и конфигурации аутентификации
  * @author Belotserkovskii Vitaly (c) 2025
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -13,4 +13,10 @@ data class ImportFlowDto(
 
     var authenticationFlows: MutableList<AuthenticationFlowRepresentation>? = mutableListOf(),
     var authenticatorConfigs: MutableList<AuthenticatorConfigRepresentation>? = mutableListOf()
-)
+) {
+
+    fun isAuthenticationFlowsPartialImport(): Boolean {
+        return !authenticationFlows.isNullOrEmpty()
+    }
+
+}

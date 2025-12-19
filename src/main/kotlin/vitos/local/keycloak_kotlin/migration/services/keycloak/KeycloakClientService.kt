@@ -113,7 +113,7 @@ class KeycloakClientService {
                         id = null
                         containerId = null
                     })
-                    logger.infoM("Role with name = \"$name\" created successfully for client id = \"$clientId\"")
+                    logger.infoM("Role with name = [$name] created successfully for client id = [$clientId]")
                 } else {
                     // обновляем существующую роль
                     clientResource.roles().get(name)?.let { roleResource ->
@@ -122,11 +122,11 @@ class KeycloakClientService {
                             id = foundRole.id
                             containerId = foundRole.containerId
                         })
-                        logger.infoM("Role with name = \"$name\" updated successfully for client id = \"$clientId\"")
+                        logger.infoM("Role with name = [$name] updated successfully for client id = [$clientId]")
                     }
                 }
             } catch (ex: Exception) {
-                logger.errorM("Failed creating of role \"$name\" for client id = \"$clientId\"",ex)
+                logger.errorM("Failed creating of [name] for client id = [$clientId]",ex)
             }
         }
         // удаляем роли, который уже не должны быть назначены для Client
@@ -135,7 +135,7 @@ class KeycloakClientService {
                 val name = clientRole.name
                 if (importClientRoles.stream().noneMatch { it.name.equals(name) }) {
                     clientResource.roles().deleteRole(name)
-                    logger.infoM("Role with name = \"$name\" deleted successfully")
+                    logger.infoM("Role with name = [$name] deleted successfully")
                 }
             }
         } catch (ex: Exception) {

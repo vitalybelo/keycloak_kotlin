@@ -9,4 +9,10 @@ data class ClientScopeExportDto(
     var clientScopes: List<ClientScopeRepresentation>? = null,
     var default: List<String>? = null,
     var optional: List<String>? = null
-)
+) {
+
+    fun isClientScopesImportPossible(): Boolean {
+        return !clientScopes.isNullOrEmpty()
+    }
+
+}
