@@ -10,6 +10,7 @@ import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.migration.models.ClientExportDto
 import vitos.local.keycloak_kotlin.migration.models.ImportFlowDto
 import vitos.local.keycloak_kotlin.migration.interfaces.MigrationRestController
+import vitos.local.keycloak_kotlin.migration.models.ClientListExportDto
 import vitos.local.keycloak_kotlin.migration.models.ClientScopeExportDto
 import vitos.local.keycloak_kotlin.migration.models.ExportRealmConditions
 import vitos.local.keycloak_kotlin.migration.models.ImportRealmConditions
@@ -50,9 +51,11 @@ class MigrationRestControllerImpl(
     }
 
 
-    override fun getRealmClient(realm: String, clientId: String
+    override fun getRealmClient(
+        realm: String,
+        clientIds: String
     ): ResponseEntity<Any> {
-        return migrateClientsService.getRealmClient(realm, clientId)
+        return migrateClientsService.getRealmClient(realm, clientIds)
     }
 
 
@@ -60,13 +63,13 @@ class MigrationRestControllerImpl(
         realm: String,
         stamp: String?,
         isAlwaysCreate: Boolean,
-        client: ClientExportDto
+        clients: ClientListExportDto
     ): ResponseEntity<Any> {
         return migrateClientsService.createOrUpdateRealmClient(
             realm,
             stamp,
             isAlwaysCreate,
-            client
+            clients
         )
     }
 

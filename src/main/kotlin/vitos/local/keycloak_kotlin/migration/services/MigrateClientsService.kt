@@ -17,6 +17,8 @@ import vitos.local.keycloak_kotlin.migration.repositories.MigrateExchangeReposit
 import vitos.local.keycloak_kotlin.constants.Constants
 import vitos.local.keycloak_kotlin.migration.models.ClientExportDto
 import vitos.local.keycloak_kotlin.logging.Log
+import vitos.local.keycloak_kotlin.migration.models.ClientImportResponseDto
+import vitos.local.keycloak_kotlin.migration.models.ClientListExportDto
 import vitos.local.keycloak_kotlin.migration.services.keycloak.KeycloakClientService
 import vitos.local.keycloak_kotlin.migration.services.keycloak.KeycloakUserService
 
@@ -30,8 +32,8 @@ class MigrateClientsService(
 
     private val migrateService: MigrateCommonService,
     private val migrateRepository: MigrateExchangeRepository,
-    private val keycloakClientsService: KeycloakClientService,
-    private val keycloakUserService: KeycloakUserService,
+    private val clientsService: KeycloakClientService,
+    private val userService: KeycloakUserService,
     private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 ) {
 
@@ -42,37 +44,62 @@ class MigrateClientsService(
      * Выполняет чтение списка всех сущностей Clients для заданной входным параметром области сервисов.
      *
      * @param realm название области сервисов
-     * @param clientId название сервиса
+     * @param clientIds список названий сервисов
      * @return статус выполнения, список сервисов Clients - либо сообщение об ошибке
      */
-    fun getRealmClient(realm: String, clientId: String): ResponseEntity<Any> {
+    fun getRealmClient(
+        realm: String,
+        clientIds: String
+    ): ResponseEntity<Any> {
 
-        if (realm.isEmpty() || clientId.isEmpty()) {
+        if (realm.isEmpty() || clientIds.isEmpty()) {
             return ResponseEntity(Constants.INVALID_REALM_OR_CLIENT_ID, HttpStatus.BAD_REQUEST)
         }
-        logger.infoM("Procedure export clientId: [$clientId] started")
         try {
+            logger.infoM("Procedure export clients by string [$clientIds] started")
             migrateService.getRealmResource(realm)?.let { realmResource ->
 
-                keycloakClientsService.getClientRepresentationByClientId(clientId, realmResource)?.let { client ->
+                val clients = ClientListExportDto()
+                // цикл для каждого найденого в заданной строке запроса client_id
+                migrateService.getStringNameList(clientIds).forEach { clientId ->
 
-                    val jsonAsString = objectMapper.writeValueAsString(client)
+                    // собираем полную информацию о конкретном сервисе по client_id
+                    val clientExportDto = clientsService.getClientRepresentationByClientId(clientId, realmResource)
+                    if (clientExportDto != null) {
+
+                        clients.addSuccess(clientExportDto)
+                        logger.infoM("Client [$clientId] has been successfully exported")
+                    } else {
+
+                        clients.addNotFound(clientId)
+                        logger.infoM("Client [$clientId] not found in realm [$realm]")
+                    }
+                }
+                if (clients.clients.isNotEmpty()) {
+
+                    // если хотя бы один сервис найдем, деламе запись в таблицу БД
+                    val jsonAsString = objectMapper.writeValueAsString(clients)
                     val migrateRecord = MigrateExchange(realm, JsonType.CLIENTS, jsonAsString)
                     migrateRepository.save(migrateRecord)
 
-                    logger.infoM("Client [$clientId] has been successfully exported")
-                    return ResponseEntity(client, HttpStatus.OK)
+                    // получаем имена экспортированных сервисов для вывода в лог
+                    val foundClients =
+                        clients.clients.stream().map { it.clientRepresentation?.clientId }?.toList() ?: emptyList()
+                    logger.infoM("All found client [$foundClients] have been exported")
+                    return ResponseEntity(clients, HttpStatus.OK)
                 }
-                logger.infoM("Client [$clientId] not found in realm [$realm]")
-                return ResponseEntity("Client: [$clientId] not found in realm [$realm]",HttpStatus.NOT_FOUND)
+                val message = "Clients in [$realm] not found by string [$clientIds]"
+                logger.infoM(message)
+                return ResponseEntity(message, HttpStatus.BAD_REQUEST)
             }
+            logger.infoM("Realm [$realm] not available")
+            return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
+
         } catch (ex: Exception) {
             return migrateService.writeErrorLoggerWithTextAndStatus(
-                ex,"Unknown error occurred during getting realm client [$clientId]"
+                ex,"Unknown error occurred during exporting clients [$clientIds]"
             )
         }
-        logger.infoM("Realm [$realm] not found for export [$clientId]")
-        return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
     }
 
 
@@ -82,7 +109,7 @@ class MigrateClientsService(
      * @param isAlwaysCreate всегда создавать нового клиента с добавлением timestamp
      * @param realm название области сервисов
      * @param stamp заданный в параметрах запроса штамп модификации имени
-     * @param clientExportDto экспортная сущность нового сервиса
+     * @param importClients список экспортных сущностей импортируемых сервисов
      * @return статус выполнения или сообщение об ошибке
      */
     fun createOrUpdateRealmClient(
@@ -90,61 +117,66 @@ class MigrateClientsService(
         realm: String,
         stamp: String?,
         isAlwaysCreate: Boolean,
-        clientExportDto: ClientExportDto
+        importClients: ClientListExportDto
     ): ResponseEntity<Any> {
 
-        val importClientRepresentation = clientExportDto.clientRepresentation
-        if (realm.isEmpty() || importClientRepresentation == null) {
+        val importedClientExportDtoList = importClients.clients
+        if (realm.isEmpty() || importedClientExportDtoList.isEmpty()) {
             return ResponseEntity(Constants.INVALID_REALM_OR_CLIENT_ID, HttpStatus.BAD_REQUEST)
         }
-
-        val clientId = importClientRepresentation.clientId
-        logger.infoM("Procedure creating | updating client [$clientId] started")
-
         try {
+            logger.infoM("Procedure creating | updating clients im [$realm] started")
             migrateService.getRealmResource(realm)?.let { realmResource ->
 
-                var finalClientRepresentation: ClientRepresentation?
-                // определяем, существует уже такой сервис в заданной области
-                val foundClientRepresentation =
-                    realmResource.clients().findByClientId(clientId).firstOrNull()
+                val importResponseDto = ClientImportResponseDto()
+                importedClientExportDtoList.forEach { importedClientExportDto ->
+                    importedClientExportDto.clientRepresentation?.let { importClientRepresentation ->
 
-                finalClientRepresentation =
-                    if (isAlwaysCreate || foundClientRepresentation == null) {
-                        if (foundClientRepresentation != null) {
-                            // isAlwaysCreate = true, но сервис существует - модифицируем название
+                        val clientId = importClientRepresentation.clientId
+                        // давайте узнаем, существует такой сервис
+                        val foundClientRepresentation =
+                            realmResource.clients().findByClientId(clientId).firstOrNull()
+
+                        if (isAlwaysCreate) {
                             migrateService.setNameModificationStamp(stamp)
-                            importClientRepresentation.clientId += "-${migrateService.modificationStamp}-migrated"
-                            importClientRepresentation.description = importClientRepresentation.clientId
-                        } else {
-                            // модифицируем описание, чтобы было понятно откуда взялся сервис
-                            importClientRepresentation.description = "$clientId-migrated"
+                            importClientRepresentation.clientId += "-${migrateService.stamp}-migrated"
+                            importClientRepresentation.description += " (migrated)"
                         }
-                        // импортируемого сервиса в realm нет, поэтому создаем новый
-                        createClientImported(
-                            clientExportDto,
-                            realmResource
-                        )
-                    } else {
-                        // обновляем существующий сервис
-                        updateClientImported(
-                            clientExportDto,
-                            foundClientRepresentation,
-                            realmResource
-                        )
+
+                        val finalClientRepresentation: ClientRepresentation? =
+                            if (foundClientRepresentation == null || isAlwaysCreate) {
+                                // импортируемого сервиса в realm нет или принудительно создаем новый
+                                createClientImported(
+                                    importedClientExportDto,
+                                    realmResource
+                                )
+                            } else {
+                                // обновляем уже существующий сервис
+                                updateClientImported(
+                                    importedClientExportDto,
+                                    foundClientRepresentation,
+                                    realmResource
+                                )
+                            }
+                        if (finalClientRepresentation != null) {
+                            logger.infoM("Client [$clientId] has been successfully created|updated")
+                            importResponseDto.addSuccess(finalClientRepresentation)
+                        } else {
+                            logger.infoM("Unknown error during import [$clientId] occurred")
+                            importResponseDto.failedImported.add(clientId)
+                        }
                     }
-                if (finalClientRepresentation != null) {
-                    logger.infoM("Client [$clientId] has been successfully created|updated")
-                    return ResponseEntity(finalClientRepresentation, HttpStatus.OK)
                 }
-                logger.infoM("Unknown error during import [$clientId] occurred")
-                return ResponseEntity("Ups", HttpStatus.INTERNAL_SERVER_ERROR)
+                logger.infoM("In realm [$realm] imported [${importResponseDto.successImported}] clients")
+                return ResponseEntity(importResponseDto, HttpStatus.OK)
             }
+            logger.errorM("Realm [$realm] not available")
+            return ResponseEntity(Constants.INVALID_REALM_NOT_FOUND, HttpStatus.NOT_FOUND)
+
         } catch (ex: Exception) {
-            return migrateService.writeErrorLoggerWithTextAndStatus(ex)
+            return migrateService.writeErrorLoggerWithTextAndStatus(
+                ex, "Unknown error occurred during import clients in [$realm]")
         }
-        logger.errorM("Realm [$realm] not found for import [$clientId]")
-        return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
     }
 
 
@@ -180,8 +212,8 @@ class MigrateClientsService(
             // обновляем mappers, роли, сущность системного пользователя для сервиса
             importClientRepresentation.protocolMappers = keepMappers
             createOrUpdateClientProtocolMappers(importClientRepresentation, clientResource)
-            keycloakClientsService.createOrUpdateClientRoles(clientExportDto, clientResource)
-            keycloakUserService.updateServiceAccountUser(clientExportDto, clientResource, realmResource)
+            clientsService.createOrUpdateClientRoles(clientExportDto, clientResource)
+            userService.updateServiceAccountUser(clientExportDto, clientResource, realmResource)
             updateAuthorizationSettings(clientExportDto, clientResource)
 
             logger.infoM("Client = [$clientId] updated successfully")
@@ -235,8 +267,8 @@ class MigrateClientsService(
 
                 // добавляем созданному сервису: roles, mappers, системного пользователя
                 createOrUpdateClientProtocolMappers(importClientRepresentation, clientResource)
-                keycloakClientsService.createOrUpdateClientRoles(clientExportDto, clientResource)
-                keycloakUserService.updateServiceAccountUser(clientExportDto, clientResource, realmResource)
+                clientsService.createOrUpdateClientRoles(clientExportDto, clientResource)
+                userService.updateServiceAccountUser(clientExportDto, clientResource, realmResource)
                 updateAuthorizationSettings(clientExportDto, clientResource)
 
                 response.close()

@@ -22,7 +22,7 @@ class MigrateCommonService(
     private val keycloak: Keycloak
 ) {
 
-    var modificationStamp: String = ""
+    var stamp: String = ""
 
     companion object: Log() {
         val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("ddMMyy-HHmm")
@@ -107,9 +107,9 @@ class MigrateCommonService(
      */
     fun setNameModificationStamp(requestStamp: String?) {
         if (requestStamp.isNullOrEmpty()) {
-            modificationStamp = LocalDateTime.now().format(FORMATTER)
+            stamp = LocalDateTime.now().format(FORMATTER)
         } else {
-            modificationStamp = requestStamp
+            stamp = requestStamp
         }
     }
 
@@ -136,6 +136,20 @@ class MigrateCommonService(
         }
         logger.infoM("Received realm name is invalid parameter = [$realmName[")
         return ResponseEntity(Constants.INVALID_REALM_NAME, HttpStatus.NOT_FOUND)
+    }
+
+
+    /**
+     * Возвращает список строк из переданной параметров запроса строки мульти значений.
+     * В строке перечислены названия сервисов или потоков, по которым нужно вернуть экспортные сущности
+     *
+     * @param multiValuedSting строка с именами сервисов, разделенные запятой
+     */
+    fun getStringNameList(multiValuedSting: String): List<String> {
+
+        val list = multiValuedSting.split(",")
+            .stream().map { it.trim() }.filter { it.isNotEmpty() }.toList() ?: emptyList()
+        return list
     }
 
 }

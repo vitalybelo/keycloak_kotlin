@@ -114,7 +114,7 @@ class MigrateAuthFlowsService(
 
         logger.infoM("Start collect root flow and configuration for pattern :: $flowPattern")
 
-        val aliasList = flowPattern.split(",").stream().map { it.trim() }.toList()
+        val aliasList =  migrateService.getStringNameList(flowPattern)
         val rootFlowsList = adminRealmResource.flows().flows
             .stream().filter { representation ->
                 representation.isTopLevel &&
@@ -184,7 +184,7 @@ class MigrateAuthFlowsService(
     ): String {
 
         val migrated = "migrated"
-        val migratedTimeStamp = " ${migrateService.modificationStamp} $migrated"
+        val migratedTimeStamp = " ${migrateService.stamp} $migrated"
         val lengthTimeStamp = migratedTimeStamp.length
         val lengthFlowName = flowName.length
 

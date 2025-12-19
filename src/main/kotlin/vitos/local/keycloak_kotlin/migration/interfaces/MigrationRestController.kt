@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import vitos.local.keycloak_kotlin.migration.models.ClientExportDto
+import vitos.local.keycloak_kotlin.migration.models.ClientListExportDto
 import vitos.local.keycloak_kotlin.migration.models.ClientScopeExportDto
 import vitos.local.keycloak_kotlin.migration.models.ImportFlowDto
 
@@ -121,8 +121,9 @@ interface MigrationRestController {
         @Parameter(description = "название realm - рабочей области сервисов")
         @RequestParam(value = "realm", required = true) realm: String,
 
-        @Parameter(description = "название client - настройки которого необходимо получить")
-        @RequestParam(value = "client_id", required = true) clientId: String
+        @Parameter(description = "список названий сервисов - настройки которого необходимо экспортировать")
+        @RequestParam(value = "client_ids", required = true) clientIds: String
+
     ): ResponseEntity<Any>
 
 
@@ -130,7 +131,7 @@ interface MigrationRestController {
      * Выполняет создание или обновление сервиса в Clients для заданной входным параметром области сервисов Realm.
      *
      * @param realm название области сервисов
-     * @param client экспортная сущность нового сервиса
+     * @param clients список экспортных сущностей импортируемых сервисов
      * @return статус выполнения или сообщение об ошибке
      */
     @ApiResponses(
@@ -162,7 +163,8 @@ interface MigrationRestController {
         @RequestParam("isAlwaysCreate", required = false, defaultValue = "false") isAlwaysCreate: Boolean,
 
         @Parameter(description = "импортируемая сущность сервиса")
-        @RequestBody(required = true) client: ClientExportDto
+        @RequestBody(required = true) clients: ClientListExportDto
+
     ): ResponseEntity<Any>
 
 

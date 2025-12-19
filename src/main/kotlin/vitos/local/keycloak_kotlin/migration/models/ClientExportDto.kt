@@ -13,4 +13,5 @@ data class ClientExportDto(
     var serviceAccountUser: UserRepresentation? = null,
     var clientRoles: List<RoleRepresentation>? = null,
     var exportSettings: ResourceServerRepresentation? = null
+
 )
