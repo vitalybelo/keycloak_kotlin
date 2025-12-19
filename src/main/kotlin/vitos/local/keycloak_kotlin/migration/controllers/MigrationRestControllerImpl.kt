@@ -7,13 +7,12 @@ import org.keycloak.representations.idm.RoleRepresentation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import vitos.local.keycloak_kotlin.logging.Log
-import vitos.local.keycloak_kotlin.migration.models.ClientExportDto
-import vitos.local.keycloak_kotlin.migration.models.ImportFlowDto
+import vitos.local.keycloak_kotlin.migration.models.FlowImportDto
 import vitos.local.keycloak_kotlin.migration.interfaces.MigrationRestController
 import vitos.local.keycloak_kotlin.migration.models.ClientListExportDto
 import vitos.local.keycloak_kotlin.migration.models.ClientScopeExportDto
-import vitos.local.keycloak_kotlin.migration.models.ExportRealmConditions
-import vitos.local.keycloak_kotlin.migration.models.ImportRealmConditions
+import vitos.local.keycloak_kotlin.migration.models.RealmExportConditions
+import vitos.local.keycloak_kotlin.migration.models.RealmImportConditions
 import vitos.local.keycloak_kotlin.migration.services.MigrateAuthFlowsService
 import vitos.local.keycloak_kotlin.migration.services.MigrateClientScopeService
 import vitos.local.keycloak_kotlin.migration.services.MigrateClientsService
@@ -102,7 +101,7 @@ class MigrationRestControllerImpl(
         logger.infoM("UserAgent header browser info :: $browser")
         return migrateRealmService.getRealmConfiguration(
             realm,
-            ExportRealmConditions().apply {
+            RealmExportConditions().apply {
                 this.isMigrateRealmRoles = isMigrateRealmRoles
                 this.isMigrateClientScopes = isMigrateClientScopes
                 this.isMigrateRealmGroups = isMigrateRealmGroups
@@ -124,7 +123,7 @@ class MigrationRestControllerImpl(
         return migrateRealmService.updateRealmConfiguration(
             realm,
             representation,
-            ImportRealmConditions().apply {
+            RealmImportConditions().apply {
                 this.isMigrateRealmRoles = isMigrateRealmRoles
                 this.isMigrateClientScopes = isMigrateClientScopes
                 this.isMigrateRealmGroups = isMigrateRealmGroups
@@ -169,9 +168,9 @@ class MigrationRestControllerImpl(
     override fun createRealmAuthenticationFlow(
         realm: String,
         stamp: String?,
-        importFlowDto: ImportFlowDto
+        flowImportDto: FlowImportDto
     ): ResponseEntity<Any> {
-        return migrateAuthFlowsService.createRealmAuthenticationFlow(realm, stamp, importFlowDto)
+        return migrateAuthFlowsService.createRealmAuthenticationFlow(realm, stamp, flowImportDto)
     }
 
     override fun clearKeycloakCache(realm: String): ResponseEntity<Any> {

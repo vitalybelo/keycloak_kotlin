@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
  * @author Belotserkovskii Vitaly (c) 2025
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ExportRealmConditions(
+data class RealmExportConditions(
 
     var isMigrateRealmRoles: Boolean = false,
     var isMigrateClientScopes: Boolean = false,

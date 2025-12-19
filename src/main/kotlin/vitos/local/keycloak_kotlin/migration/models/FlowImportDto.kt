@@ -9,7 +9,7 @@ import org.keycloak.representations.idm.AuthenticatorConfigRepresentation
  * @author Belotserkovskii Vitaly (c) 2025
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ImportFlowDto(
+data class FlowImportDto(
 
     var authenticationFlows: MutableList<AuthenticationFlowRepresentation>? = mutableListOf(),
     var authenticatorConfigs: MutableList<AuthenticatorConfigRepresentation>? = mutableListOf()

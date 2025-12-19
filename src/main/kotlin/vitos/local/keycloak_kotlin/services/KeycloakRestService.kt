@@ -29,7 +29,7 @@ import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersEventDto
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersEnum
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersResponseDto
-import vitos.local.keycloak_kotlin.migration.services.keycloak.KeycloakTokenService
+import vitos.local.keycloak_kotlin.models.KeycloakTokenService
 import java.time.DateTimeException
 import java.time.Instant
 import javax.management.timer.Timer

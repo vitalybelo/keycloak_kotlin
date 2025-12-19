@@ -60,11 +60,12 @@ class MigrateClientsService(
             migrateService.getRealmResource(realm)?.let { realmResource ->
 
                 val clients = ClientListExportDto()
-                // цикл для каждого найденого в заданной строке запроса client_id
+                // цикл для каждого найденного в заданной строке запроса client_id
                 migrateService.getStringNameList(clientIds).forEach { clientId ->
 
                     // собираем полную информацию о конкретном сервисе по client_id
-                    val clientExportDto = clientsService.getClientRepresentationByClientId(clientId, realmResource)
+                    val clientExportDto =
+                        clientsService.getClientRepresentationByClientId(clientId, realmResource)
                     if (clientExportDto != null) {
 
                         clients.addSuccess(clientExportDto)
@@ -77,7 +78,7 @@ class MigrateClientsService(
                 }
                 if (clients.clients.isNotEmpty()) {
 
-                    // если хотя бы один сервис найдем, деламе запись в таблицу БД
+                    // если хотя бы один сервис найдем, делаем запись в таблицу БД
                     val jsonAsString = objectMapper.writeValueAsString(clients)
                     val migrateRecord = MigrateExchange(realm, JsonType.CLIENTS, jsonAsString)
                     migrateRepository.save(migrateRecord)
@@ -106,9 +107,9 @@ class MigrateClientsService(
     /**
      * Выполняет создание или обновление сервиса в Clients для заданной входным параметром области сервисов Realm.
      *
-     * @param isAlwaysCreate всегда создавать нового клиента с добавлением timestamp
-     * @param realm название области сервисов
-     * @param stamp заданный в параметрах запроса штамп модификации имени
+     * @param isAlwaysCreate всегда создавать нового клиента с добавлением параметра stamp
+     * @param realm заданный в параметрах запроса название области сервисов (обязательный)
+     * @param stamp заданный в параметрах запроса штамп модификации имени (если не задан, используется временная метка)
      * @param importClients список экспортных сущностей импортируемых сервисов
      * @return статус выполнения или сообщение об ошибке
      */

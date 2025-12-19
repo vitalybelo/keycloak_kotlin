@@ -19,12 +19,12 @@ import vitos.local.keycloak_kotlin.migration.repositories.MigrateExchangeReposit
 import vitos.local.keycloak_kotlin.constants.Constants
 import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.migration.models.ClientScopeExportDto
-import vitos.local.keycloak_kotlin.migration.models.ExportRealmConditions
-import vitos.local.keycloak_kotlin.migration.models.ImportFlowDto
-import vitos.local.keycloak_kotlin.migration.models.ImportRealmConditions
-import vitos.local.keycloak_kotlin.migration.models.ImportRealmResponseDto
-import kotlin.concurrent.atomics.AtomicReference
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import vitos.local.keycloak_kotlin.migration.models.RealmExportConditions
+import vitos.local.keycloak_kotlin.migration.models.FlowImportDto
+import vitos.local.keycloak_kotlin.migration.models.RealmImportConditions
+import vitos.local.keycloak_kotlin.migration.models.RealmImportResponseDto
+import vitos.local.keycloak_kotlin.migration.services.keycloak.KeycloakGroupService
+import java.util.concurrent.atomic.AtomicReference
 
 
 /**
@@ -41,6 +41,7 @@ class MigrateRealmService(
     private val migrateGroupsService: MigrateGroupsService,
     private val migrateAuthFlowsService: MigrateAuthFlowsService,
     private val migrateRepository: MigrateExchangeRepository,
+    private val keycloakGroupsService: KeycloakGroupService,
     private val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 ) {
 
@@ -60,7 +61,7 @@ class MigrateRealmService(
     fun getRealmConfiguration(
 
         realmName: String,
-        exportConditions: ExportRealmConditions
+        exportConditions: RealmExportConditions
     ): ResponseEntity<Any> {
 
         if (realmName.isEmpty()) {
@@ -111,7 +112,7 @@ class MigrateRealmService(
 
         realmName: String,
         realmRepresentation: RealmRepresentation,
-        importConditions: ImportRealmConditions
+        importConditions: RealmImportConditions
     ): ResponseEntity<Any> {
 
         if (realmName.isEmpty()) {
@@ -129,13 +130,13 @@ class MigrateRealmService(
                 foundRealmRepresentation,
                 importConditions
             )
-            val importRealmResponseDto = ImportRealmResponseDto(representation = realmRepresentation)
+            val realmImportResponseDto = RealmImportResponseDto(representation = realmRepresentation)
             partialRealmMigration(
                 realmName,
                 importConditions,
-                importRealmResponseDto
+                realmImportResponseDto
             )
-            return ResponseEntity(importRealmResponseDto, HttpStatus.OK)
+            return ResponseEntity(realmImportResponseDto, HttpStatus.OK)
 
         } catch (ex: Exception) {
             return migrateService.writeErrorLoggerWithTextAndStatus(
@@ -155,8 +156,8 @@ class MigrateRealmService(
     private fun partialRealmMigration(
 
         realmName: String,
-        migrateConditions: ImportRealmConditions,
-        migrationResponse: ImportRealmResponseDto
+        migrateConditions: RealmImportConditions,
+        migrationResponse: RealmImportResponseDto
     ) {
         // давайте узнаем, нужен ли вообще частичный импорт
         if (!migrateConditions.isPartialNeed()) {
@@ -185,6 +186,7 @@ class MigrateRealmService(
                 }
                 if (migrateConditions.isMigrateRealmGroups) {
                     updateGroups(realmName, migrateConditions.groups)
+                    assignDefaultGroups(realmName, migrateConditions)
                     migrationResponse.groupsCount = migrateConditions.groups?.size ?: 0
                 }
                 if (migrateConditions.isMigrateFlows) {
@@ -196,6 +198,30 @@ class MigrateRealmService(
             }
         } catch (ex: Exception) {
             logger.errorM("Partial realm import [$realmName] crashed by [${ex.message} || ${ex.cause}]", ex)
+        }
+    }
+
+
+    /**
+     * Выполняет добавление дефолтных групп в область сервисов. На этапе создания или обновления области
+     * сервисов невозможно сразу добавить дефолтные группы, если их на данный момент нет в realm. Поэтому,
+     * мы пробуем добавить дефолтные группы сразу после того, как добавили группы в рабочую область.
+     *
+     * @param realmName название рабочей области сервисов
+     * @param importConditions условия импорта рабочей области
+     */
+    fun assignDefaultGroups(
+        realmName: String,
+        importConditions: RealmImportConditions
+    ) {
+        migrateService.getRealmResource(realmName)?.let { realmResource ->
+            importConditions.defaultGroups?.let { defaultGroups ->
+                defaultGroups.forEach { path ->
+                    keycloakGroupsService.findGroupByPath(path, realmResource)?.let { group ->
+                        realmResource.addDefaultGroup(group.id)
+                    }
+                }
+            }
         }
     }
 
@@ -241,7 +267,6 @@ class MigrateRealmService(
      * @param realmName название области сервисов
      * @return сущность настроек области или null
      */
-    @OptIn(ExperimentalAtomicApi::class)
     suspend fun checkRealmResourceReady(
         realmName: String
     ): RealmRepresentation? {
@@ -249,14 +274,14 @@ class MigrateRealmService(
         val representation = AtomicReference<RealmRepresentation?>(null)
         val isSuccess = withTimeoutOrNull(READY_WAIT_COROUTINES_TIMEOUT) {
             do {
-                representation.store(migrateService.getExportRealmRepresentation(realmName))
-                if (representation.load() != null) break
+                representation.set(migrateService.getExportRealmRepresentation(realmName))
+                if (representation.get() != null) break
                 delay(READY_WAIT_LOOP_DELAY)
             } while (true)
             true
         } ?: false
         if (isSuccess) {
-            return representation.load()
+            return representation.get()
         }
         return null
     }
@@ -275,7 +300,7 @@ class MigrateRealmService(
         realmName: String,
         importedRepresentation: RealmRepresentation,
         foundRepresentation: RealmRepresentation?,
-        migrateConditions: ImportRealmConditions
+        migrateConditions: RealmImportConditions
     ) {
 
         // обнуляем информацию о потоках
@@ -290,7 +315,6 @@ class MigrateRealmService(
                 // создания новой рабочей области
                 importedRepresentation.id = null
                 importedRepresentation.realm = realmName
-                importedRepresentation.defaultRole = null
                 keycloak.realms().create(importedRepresentation)
                 logger.infoM("Successfully created realm [$realmName] configuration")
 
@@ -298,10 +322,13 @@ class MigrateRealmService(
                 // обновление существующей рабочей области
                 importedRepresentation.id = foundRepresentation.id
                 importedRepresentation.realm = foundRepresentation.realm
-                importedRepresentation.defaultRole = foundRepresentation.defaultRole
-                keycloak.realm(realmName).update(importedRepresentation)
-                logger.infoM("Successfully updated realm [$realmName] configuration")
+                migrateService.getRealmResource(realmName)?.let { realmResource ->
+
+                    realmResource.update(importedRepresentation)
+                    logger.infoM("Successfully updated realm [$realmName] configuration")
+                }
             }
+
 
         } catch (ex: Exception) {
             logger.errorM("Failed to create | update Realm configuration for [$realmName]", ex)
@@ -330,14 +357,14 @@ class MigrateRealmService(
      * Выполняет обновление потоков аутентификации для импортируемой рабочей области сервисов
      *
      * @param realmName название области сервисов
-     * @param importFlowDto список потоков и конфигураций
+     * @param flowImportDto список потоков и конфигураций
      */
     private fun updateAuthenticationFlows(
         realmName: String,
-        importFlowDto: ImportFlowDto?,
+        flowImportDto: FlowImportDto?,
     ) {
-        if (importFlowDto?.isAuthenticationFlowsPartialImport() == true) {
-            migrateAuthFlowsService.createRealmAuthenticationFlow(realmName, null, importFlowDto)
+        if (flowImportDto?.isAuthenticationFlowsPartialImport() == true) {
+            migrateAuthFlowsService.createRealmAuthenticationFlow(realmName, null, flowImportDto)
             logger.infoM("Partial migration Flows and Configurations for [$realmName] is finished")
         } else {
             logger.infoM("Flows and Configurations not found in [$realmName] for partial import")
@@ -488,7 +515,7 @@ class MigrateRealmService(
     private fun cleanConditionalRealConfiguration(
 
         realmRepresentation: RealmRepresentation,
-        migrationConditions: ExportRealmConditions
+        migrationConditions: RealmExportConditions
     ) {
         if (!migrationConditions.isMigrateRealmRoles) {
             realmRepresentation.roles = null

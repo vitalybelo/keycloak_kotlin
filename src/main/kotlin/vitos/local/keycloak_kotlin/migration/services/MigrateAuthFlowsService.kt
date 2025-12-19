@@ -19,7 +19,7 @@ import vitos.local.keycloak_kotlin.migration.repositories.MigrateExchangeReposit
 import vitos.local.keycloak_kotlin.constants.Constants
 import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.migration.models.CollectFlowDto
-import vitos.local.keycloak_kotlin.migration.models.ImportFlowDto
+import vitos.local.keycloak_kotlin.migration.models.FlowImportDto
 import java.util.stream.Collectors
 
 
@@ -131,18 +131,18 @@ class MigrateAuthFlowsService(
      *
      * @param realm название области сервисов
      * @param stamp заданный в параметрах запроса штамп модификации имени
-     * @param importFlowDto импортируемый dto класс потока аутентификации
+     * @param flowImportDto импортируемый dto класс потока аутентификации
      * @return статус выполнения, список сущностей потоков или сообщение об ошибке
      */
     fun createRealmAuthenticationFlow(
 
         realm: String,
         stamp: String?,
-        importFlowDto: ImportFlowDto
+        flowImportDto: FlowImportDto
     ): ResponseEntity<Any> {
 
-        val importedRootFlows = findTopLevelFlow(importFlowDto)
-        if (importFlowDto.authenticationFlows.isNullOrEmpty() || importedRootFlows.isEmpty()) {
+        val importedRootFlows = findTopLevelFlow(flowImportDto)
+        if (flowImportDto.authenticationFlows.isNullOrEmpty() || importedRootFlows.isEmpty()) {
             return ResponseEntity(Constants.INVALID_FLOW, HttpStatus.BAD_REQUEST)
         }
         try {
@@ -159,7 +159,7 @@ class MigrateAuthFlowsService(
                             importedRootFlow,
                             createdRootFlow,
                             realmResource,
-                            importFlowDto
+                            flowImportDto
                         )
                     }
                 }
@@ -206,14 +206,14 @@ class MigrateAuthFlowsService(
      * @param justCreatedParentFlow импортная сущность потока, для которого создается окружение
      * @param justCreatedParentFlow вновь созданная сущность потока, для которого создается окружение
      * @param adminRealmResource административный ресурс управления областью сервисов
-     * @param importFlowDto импортируемый dto класс потока аутентификации
+     * @param flowImportDto импортируемый dto класс потока аутентификации
      */
     private fun createAuthenticationFlowEnvironment(
 
         importedParentFlow: AuthenticationFlowRepresentation,
         justCreatedParentFlow: AuthenticationFlowRepresentation,
         adminRealmResource: RealmResource,
-        importFlowDto: ImportFlowDto
+        flowImportDto: FlowImportDto
 
     ) {
         val parentFlowId = justCreatedParentFlow.id
@@ -226,23 +226,23 @@ class MigrateAuthFlowsService(
                     createAuthenticationExecution(
                         null,
                         parentFlowId,
-                        execution, adminRealmResource, importFlowDto
+                        execution, adminRealmResource, flowImportDto
                     )
                 } else {
                     // находим вложенный поток, создаем его, назначаем шаг и отправляемся в рекурсию
-                    receiveImportedFlow(execution.flowAlias, importFlowDto)?.let { importedFlow ->
+                    receiveImportedFlow(execution.flowAlias, flowImportDto)?.let { importedFlow ->
                         createAuthenticationFlow(
                             importedFlow, adminRealmResource
                         )?.let { createdFlow ->
                             createAuthenticationExecution(
                                 createdFlow.id, parentFlowId,
-                                execution, adminRealmResource, importFlowDto
+                                execution, adminRealmResource, flowImportDto
                             )?.let {
                                 createAuthenticationFlowEnvironment(
                                     importedFlow,
                                     createdFlow,
                                     adminRealmResource,
-                                    importFlowDto
+                                    flowImportDto
                                 )
                             }
                         }
@@ -262,10 +262,10 @@ class MigrateAuthFlowsService(
      */
     private fun receiveImportedFlow(
         flowAlias: String,
-        importFlowDto: ImportFlowDto
+        flowImportDto: FlowImportDto
     ): AuthenticationFlowRepresentation? {
 
-        importFlowDto.authenticationFlows?.firstOrNull { it.alias.equals(flowAlias) }?.let { return it }
+        flowImportDto.authenticationFlows?.firstOrNull { it.alias.equals(flowAlias) }?.let { return it }
         return null
     }
 
@@ -277,7 +277,7 @@ class MigrateAuthFlowsService(
      * @param parentFlowId идентификатор потока, для которого создается execution
      * @param importedExecution экспортная сущность исполняемого шага
      * @param realmResource административный ресурс управления областью сервисов
-     * @param importFlowDto импортируемый dto класс потока аутентификации
+     * @param flowImportDto импортируемый dto класс потока аутентификации
      * @return true in success
      */
     private fun createAuthenticationExecution(
@@ -286,7 +286,7 @@ class MigrateAuthFlowsService(
         parentFlowId: String?,
         importedExecution: AuthenticationExecutionExportRepresentation,
         realmResource: RealmResource,
-        importFlowDto: ImportFlowDto
+        flowImportDto: FlowImportDto
 
     ): AuthenticationExecutionRepresentation? {
 
@@ -307,7 +307,7 @@ class MigrateAuthFlowsService(
 
                     importedExecution.authenticatorConfig?.let { configAlias ->
                         // нужно найти сущность конфигурации в импорте и создать config для нового шага
-                        receiveImportedConfig(configAlias, importFlowDto)?.let {
+                        receiveImportedConfig(configAlias, flowImportDto)?.let {
                             authenticationConfig ->
                             authenticationConfig.id = null
                             authenticationConfig.alias = createFlowAliasTimeStamped(configAlias)
@@ -340,15 +340,15 @@ class MigrateAuthFlowsService(
      * Ищет в экспортной сущности конфигурацию по названию аутентификатора
      *
      * @param authenticatorConfigName
-     * @param importFlowDto
+     * @param flowImportDto
      * @return сущность найденной конфигурации
      */
     private fun receiveImportedConfig(
         authenticatorConfigName: String,
-        importFlowDto: ImportFlowDto
+        flowImportDto: FlowImportDto
     ): AuthenticatorConfigRepresentation? {
 
-        importFlowDto.authenticatorConfigs
+        flowImportDto.authenticatorConfigs
             ?.firstOrNull { it.alias.equals(authenticatorConfigName,true) }
             ?.let { return it }
         return null
@@ -423,10 +423,10 @@ class MigrateAuthFlowsService(
      * @return список корневых сущностей верхне-уровневого потока аутентификации
      */
     private fun findTopLevelFlow(
-        importFlowDto: ImportFlowDto
+        flowImportDto: FlowImportDto
     ): List<AuthenticationFlowRepresentation> {
 
-        return importFlowDto.authenticationFlows?.filter { it.isTopLevel } ?: emptyList()
+        return flowImportDto.authenticationFlows?.filter { it.isTopLevel } ?: emptyList()
     }
 
 

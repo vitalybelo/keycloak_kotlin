@@ -9,7 +9,7 @@ import org.keycloak.representations.idm.RealmRepresentation
  * @author Belotserkovskii Vitaly (с) 2025
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ImportRealmResponseDto(
+data class RealmImportResponseDto(
 
     var rolesCount: Int = 0,
     var scopesCount: Int = 0,

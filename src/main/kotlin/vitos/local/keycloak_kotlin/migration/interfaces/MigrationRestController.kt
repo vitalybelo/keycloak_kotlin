@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import vitos.local.keycloak_kotlin.migration.models.ClientListExportDto
 import vitos.local.keycloak_kotlin.migration.models.ClientScopeExportDto
-import vitos.local.keycloak_kotlin.migration.models.ImportFlowDto
+import vitos.local.keycloak_kotlin.migration.models.FlowImportDto
 
 @Tag(
     name = "MigrationRestController",
@@ -467,7 +467,7 @@ interface MigrationRestController {
      * Выполняет создание нового потока аутентификации realm (копию переданного в параметрах)
      *
      * @param realm название области сервисов
-     * @param importFlowDto импортируемый dto класс потока аутентификации
+     * @param flowImportDto импортируемый dto класс потока аутентификации
      * @return статус выполнения, список сущностей groups или сообщение об ошибке
      *
      */
@@ -502,7 +502,7 @@ interface MigrationRestController {
         @RequestParam(value = "stamp", required = false) stamp: String?,
 
         @Parameter(description = "Импортируемая сущность потоков и конфигураций аутентификации")
-        @RequestBody(required = true) importFlowDto: ImportFlowDto
+        @RequestBody(required = true) flowImportDto: FlowImportDto
 
     ): ResponseEntity<Any>
 

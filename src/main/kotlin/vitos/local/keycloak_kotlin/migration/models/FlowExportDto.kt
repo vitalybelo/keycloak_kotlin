@@ -9,7 +9,7 @@ import org.keycloak.representations.idm.AuthenticatorConfigRepresentation
  * @author Belotserkovskii Vitaly (c) 2025
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ExportFlowDto(
+data class FlowExportDto(
 
     var totalRootFlows: Int = 0,
     var totalFlows: Int = 0,
@@ -37,9 +37,9 @@ data class CollectFlowDto(
         }
     }
 
-    fun getExportDto(): ExportFlowDto {
+    fun getExportDto(): FlowExportDto {
 
-        val exportDto = ExportFlowDto()
+        val exportDto = FlowExportDto()
         if (flowsMap.isNotEmpty()) {
             exportDto.authenticationFlows = flowsMap.values.toMutableList()
         }
