@@ -24,8 +24,11 @@ import vitos.local.keycloak_kotlin.migration.services.keycloak.KeycloakUserServi
 
 
 /**
- * Сервисный слой для обеспечения методов миграции Clients
- * @author Vitaly Belotserkovskii
+ * Сервисный слой, обеспечивающий логику миграции (экспорта и импорта) сущностей Client в Keycloak.
+ * Класс управляет полным жизненным циклом миграции клиента, включая его роли, мапперы протоколов,
+ * настройки авторизации и сервисные учетные записи.
+ *
+ * @author Vitaly Belotserkovskii (c) 22.12.2025
  */
 @Service
 class MigrateClientsService(
@@ -43,9 +46,14 @@ class MigrateClientsService(
     /**
      * Выполняет чтение списка всех сущностей Clients для заданной входным параметром области сервисов.
      *
-     * @param realm название области сервисов
-     * @param clientIds список названий сервисов
+     * @param realm (String): Название области (Realm), откуда производится экспорт.
+     * @param clientIds (String): Строка, содержащая список client_id (идентификаторов клиентов), которые необходимо экспортировать.
+     *
      * @return статус выполнения, список сервисов Clients - либо сообщение об ошибке
+     * 200 OK: Возвращает объект ClientListExportDto со списком найденных клиентов.
+     * Также сохраняет JSON-дамп в репозиторий MigrateExchangeRepository.
+     * 400 BAD REQUEST: Если параметры пусты или клиенты не найдены.
+     * 404 NOT FOUND: Если указанный Realm не существует.
      */
     fun getRealmClient(
         realm: String,
@@ -146,7 +154,7 @@ class MigrateClientsService(
 
                         val finalClientRepresentation: ClientRepresentation? =
                             if (foundClientRepresentation == null || isAlwaysCreate) {
-                                // импортируемого сервиса в realm нет или принудительно создаем новый
+                                // импортируемого сервиса в realm нет или принудительно создаём новый
                                 createClientImported(
                                     importedClientExportDto,
                                     realmResource

@@ -5,7 +5,7 @@ import org.keycloak.representations.idm.AuthenticationFlowRepresentation
 import org.keycloak.representations.idm.AuthenticatorConfigRepresentation
 
 /**
- * Класс данных импортироуемого потока и конфигурации аутентификации
+ * Класс данных импортируемого потока и конфигурации аутентификации
  * @author Belotserkovskii Vitaly (c) 2025
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
