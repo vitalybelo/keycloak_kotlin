@@ -9,24 +9,29 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.security.web.authentication.logout.LogoutHandler
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.getForEntity
 import org.springframework.web.util.UriComponentsBuilder
 
 @Component
 class KeycloakLogoutHandler(
     private val restTemplate: RestTemplate?
-) : LogoutHandler {
+): LogoutHandler {
 
     private val logger: Logger = LoggerFactory.getLogger(KeycloakLogoutHandler::class.java)
 
-    override fun logout(request: HttpServletRequest?, response: HttpServletResponse?, auth: Authentication) {
-        logoutFromKeycloak(auth.principal as OidcUser)
+    override fun logout(request: HttpServletRequest,
+                        response: HttpServletResponse,
+                        authentication: Authentication?) {
+        logoutFromKeycloak(authentication)
     }
 
     /**
      * Метод реализует выход из keycloak запросом по back channel
-     * @param user - информация о пользователе, id_token + утверждения из jwt токена
+     * @param authentication - класс аутентификации Spring Boot Security
      */
-    private fun logoutFromKeycloak(user: OidcUser) {
+    private fun logoutFromKeycloak(authentication: Authentication?) {
+
+        val user = authentication?.principal as? OidcUser ?: return
         val endSessionEndpoint = user.issuer.toString() + "/protocol/openid-connect/logout"
         val clientId = user.getClaimAsString("azp")
         val builder = UriComponentsBuilder
@@ -36,7 +41,7 @@ class KeycloakLogoutHandler(
             .queryParam("logout_hint", user.name)
             .queryParam("id_token_hint", user.idToken.tokenValue)
 
-        val logoutResponse = restTemplate!!.getForEntity(builder.toUriString(), String::class.java)
+        val logoutResponse = restTemplate!!.getForEntity<String>(builder.toUriString())
 
         if (logoutResponse.statusCode.is2xxSuccessful) {
             logger.info("Successfully logged out from Keycloak")

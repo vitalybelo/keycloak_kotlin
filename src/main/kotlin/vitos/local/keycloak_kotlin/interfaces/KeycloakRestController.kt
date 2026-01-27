@@ -55,7 +55,7 @@ interface KeycloakRestController {
 
     /**
      * Выполняет создание пользователя в Keycloak. Метод всегда пытается создать нового пользователя стандартным
-     * методом keycloak rest api. Если такой пользователь уже существует, мы обрабатываем ошибку и ищем пользака
+     * методом keycloak rest api. Если такой пользователь уже существует, мы обрабатываем ошибку и ищем пользователя
      * среди существующих. В любом случае мы возвращаем сущность пользователя, нового или существующего
      *
      * @param user сущность пользователя Keycloak для создания
@@ -235,9 +235,9 @@ interface KeycloakRestController {
     @RequestMapping("/attributes", method = [RequestMethod.POST, RequestMethod.PUT])
     @Operation(summary = "Выполняет поиск пользователя по заданному атрибуту и обновляет карту атрибутов")
     fun changeUserAttributes(
-        @RequestParam(required = true) key: String?,
-        @RequestParam(required = true) value: String?,
-        @RequestBody(required = false) attributesMap: Map<String, List<String>>?
+        @RequestParam(required = true) key: String,
+        @RequestParam(required = true) value: String,
+        @RequestBody(required = true) attributesMap: Map<String, List<String>>
     ): ResponseEntity<Any>
 
 
@@ -326,7 +326,7 @@ interface KeycloakRestController {
     @RequestMapping(value = ["/list/by-attributes"], method = [RequestMethod.PUT])
     @Operation(summary = "Выполняет изменение атрибутов для каждого переданного в списке пользователя Keycloak")
     fun updateUserListByAttribute(
-        @RequestBody userList: List<Map<String, Any>?>?
+        @RequestBody(required = true) userList: List<Map<String, Any>>
     ): ResponseEntity<Any>
 
 
@@ -354,7 +354,7 @@ interface KeycloakRestController {
     @RequestMapping(value = ["/by-attribute-list"], method = [RequestMethod.DELETE])
     @Operation(summary = "Выполняет поиск пользователей по атрибуту и удаляет каждого найденного из Keycloak")
     fun deleteUsersByAttributeList(
-        @RequestBody(required = false) abscustIdValues: DeleteUsersRequestDto?
+        @RequestBody(required = true) abscustIdValues: DeleteUsersRequestDto?
     ): ResponseEntity<out Collection<DeleteUsersResponseDto>>
 
 }

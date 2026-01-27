@@ -19,13 +19,13 @@ data class BruteForceUserRepresentation(
     @JsonProperty("email") var email: String? = null,
     @JsonProperty("emailVerified") var emailVerified: Boolean? = null,
     @JsonProperty("attributes") var attributes: LinkedHashMap<String, List<String>>? = null,
-    @JsonProperty("createdTimestamp") var createdTimestamp: Long? = null,
     @JsonProperty("enabled") var enabled: Boolean? = null,
+    @JsonProperty("createdTimestamp") var createdTimestamp: Long? = null,
     @JsonProperty("totp") var temporaryOTP: Boolean? = null,
     @JsonProperty("disableableCredentialTypes") var disableCredentialTypes: List<String>? = null,
     @JsonProperty("requiredActions") var requiredActions: List<String>? = null,
     @JsonProperty("notBefore") var notBefore: Int? = null,
     @JsonProperty("access") var access: LinkedHashMap<String, Boolean>? = null,
-    @JsonProperty("bruteForceStatus") var bruteForceStatus: BruteForceStatus? = null,
+    @JsonProperty("bruteForceStatus") var bruteForceStatus: BruteForceStatus? = null
 
-    )
+)

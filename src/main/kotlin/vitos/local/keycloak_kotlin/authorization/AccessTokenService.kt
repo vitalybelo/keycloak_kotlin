@@ -183,7 +183,7 @@ class AccessTokenService(
         if (!tokenString.isNullOrEmpty()) {
 
             val decoder = Base64.getUrlDecoder()
-            val chunks = tokenString.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val chunks = tokenString.split(".")
 
             if (chunks.size > 1) {
                 val payload = String(decoder.decode(chunks[1]))

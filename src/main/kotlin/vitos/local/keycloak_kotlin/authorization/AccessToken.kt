@@ -11,11 +11,11 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AccessToken(
 
-    var exp: String? = null,
-    var iat: String? = null,
+    var exp: Long? = null,
+    var iat: Long? = null,
     var jti: String? = null,
     var iss: String? = null,
-    var aud: String? = null,
+    var aud: List<String>? = null,
 
     @JsonProperty("sub") var userId: String? = null,
     @JsonProperty("typ") var type: String? = null,
@@ -29,6 +29,7 @@ data class AccessToken(
     @JsonProperty("resource_access")
     var clientRolesMap: LinkedHashMap<String, LinkedHashMap<String, List<String>>>? = null,
 
+    @JsonProperty("scope") var scope: String? = null,
     @JsonProperty("given_name") var firstName: String? = null,
     @JsonProperty("middle_name") var middleName: String? = null,
     @JsonProperty("family_name") var familyName: String? = null,

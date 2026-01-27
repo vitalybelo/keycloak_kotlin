@@ -66,12 +66,12 @@ class KeycloakRestControllerImpl(
 
 
     override fun changeUserAttributes(
-        key: String?,
-        value: String?,
-        attributesMap: Map<String, List<String>>?
+        key: String,
+        value: String,
+        attributesMap: Map<String, List<String>>
     ): ResponseEntity<Any> {
 
-        if (!key.isNullOrEmpty() && !value.isNullOrEmpty() && !attributesMap.isNullOrEmpty()) {
+        if (key.isNotEmpty() && value.isNotEmpty() && attributesMap.isNotEmpty()) {
             return keycloakService.changeUserAttributes(key, value, attributesMap)
         }
         return ResponseEntity("Incorrect request parameters", HttpStatus.BAD_REQUEST)
@@ -90,13 +90,13 @@ class KeycloakRestControllerImpl(
     }
 
     override fun updateUserListByAttribute(
-        userList: List<Map<String, Any>?>?
+        userList: List<Map<String, Any>>
     ): ResponseEntity<Any> {
         return keycloakService.updateUserListByAttributes(userList)
     }
 
     override fun deleteUsersByAttributeList(
-        @RequestBody(required = false) abscustIdValues: DeleteUsersRequestDto?
+        abscustIdValues: DeleteUsersRequestDto?
     ): ResponseEntity<out Collection<DeleteUsersResponseDto>> {
 
         abscustIdValues?.getValueSet()?.let { values ->

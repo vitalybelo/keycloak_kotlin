@@ -15,12 +15,12 @@ class SuccessLoginHandler : SavedRequestAwareAuthenticationSuccessHandler() {
     private val log = LoggerFactory.getLogger(SuccessLoginHandler::class.java)
 
     /**
-     * Вызов метода происходит только в случе успешной аутентификации пользователя на фронте.
+     * Вызов метода происходит только в случае успешной аутентификации пользователя на фронте.
      * Сначала зачитывается значения максимального времени простоя для текущего пользователя.
      * Если у пользователя не установлено значение, берем дефолтное значение из realm settings.
      *
-     * @param request        http сервлет запроса
-     * @param response       http сервлет ответа
+     * @param request http сервлет запроса
+     * @param response http сервлет ответа
      * @param authentication авторизационный класс spring security
      *
      * @throws jakarta.servlet.ServletException - для super.onAuthenticationSuccess
@@ -28,10 +28,12 @@ class SuccessLoginHandler : SavedRequestAwareAuthenticationSuccessHandler() {
      */
     @Throws(IOException::class, ServletException::class)
     override fun onAuthenticationSuccess(
+
         request: HttpServletRequest,
-        response: HttpServletResponse?,
+        response: HttpServletResponse,
         authentication: Authentication
     ) {
+        // здесь добавляем логику для аутентифицированного пользователя
         log.info(">>>> SuccessLoginHandler :: Authentication success")
         super.onAuthenticationSuccess(request, response, authentication)
     }
