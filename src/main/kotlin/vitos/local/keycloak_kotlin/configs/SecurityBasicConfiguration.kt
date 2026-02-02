@@ -1,6 +1,5 @@
 package vitos.local.keycloak_kotlin.configs
 
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
+import vitos.local.keycloak_kotlin.logging.Log
 
 /**
  * Дополнительный класс конфигурации безопасности для Basic аутентификации запросов из PCR_CONNECT
@@ -33,9 +33,7 @@ class SecurityBasicConfiguration(
     private val callbackPassword: String
 ) {
 
-    companion object {
-        private val logger = LoggerFactory.getLogger(SecurityBasicConfiguration::class.java)
-    }
+    companion object: Log()
 
     /**
      * Выбираем метод хеширования пароля в памяти
@@ -54,7 +52,7 @@ class SecurityBasicConfiguration(
         val user = User.withUsername(callbackLogin)
             .password(passwordEncoder.encode(callbackPassword))
             .build()
-        logger.info(">>>> PCR_CONNECT Callback User >>>> $callbackLogin :: $callbackPassword activated")
+        logger.infoM(">>>> PCR_CONNECT Callback User >>>> $callbackLogin :: $callbackPassword activated")
         return InMemoryUserDetailsManager(user)
     }
 

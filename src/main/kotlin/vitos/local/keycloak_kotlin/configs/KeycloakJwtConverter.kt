@@ -1,19 +1,19 @@
 package vitos.local.keycloak_kotlin.configs
 
-import org.slf4j.LoggerFactory
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
+import vitos.local.keycloak_kotlin.logging.Log
 import java.util.stream.Collectors
 
 
 class KeycloakJwtConverter: Converter<Jwt, AbstractAuthenticationToken> {
 
 
-    private val log = LoggerFactory.getLogger(KeycloakJwtConverter::class.java)
+    companion object: Log()
 
 
     /**
@@ -38,8 +38,7 @@ class KeycloakJwtConverter: Converter<Jwt, AbstractAuthenticationToken> {
                 }
             }
         } catch (ex: Exception) {
-            log.error(">>>> Exception occurred while converting authorities of JWT {}", ex.localizedMessage)
-            log.debug(">>>> DEBUG :: ", ex)
+            logger.errorM(">>>> Exception occurred while converting authorities of JWT, message = ${ex.message}, cause = ${ex.cause}")
         }
         // создание объекта аутентификации
         return JwtAuthenticationToken(jwt, authorities)
