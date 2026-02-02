@@ -8,11 +8,11 @@ import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.representations.idm.*
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.*
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
-import org.springframework.web.client.exchange
 import vitos.local.keycloak_kotlin.authorization.AccessTokenService
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.BAD_REQUEST
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
@@ -20,6 +20,7 @@ import vitos.local.keycloak_kotlin.constants.Constants.Companion.NOT_FOUND
 import vitos.local.keycloak_kotlin.handlers.ParameterChecker
 import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
+import vitos.local.keycloak_kotlin.models.CompositeRoles
 import vitos.local.keycloak_kotlin.models.KeycloakTokenService
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersEnum
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersEventDto
@@ -28,6 +29,7 @@ import java.time.DateTimeException
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale.getDefault
 import javax.management.timer.Timer
 
 
@@ -207,6 +209,64 @@ class KeycloakRestService(
 
 
     /**
+     * Выполняет запрос в расширенный админ клиент Keycloak для получения списка всех эффективных ролей
+     * пользователя (включает все списки ролей композитных ролей и роли назначенные через группы)
+     *
+     * @return список сущностей композитных ролей
+     */
+    fun getEffectiveUserRoles(): ResponseEntity<Any> {
+
+        val user = accessTokenService.assign()
+            ?: return ResponseEntity(BAD_REQUEST, HttpStatus.BAD_REQUEST)
+        val userId = user.userId
+            ?: return ResponseEntity(NOT_FOUND, HttpStatus.NOT_FOUND)
+
+        try {
+            logger.infoM("Start collect effective roles for user = ${user.displayName}")
+            val effectiveRoles = getEffectiveUserRolesList(userId)
+            logger.debugM("Effective roles list received for user = ${user.displayName} :: $effectiveRoles")
+
+            if (effectiveRoles != null) {
+
+                getUserResource(userId)?.let { userResource ->
+                    logger.infoM("Start add realm roles to final list for user = ${user.displayName}")
+                    userResource.roles().realmLevel().listEffective()?.let { realmRoles ->
+                        realmRoles.forEach { roleRepresentation ->
+                            logger.infoM("Add realm role = ${roleRepresentation.name}")
+                            effectiveRoles.add(CompositeRoles().apply {
+                                id = roleRepresentation.id
+                                role = roleRepresentation.name
+                                description = roleRepresentation.description
+                            })
+                        }
+                    }
+                    userResource.roles().all.clientMappings?.forEach { (key, value) ->
+                        logger.infoM("Start add client roles to final list for user = ${user.displayName}")
+                        value.mappings.forEach { roleRepresentation ->
+                            logger.infoM("Add client role = ${roleRepresentation.name}")
+                            effectiveRoles.add(CompositeRoles().apply {
+                                id = roleRepresentation.id
+                                role = roleRepresentation.name
+                                client = key
+                                clientId = value.id
+                                description = roleRepresentation.description
+                            })
+                        }
+                    }
+                }
+                return ResponseEntity(
+                    effectiveRoles.sortedBy { it.role?.lowercase(getDefault()) },
+                    HttpStatus.OK
+                )
+            }
+        } catch (ex: Exception) {
+            logger.errorM("Error during total effective roles list, message = ${ex.message}, cause = ${ex.cause}")
+        }
+        return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+
+    /**
      * Выполняет чтение учетной записи пользователя из админки Keycloak
      * @param userId идентификатор пользователя
      * @return сущность учётной записи
@@ -252,7 +312,7 @@ class KeycloakRestService(
                 return roleMappingResource.realmLevel().listEffective().stream().map { role -> role.name }.toList()
             }
         } catch (ex: Exception) {
-            logger.errorM(">>>> Error getting user realm roles, message = ${ex.message}, cause = ${ex.cause}")
+            logger.errorM(">>>> Error getting user's realm roles, message = ${ex.message}, cause = ${ex.cause}")
         }
         return emptyList()
     }
@@ -261,8 +321,12 @@ class KeycloakRestService(
     private fun getUserClientsRolesAsList(userId: String): Map<String, MutableList<String>> {
 
         val clientsRoles: MutableMap<String, MutableList<String>> = HashMap()
-        realmResource.users().get(userId).roles().all.clientMappings?.forEach { (key, value) ->
-            clientsRoles[key] = value.mappings.map(RoleRepresentation::getName).toMutableList()
+        try {
+            realmResource.users().get(userId).roles().all.clientMappings?.forEach { (key, value) ->
+                clientsRoles[key] = value.mappings.map(RoleRepresentation::getName).toMutableList()
+            }
+        } catch (ex: Exception) {
+            logger.errorM("Error getting user's client roles, message = ${ex.message}, cause = ${ex.cause}")
         }
         return clientsRoles
     }
@@ -324,23 +388,62 @@ class KeycloakRestService(
         try {
             val headers: HttpHeaders = keycloakTokenService.getOauth2Headers()
             val requestEntity = HttpEntity<Void>(headers)
+            val responseType =
+                object : ParameterizedTypeReference<List<BruteForceUserRepresentation>>() {}
+            val uriString =
+                StringBuilder(getKeycloakExtURI()).append("/brute-force-user?first=0&max=1000000").toString()
 
-            val res =
-                restTemplate.exchange<List<BruteForceUserRepresentation>?>(
-                "$keycloakServerURL/admin/realms/$keycloakRealm/ui-ext/brute-force-user?first=0&max=1000000",
+            val res = restTemplate.exchange(
+//                "$keycloakServerURL/admin/realms/$keycloakRealm/ui-ext/brute-force-user?first=0&max=1000000",
+                uriString,
                 HttpMethod.GET,
-                requestEntity)
-
-            if (res.statusCode == HttpStatus.OK
-                && res.body is List<BruteForceUserRepresentation>) {
-                return res.body
-            }
+                requestEntity,
+                responseType
+            )
+            if (res.statusCode == HttpStatus.OK && res.body is List<BruteForceUserRepresentation>) return res.body
 
         } catch (ex: Exception) {
             logger.errorM(">>>> Request to Keycloak UI-EXT failed, message = ${ex.message}, cause = ${ex.cause}")
         }
         return null
     }
+
+
+    /**
+     * Выполняет запрос в расширенный админ клиент Keycloak для получения списка всех эффективных ролей
+     * пользователя (включает все списки ролей композитных ролей и роли назначенные через группы)
+     *
+     * @param userId идентификатор пользователя
+     * @return список сущностей композитных ролей
+     */
+    private fun getEffectiveUserRolesList(userId: String): HashSet<CompositeRoles>? {
+
+        try {
+            val headers: HttpHeaders = keycloakTokenService.getOauth2Headers()
+            val requestEntity = HttpEntity<Void>(headers)
+            val responseType =
+                object : ParameterizedTypeReference<List<CompositeRoles>>() {}
+
+            val uriString = StringBuilder(getKeycloakExtURI())
+                .append("/effective-roles/users/").append(userId).append("?first=0&max=10000&search=").toString()
+
+            val res = restTemplate.exchange(
+                uriString,
+                HttpMethod.GET,
+                requestEntity,
+                responseType
+            )
+            if (res.statusCode == HttpStatus.OK && res.body is List<CompositeRoles>) {
+                return res.body?.toHashSet()
+            }
+        } catch (ex: Exception) {
+            logger.errorM("Error during getting user composite roles, message = ${ex.message}, cause = ${ex.cause}")
+        }
+        return null
+    }
+
+
+    private fun getKeycloakExtURI(): String = "$keycloakServerURL/admin/realms/$keycloakRealm/ui-ext"
 
 
     /**

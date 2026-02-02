@@ -45,7 +45,6 @@ class KeycloakRestControllerImpl(
         return keycloakService.getUserInfo(userId, headers)
     }
 
-
     override fun getUserRepresentation(authentication: Authentication): ResponseEntity<Any> {
         return keycloakService.getUserRepresentation(authentication)
     }
@@ -54,16 +53,17 @@ class KeycloakRestControllerImpl(
         return keycloakService.getFullUserRepresentation(headers)
     }
 
-
     override fun getExtendedUserRepresentation(): ResponseEntity<Any> {
         return keycloakService.getExtendedUserRepresentation()
     }
-
 
     override fun getExtendedUserRepresentationList(): ResponseEntity<Any> {
         return keycloakService.getExtendedUserRepresentationList()
     }
 
+    override fun getEffectiveUserRoles(): ResponseEntity<Any> {
+        return keycloakService.getEffectiveUserRoles()
+    }
 
     override fun changeUserAttributes(
         key: String,
@@ -76,7 +76,6 @@ class KeycloakRestControllerImpl(
         }
         return ResponseEntity("Incorrect request parameters", HttpStatus.BAD_REQUEST)
     }
-
 
     override fun findGroupAssignedRoleList(headers: Map<String, String>?): ResponseEntity<Any> {
         return keycloakService.findGroupAssignedRoleList(headers)
@@ -106,6 +105,4 @@ class KeycloakRestControllerImpl(
         }
         return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
-
-
 }

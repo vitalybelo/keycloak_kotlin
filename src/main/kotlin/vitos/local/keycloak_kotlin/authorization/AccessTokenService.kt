@@ -1,5 +1,6 @@
 package vitos.local.keycloak_kotlin.authorization
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -188,6 +189,7 @@ class AccessTokenService(
             if (chunks.size > 1) {
                 val payload = String(decoder.decode(chunks[1]))
                 try {
+                    objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
                     accessToken = objectMapper.readValue(payload)
 
                 } catch (e: Exception) {
@@ -204,7 +206,7 @@ class AccessTokenService(
      */
     fun streamRealmRoles(): List<String> {
         try {
-            return (accessToken ?: assign())?.realmRolesMap?.values?.flatMap { it } ?: emptyList()
+            return (accessToken ?: assign())?.realmRolesMap?.values?.flatten() ?: emptyList()
         } catch (ex: Exception) {
             logger.error("Crashed in streamRealmRoles() ${ex.message}", ex)
         }

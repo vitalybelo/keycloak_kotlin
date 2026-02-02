@@ -131,6 +131,8 @@ interface KeycloakRestController {
                                 ArraySchema(schema = Schema(implementation = Any::class)))
                     ))]
             ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
             ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
         ]
     )
@@ -156,6 +158,8 @@ interface KeycloakRestController {
                                 ArraySchema(schema = Schema(implementation = Any::class)))
                     ))]
             ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
             ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
         ]
     )
@@ -179,12 +183,39 @@ interface KeycloakRestController {
                                 ArraySchema(schema = Schema(implementation = Any::class)))
                     ))]
             ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
             ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
         ]
     )
     @GetMapping("/brute-force/representation")
     @Operation(summary = "Возвращает расширенную brute-force информацию о пользователе из Keycloak")
     fun getExtendedUserRepresentation(): ResponseEntity<Any>
+
+
+
+    /**
+     * Выполняет запрос в расширенный админ клиент Keycloak для получения списка всех эффективных ролей
+     * пользователя (включает все списки ролей композитных ролей и роли назначенные через группы)
+     * @return список сущностей композитных ролей
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Список эффективных ролей получен успешно", content = [
+                    (Content(
+                        mediaType = "application/json", array = (
+                                ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+        ]
+    )
+    @GetMapping("/effective-roles")
+    @Operation(summary = "Возвращает список эффективных ролей пользователя (раскрытые композитные роли и назначенные через группы)")
+    fun getEffectiveUserRoles(): ResponseEntity<Any>
 
 
     /**
