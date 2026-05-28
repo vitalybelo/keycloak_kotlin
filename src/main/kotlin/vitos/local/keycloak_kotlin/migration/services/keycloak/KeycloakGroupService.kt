@@ -177,7 +177,7 @@ class KeycloakGroupService(
      * @param groupRepresentation сущность корневой группы, для которой сканируется список дочерних
      * @param realmResource ресурс управления областью сервисов
      */
-    fun collectSubGroups(
+    fun     collectSubGroups(
         groupRepresentation: GroupRepresentation,
         realmResource: RealmResource
     ) {

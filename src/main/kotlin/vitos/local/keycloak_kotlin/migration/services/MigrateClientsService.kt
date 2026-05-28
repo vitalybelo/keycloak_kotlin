@@ -244,7 +244,6 @@ class MigrateClientsService(
      * @return сущность нового, созданного Client, или null в случае ошибки
      */
     private fun createClientImported(
-
         clientExportDto: ClientExportDto,
         realmResource: RealmResource
     ): ClientRepresentation? {
@@ -320,6 +319,7 @@ class MigrateClientsService(
                 deleteAuthorizationPolicies(clientResource)
 
                 clientResource.authorization().importSettings(exportSettings)
+
             } catch (ex: Exception) {
                 val clientId = clientExportDto.clientRepresentation?.clientId ?: "NONAME"
                 logger.errorM("Export import settings failed for $clientId", ex)
@@ -395,10 +395,8 @@ class MigrateClientsService(
     ) {
         val clientId = importClientRepresentation.clientId
 
-        val importProtocolMappers =
-            importClientRepresentation.protocolMappers ?: emptyList()
-        val foundProtocolMappers =
-            clientResource.protocolMappers?.mappers?.associateBy { it.name } ?: emptyMap()
+        val importProtocolMappers = importClientRepresentation.protocolMappers ?: emptyList()
+        val foundProtocolMappers = clientResource.protocolMappers?.mappers?.associateBy { it.name } ?: emptyMap()
 
         try {
             if (importProtocolMappers.isNotEmpty()) {

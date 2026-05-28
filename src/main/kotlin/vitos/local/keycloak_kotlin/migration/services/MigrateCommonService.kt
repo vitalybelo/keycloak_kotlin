@@ -3,6 +3,7 @@ package vitos.local.keycloak_kotlin.migration.services
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.RealmRepresentation
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -19,7 +20,7 @@ import java.time.format.DateTimeFormatter
 @Service
 class MigrateCommonService(
 
-    private val keycloak: Keycloak
+    @Qualifier("keycloakMaster") private val keycloak: Keycloak
 ) {
 
     var stamp: String = ""

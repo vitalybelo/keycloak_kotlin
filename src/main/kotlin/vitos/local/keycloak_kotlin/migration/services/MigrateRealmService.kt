@@ -10,6 +10,7 @@ import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.RolesRepresentation
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -25,6 +26,7 @@ import vitos.local.keycloak_kotlin.migration.models.RealmImportConditions
 import vitos.local.keycloak_kotlin.migration.models.RealmImportResponseDto
 import vitos.local.keycloak_kotlin.migration.services.keycloak.KeycloakGroupService
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.time.Duration.Companion.milliseconds
 
 
 /**
@@ -34,7 +36,7 @@ import java.util.concurrent.atomic.AtomicReference
 @Service
 class MigrateRealmService(
 
-    private val keycloak: Keycloak,
+    @Qualifier("keycloakMaster") private val keycloak: Keycloak,
     private val migrateService: MigrateCommonService,
     private val migrateRealmRolesService: MigrateRealmRolesService,
     private val migrateClientScopeService: MigrateClientScopeService,
@@ -70,7 +72,7 @@ class MigrateRealmService(
         try {
             migrateService.getRealmResource(realmName)?.let { realmResource ->
 
-                val configuration: RealmRepresentation? =
+                val configuration =
                     realmResource.partialExport(true, false)
 
                 if (configuration != null) {
@@ -272,11 +274,11 @@ class MigrateRealmService(
     ): RealmRepresentation? {
 
         val representation = AtomicReference<RealmRepresentation?>(null)
-        val isSuccess = withTimeoutOrNull(READY_WAIT_COROUTINES_TIMEOUT) {
+        val isSuccess = withTimeoutOrNull(READY_WAIT_COROUTINES_TIMEOUT.milliseconds) {
             do {
                 representation.set(migrateService.getExportRealmRepresentation(realmName))
                 if (representation.get() != null) break
-                delay(READY_WAIT_LOOP_DELAY)
+                delay(READY_WAIT_LOOP_DELAY.milliseconds)
             } while (true)
             true
         } ?: false

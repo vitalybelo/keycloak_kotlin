@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
@@ -52,8 +53,9 @@ class AccessTokenService(
      */
     fun assign(): AccessToken? {
 
-        SecurityContextHolder.getContext()?.authentication?.let { authentication ->
-            assign(authentication)?.let { return it }
+        SecurityContextHolder.getContext().authentication?.let { authentication ->
+            val jwtAuth = authentication as? JwtAuthenticationToken
+            assign(jwtAuth)?.let { return it }
         }
         getHttpServletRequest()?.let { request ->
             assign(request)?.let { return it }
@@ -96,7 +98,7 @@ class AccessTokenService(
      * @return карта с утверждениями токена или пустая
     */
     fun getClaims(): Map<String, Any> {
-        SecurityContextHolder.getContext()?.authentication?.principal?.let { principal ->
+        SecurityContextHolder.getContext().authentication?.principal?.let { principal ->
             if (principal is DefaultOidcUser) {
                 return principal.claims
             }

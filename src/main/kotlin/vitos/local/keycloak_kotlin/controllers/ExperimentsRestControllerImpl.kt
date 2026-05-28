@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.PathVariable
-import vitos.local.keycloak_kotlin.interfaces.ExperimentsRestController
+import vitos.local.keycloak_kotlin.controllers.interfaces.ExperimentsRestController
 import vitos.local.keycloak_kotlin.services.ExperimentsRestService
 import java.time.Duration
 import java.util.concurrent.Callable

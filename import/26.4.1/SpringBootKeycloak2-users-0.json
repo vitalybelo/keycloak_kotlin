@@ -1,22 +1,6 @@
 {
   "realm" : "SpringBootKeycloak2",
   "users" : [ {
-    "id" : "e590617f-43d7-4775-9337-ac39fd1eb36b",
-    "username" : "adminka",
-    "firstName" : "Админкос",
-    "lastName" : "Админкин",
-    "email" : "adminkin@gmail.com",
-    "emailVerified" : false,
-    "enabled" : true,
-    "createdTimestamp" : 1762501574218,
-    "totp" : false,
-    "credentials" : [ ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-springbootkeycloak2" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
     "id" : "50153323-1b31-4d1c-8ebb-5e5766a8c9bb",
     "username" : "service-account-gateway",
     "emailVerified" : false,
@@ -33,6 +17,23 @@
     },
     "notBefore" : 0,
     "groups" : [ ]
+  }, {
+    "id" : "e92c2cdc-57c4-41a4-8135-b720f218dbf1",
+    "username" : "service-account-keycloak-adp",
+    "emailVerified" : false,
+    "enabled" : true,
+    "createdTimestamp" : 1765360554991,
+    "totp" : false,
+    "serviceAccountClientId" : "keycloak-adp",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-springbootkeycloak2" ],
+    "clientRoles" : {
+      "realm-management" : [ "view-users", "impersonation", "manage-events", "view-authorization", "query-realms", "manage-identity-providers", "manage-users", "view-identity-providers", "manage-authorization", "manage-realm", "query-clients", "create-client", "query-groups", "view-clients", "view-events", "realm-admin", "query-users", "manage-clients", "view-realm" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ "/customer" ]
   }, {
     "id" : "7e5b7f4a-1e45-4a9a-81fa-c1e4bffac330",
     "username" : "service-account-login-admin",

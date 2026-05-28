@@ -1,12 +1,14 @@
 package vitos.local.keycloak_kotlin.models
 
 import org.keycloak.admin.client.Keycloak
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
 
 @Service
 class KeycloakTokenService(
-    private val keycloak: Keycloak
+
+    @Qualifier("keycloakMaster") private val keycloak: Keycloak
 ) {
 
     /**

@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
-import vitos.local.keycloak_kotlin.interfaces.KeycloakRestController
+import vitos.local.keycloak_kotlin.controllers.interfaces.KeycloakRestController
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersRequestDto
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersResponseDto
 import vitos.local.keycloak_kotlin.services.KeycloakRestService
@@ -15,11 +15,12 @@ import vitos.local.keycloak_kotlin.services.KeycloakRestService
 @Controller
 @CrossOrigin
 class KeycloakRestControllerImpl(
-
     private val keycloakService: KeycloakRestService,
 ) : KeycloakRestController {
 
-    private val log = LoggerFactory.getLogger(KeycloakRestControllerImpl::class.java)
+    companion object {
+        private val log = LoggerFactory.getLogger(KeycloakRestControllerImpl::class.java)
+    }
 
 
     override fun changeUserPassword(
@@ -29,7 +30,6 @@ class KeycloakRestControllerImpl(
     ): ResponseEntity<Any> {
         return keycloakService.changeUserPassword(userName, password, headers)
     }
-
 
     override fun createKeycloakUser(user: UserRepresentation?): ResponseEntity<Any> {
 
@@ -105,4 +105,14 @@ class KeycloakRestControllerImpl(
         }
         return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
+
+    override fun manageUserBranchMigration(
+        searchKey: String,
+        searchValue: String,
+        modifyKey: String,
+        modifyValue: String
+    ): ResponseEntity<Any> {
+        return keycloakService.manageUserBranchMigration(searchKey, searchValue, modifyKey, modifyValue)
+    }
+
 }

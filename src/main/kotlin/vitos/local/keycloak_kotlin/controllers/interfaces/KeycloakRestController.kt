@@ -1,4 +1,4 @@
-package vitos.local.keycloak_kotlin.interfaces
+package vitos.local.keycloak_kotlin.controllers.interfaces
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -387,5 +387,39 @@ interface KeycloakRestController {
     fun deleteUsersByAttributeList(
         @RequestBody(required = true) abscustIdValues: DeleteUsersRequestDto?
     ): ResponseEntity<out Collection<DeleteUsersResponseDto>>
+
+
+    /**
+     * Метод выполняет поиск пользователей по заданному атрибуту переданному в метод.
+     * Для найденного пользователя, вызывается метода REST API Keycloak для изменения заданного атрибута
+
+     * @param searchKey атрибут поиска пользователя
+     * @param searchValue значение атрибута поиска пользователя
+     * @param modifyKey модифицируемый атрибут пользователя
+     * @param modifyValue значение модифицируемого атрибута пользователя
+     * @return статус и сообщение
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Выполнено успешно", content = [
+                    (Content(
+                        mediaType = "application/json",
+                        array = (ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+        ]
+    )
+    @RequestMapping(value = ["/branch-migration"], method = [RequestMethod.POST])
+    @Operation(summary = "Выполняет поиск пользователей по атрибуту и изменяет(добавляет) ему заданный атрибут")
+    fun manageUserBranchMigration(
+        @RequestParam(value = "searchKey", required = true) searchKey: String,
+        @RequestParam(value = "searchValue", required = true) searchValue: String,
+        @RequestParam(value = "modifyKey", required = true) modifyKey: String,
+        @RequestParam(value = "modifyValue", required = true) modifyValue: String,
+    ): ResponseEntity<Any>
 
 }

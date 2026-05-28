@@ -388,6 +388,7 @@
       "security-admin-console" : [ ],
       "admin-cli" : [ ],
       "account-console" : [ ],
+      "keycloak-adp" : [ ],
       "broker" : [ {
         "id" : "aec1fe57-98c4-4d1a-a0d7-d5c9f9f405d4",
         "name" : "read-token",
@@ -1075,6 +1076,97 @@
       "decisionStrategy" : "UNANIMOUS"
     }
   }, {
+    "id" : "f59c3daf-df77-40a8-9826-f3a68b744467",
+    "clientId" : "keycloak-adp",
+    "name" : "client - admin resource",
+    "description" : "client - admin resource",
+    "rootUrl" : "",
+    "adminUrl" : "",
+    "baseUrl" : "",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "0DS5n6Oydf7jazn39cWXz7AyEbqWTGty",
+    "redirectUris" : [ "/*" ],
+    "webOrigins" : [ "*" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : false,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : true,
+    "serviceAccountsEnabled" : true,
+    "publicClient" : false,
+    "frontchannelLogout" : true,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "client.secret.creation.time" : "1738305050",
+      "standard.token.exchange.enabled" : "false",
+      "frontchannel.logout.session.required" : "true",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false",
+      "use.refresh.tokens" : "true",
+      "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "backchannel.logout.session.required" : "true",
+      "client_credentials.use_refresh_token" : "false",
+      "acr.loa.map" : "{}",
+      "require.pushed.authorization.requests" : "false",
+      "tls.client.certificate.bound.access.tokens" : "false",
+      "display.on.consent.screen" : "false",
+      "token.response.type.bearer.lower-case" : "false",
+      "dpop.bound.access.tokens" : "false"
+    },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "protocolMappers" : [ {
+      "id" : "b0ecaa9b-b75f-4213-bbaa-89299b319dfc",
+      "name" : "Client IP Address",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientAddress",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientAddress",
+        "jsonType.label" : "String",
+        "userinfo.token.claim" : "true"
+      }
+    }, {
+      "id" : "867b17a1-6150-41f4-975d-c29114fc76aa",
+      "name" : "Client Host",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientHost",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientHost",
+        "jsonType.label" : "String",
+        "userinfo.token.claim" : "true"
+      }
+    }, {
+      "id" : "7b406ae9-6fbe-46e8-b306-a314aaf49881",
+      "name" : "Client ID",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "client_id",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "client_id",
+        "jsonType.label" : "String",
+        "userinfo.token.claim" : "true"
+      }
+    } ],
+    "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "offline_access", "microprofile-jwt" ]
+  }, {
     "id" : "0fbb560e-4c75-4f3e-9e58-d8c416162fad",
     "clientId" : "login-admin",
     "name" : "",
@@ -1229,6 +1321,23 @@
         "access.token.claim" : "true",
         "claim.name" : "enter_time",
         "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "e5d7fac2-e627-418f-b772-c153480535f1",
+      "name" : "auth_time",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "AUTH_TIME",
+        "introspection.token.claim" : "false",
+        "userinfo.token.claim" : "true",
+        "id.token.claim" : "true",
+        "lightweight.claim" : "false",
+        "access.token.claim" : "true",
+        "claim.name" : "auth_time",
+        "jsonType.label" : "long",
+        "access.tokenResponse.claim" : "true"
       }
     } ],
     "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
@@ -1494,6 +1603,34 @@
       }
     } ]
   }, {
+    "id" : "b4e79059-3c18-4dbe-8d58-4572791ceb68",
+    "name" : "required_2FA",
+    "description" : "атрибут определяющий каким образом выполняется второй фактор",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "true",
+      "gui.order" : "",
+      "consent.screen.text" : ""
+    },
+    "protocolMappers" : [ {
+      "id" : "bdcb1c81-e373-4805-83f5-50e59d7a6192",
+      "name" : "required_2FA",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "introspection.token.claim" : "true",
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "required_2FA",
+        "id.token.claim" : "true",
+        "lightweight.claim" : "false",
+        "access.token.claim" : "true",
+        "claim.name" : "required_2FA",
+        "jsonType.label" : "String"
+      }
+    } ]
+  }, {
     "id" : "c864ce91-ae6b-4565-88e7-f379288263c9",
     "name" : "position",
     "description" : "",
@@ -1517,6 +1654,34 @@
         "claim.name" : "position",
         "jsonType.label" : "String",
         "userinfo.token.claim" : "true"
+      }
+    } ]
+  }, {
+    "id" : "dcab1c13-76f7-41fa-8404-2a1dacda044e",
+    "name" : "required_otp",
+    "description" : "If is true - user should enter otp code into authentication flow",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "true",
+      "gui.order" : "",
+      "consent.screen.text" : ""
+    },
+    "protocolMappers" : [ {
+      "id" : "220792ed-1384-4010-81ec-efdc1857898e",
+      "name" : "required_otp",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "introspection.token.claim" : "true",
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "required_otp",
+        "id.token.claim" : "true",
+        "lightweight.claim" : "false",
+        "access.token.claim" : "true",
+        "claim.name" : "required_otp",
+        "jsonType.label" : "String"
       }
     } ]
   }, {
@@ -2112,8 +2277,8 @@
       "consent.screen.text" : ""
     }
   } ],
-  "defaultDefaultClientScopes" : [ "role_list", "saml_organization", "profile", "email", "roles", "web-origins", "acr", "basic" ],
-  "defaultOptionalClientScopes" : [ "offline_access", "address", "phone", "microprofile-jwt", "organization" ],
+  "defaultDefaultClientScopes" : [ "role_list", "saml_organization", "profile", "email", "roles", "web-origins", "acr", "basic", "phone", "group_attribute", "required_2FA", "enterTime", "required_otp", "middle_name", "session_state", "position", "abscustId" ],
+  "defaultOptionalClientScopes" : [ "offline_access", "address", "microprofile-jwt", "organization" ],
   "browserSecurityHeaders" : {
     "contentSecurityPolicyReportOnly" : "",
     "xContentTypeOptions" : "nosniff",
@@ -2207,7 +2372,7 @@
       "providerId" : "declarative-user-profile",
       "subComponents" : { },
       "config" : {
-        "kc.user.profile.config" : [ "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}" ]
+        "kc.user.profile.config" : [ "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"username\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"phone\",\"displayName\":\"phone\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"enterTime\",\"displayName\":\"enterTime\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"abscustId\",\"displayName\":\"abscustId\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"required_2FA\",\"displayName\":\"2FA метод\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false,\"defaultValue\":\"SMS\"}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}" ]
       }
     } ],
     "org.keycloak.keys.KeyProvider" : [ {
@@ -2346,6 +2511,104 @@
       "userSetupAllowed" : false
     } ]
   }, {
+    "id" : "3bff628d-fc91-4273-9511-794ef86a5cb8",
+    "alias" : "Browser 2FA 021225-1415",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-otp-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "b3b7478b-9b77-46d0-9d31-6853e50fa1e5",
+    "alias" : "Browser 2FA Application 121225-1349 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - check user attribute config Application 121225-1349 migrated",
+      "authenticator" : "check_attribute_condition",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-otp-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "89565760-16bb-4f43-8120-5a9c381cb786",
+    "alias" : "Browser 2FA SMS  121225-1349 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - check user attribute config 121225-1349 migrated",
+      "authenticator" : "check_attribute_condition",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "2FA SMS Authentication config 121225-1349 migrated",
+      "authenticator" : "sms_2fa_authentication",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 3,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "ebb65a91-e8ec-4a2e-b1ba-c3c97d7ecb29",
+    "alias" : "Browser Username Password 121225-1349 migrated",
+    "description" : "browser based authentication",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-cookie",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 26,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-spnego",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 27,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "identity-provider-redirector",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 34,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 35,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Username - Password - OTP - Form 121225-1349 migrated",
+      "userSetupAllowed" : false
+    } ]
+  }, {
     "id" : "2040e86a-a3e2-4596-8851-a77c568fa25f",
     "alias" : "Direct Grant - Conditional OTP",
     "description" : "Flow to determine if the OTP is required for the authentication",
@@ -2470,6 +2733,51 @@
       "userSetupAllowed" : false
     } ]
   }, {
+    "id" : "ee2a5c81-e267-4090-8bb1-1373b9ace68d",
+    "alias" : "Password Form and 2FA conditional Forms 121225-1349 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - user role config 121225-1349 migrated",
+      "authenticator" : "conditional-user-role",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-password-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Enter Time Attribute Logic config 121225-1349 migrated",
+      "authenticator" : "enter_timer_logics",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 4,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser 2FA SMS  121225-1349 migrated",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 5,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser 2FA Application 121225-1349 migrated",
+      "userSetupAllowed" : false
+    } ]
+  }, {
     "id" : "496296c7-b036-45b1-81e9-acf49e7753b0",
     "alias" : "Reset - Conditional OTP",
     "description" : "Flow to determine if the OTP should be reset or not. Set to REQUIRED to force.",
@@ -2512,6 +2820,66 @@
       "priority" : 20,
       "autheticatorFlow" : true,
       "flowAlias" : "Handle Existing Account",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "21bb484b-beee-4ba7-b54f-0b0942a64a59",
+    "alias" : "Username - Password - OTP - Form 021225-1415",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-username-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "e0f62019-87cb-49d7-993b-969bc6ed2130",
+    "alias" : "Username - Password - OTP - Form 121225-1349 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-username-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Username Login Limiter config 121225-1349 migrated",
+      "authenticator" : "username_blocking_execution",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 7,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 9,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Password Form and 2FA conditional Forms 121225-1349 migrated",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "60da9461-2dab-4f0a-9843-884de0791c9b",
+    "alias" : "Username Form ADMIN Role 021225-1415",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-password-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
       "userSetupAllowed" : false
     } ]
   }, {
@@ -2816,6 +3184,57 @@
     } ]
   } ],
   "authenticatorConfig" : [ {
+    "id" : "f047a66e-fdd5-49d6-80e2-bdd0e66ef977",
+    "alias" : "2FA SMS Authentication config 121225-1349 migrated",
+    "config" : {
+      "sms_stub_code" : "1111",
+      "sms_code_ttl" : "60",
+      "sms_stub_length" : "4",
+      "ttl" : "30",
+      "sms_stub_switch" : "false"
+    }
+  }, {
+    "id" : "15e1bbbd-8d2e-4f94-9c0a-a722ec19af40",
+    "alias" : "Condition - check user attribute config 121225-1349 migrated",
+    "config" : {
+      "attribute_name" : "required_2FA",
+      "attribute_value" : "SMS##PUSH",
+      "native_enabled" : "false",
+      "attribute_groups_enabled" : "true"
+    }
+  }, {
+    "id" : "aaca130a-3b85-4535-8f17-5a8c06898abd",
+    "alias" : "Condition - check user attribute config Application 121225-1349 migrated",
+    "config" : {
+      "attribute_name" : "required_2FA",
+      "attribute_value" : "APP##APK",
+      "native_enabled" : "false",
+      "attribute_groups_enabled" : "true"
+    }
+  }, {
+    "id" : "74da3ae4-f066-427e-bb3e-aeb499a07e7b",
+    "alias" : "Condition - user role config 121225-1349 migrated",
+    "config" : {
+      "condUserRole" : "ADMIN",
+      "negate" : "true"
+    }
+  }, {
+    "id" : "85aafd07-9985-4d03-9323-75fef7e95ed4",
+    "alias" : "Enter Time Attribute Logic config 121225-1349 migrated",
+    "config" : {
+      "30" : "30",
+      "enter_time_switch" : "true"
+    }
+  }, {
+    "id" : "616e8ae2-89a1-4ee5-801c-1b28c7766143",
+    "alias" : "Username Login Limiter config 121225-1349 migrated",
+    "config" : {
+      "Check_toggle" : "true",
+      "blocking_username_list" : "nikola",
+      "Username_prohibited" : "nikola",
+      "blocking_switch" : "true"
+    }
+  }, {
     "id" : "544392ba-0177-4896-a893-b125daa155d5",
     "alias" : "browser-conditional-credential",
     "config" : {

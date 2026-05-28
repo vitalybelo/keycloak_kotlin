@@ -40,13 +40,13 @@
   "bruteForceProtected" : true,
   "permanentLockout" : false,
   "maxTemporaryLockouts" : 0,
-  "bruteForceStrategy" : "MULTIPLE",
+  "bruteForceStrategy" : "LINEAR",
   "maxFailureWaitSeconds" : 300,
   "minimumQuickLoginWaitSeconds" : 60,
-  "waitIncrementSeconds" : 300,
-  "quickLoginCheckMilliSeconds" : 1000,
-  "maxDeltaTimeSeconds" : 43200,
-  "failureFactor" : 3,
+  "waitIncrementSeconds" : 60,
+  "quickLoginCheckMilliSeconds" : 500,
+  "maxDeltaTimeSeconds" : 7200,
+  "failureFactor" : 5,
   "roles" : {
     "realm" : [ {
       "id" : "bb48c83a-17b7-4e8f-ab99-b4ff5692c2e9",
@@ -151,7 +151,9 @@
       "composite" : false,
       "clientRole" : false,
       "containerId" : "5260ffdf-6ad0-478a-827f-5fab67a3699b",
-      "attributes" : { }
+      "attributes" : {
+        "role_attribute" : [ "111" ]
+      }
     }, {
       "id" : "3343beb4-d668-4f50-be7e-adb79f786ee1",
       "name" : "USER",
@@ -361,28 +363,28 @@
         "attributes" : { }
       } ],
       "login-web" : [ {
-        "id" : "802b63a7-8cbd-49f5-9e16-581cc68212fa",
+        "id" : "9672de74-c3c0-4786-ba2b-8596f5cc3c59",
         "name" : "LOGIN_WEB_ROLE_2",
         "description" : "",
         "composite" : false,
         "clientRole" : true,
-        "containerId" : "e283bfc9-d9f0-4942-96ac-6f1b71261c44",
+        "containerId" : "061d9df6-2df6-4dd5-8432-abaf14b663c0",
         "attributes" : { }
       }, {
-        "id" : "2e60311d-10a7-4cd4-abad-7c59877fd86a",
+        "id" : "114ee9aa-5566-49d9-aa8c-0e3a38c25978",
         "name" : "LOGIN_WEB_ROLE_1",
         "description" : "",
         "composite" : false,
         "clientRole" : true,
-        "containerId" : "e283bfc9-d9f0-4942-96ac-6f1b71261c44",
+        "containerId" : "061d9df6-2df6-4dd5-8432-abaf14b663c0",
         "attributes" : { }
       }, {
-        "id" : "dbfc6fc8-29cc-47db-9db7-22e1c57b36e6",
+        "id" : "427c1c9c-418c-4fa7-b9f4-7e05f3a545a1",
         "name" : "LOGIN_WEB_ROLE_3",
         "description" : "",
         "composite" : false,
         "clientRole" : true,
-        "containerId" : "e283bfc9-d9f0-4942-96ac-6f1b71261c44",
+        "containerId" : "061d9df6-2df6-4dd5-8432-abaf14b663c0",
         "attributes" : { }
       } ],
       "security-admin-console" : [ ],
@@ -537,11 +539,12 @@
     "path" : "/customer",
     "subGroups" : [ ],
     "attributes" : {
-      "group_attribute" : [ "defined" ]
+      "group_attribute" : [ "customer" ]
     },
     "realmRoles" : [ "CUSTOMER" ],
     "clientRoles" : {
-      "login-web" : [ "LOGIN_WEB_ROLE_2", "LOGIN_WEB_ROLE_1", "LOGIN_WEB_ROLE_3" ]
+      "login-web" : [ "LOGIN_WEB_ROLE_2", "LOGIN_WEB_ROLE_1", "LOGIN_WEB_ROLE_3" ],
+      "login-admin" : [ "LOGIN_ADMIN_3", "LOGIN_ADMIN_1", "LOGIN_ADMIN_2" ]
     }
   }, {
     "id" : "582c6c90-f334-4baf-8674-a48587ad88c9",
@@ -623,9 +626,7 @@
         "group_attribute" : [ "group_A" ]
       },
       "realmRoles" : [ "A" ],
-      "clientRoles" : {
-        "login-web" : [ "LOGIN_WEB_ROLE_1" ]
-      }
+      "clientRoles" : { }
     }, {
       "id" : "75c2403e-5347-4625-90da-c75ab8a43adb",
       "name" : "group_B",
@@ -636,9 +637,7 @@
         "group_attribute" : [ "group_B" ]
       },
       "realmRoles" : [ "B" ],
-      "clientRoles" : {
-        "login-web" : [ "LOGIN_WEB_ROLE_2" ]
-      }
+      "clientRoles" : { }
     }, {
       "id" : "8e378be7-f22b-4718-a730-7e83c61f33a2",
       "name" : "group_C",
@@ -649,11 +648,11 @@
         "group_attribute" : [ "group_C" ]
       },
       "realmRoles" : [ "C" ],
-      "clientRoles" : {
-        "login-web" : [ "LOGIN_WEB_ROLE_3" ]
-      }
+      "clientRoles" : { }
     } ],
-    "attributes" : { },
+    "attributes" : {
+      "group_attribute" : [ "group_root" ]
+    },
     "realmRoles" : [ "ROOT" ],
     "clientRoles" : { }
   }, {
@@ -671,9 +670,7 @@
         "group_attribute" : [ "child_1" ]
       },
       "realmRoles" : [ ],
-      "clientRoles" : {
-        "login-web" : [ "LOGIN_WEB_ROLE_1" ]
-      }
+      "clientRoles" : { }
     }, {
       "id" : "bed4e2a8-4600-46f3-85bc-bd92711e37cb",
       "name" : "child_2",
@@ -684,9 +681,7 @@
         "group_attribute" : [ "child_2" ]
       },
       "realmRoles" : [ ],
-      "clientRoles" : {
-        "login-web" : [ "LOGIN_WEB_ROLE_2" ]
-      }
+      "clientRoles" : { }
     }, {
       "id" : "17a99a25-7a04-4b0a-baea-c4baef349ac8",
       "name" : "child_3",
@@ -697,15 +692,15 @@
         "group_attribute" : [ "child_3" ]
       },
       "realmRoles" : [ ],
-      "clientRoles" : {
-        "login-web" : [ "LOGIN_WEB_ROLE_3" ]
-      }
+      "clientRoles" : { }
     } ],
     "attributes" : {
       "group_attribute" : [ "root_parent" ]
     },
     "realmRoles" : [ ],
-    "clientRoles" : { }
+    "clientRoles" : {
+      "gateway" : [ "gateway_role_3", "gateway_role_1", "gateway_role_2" ]
+    }
   } ],
   "defaultRole" : {
     "id" : "47765f9c-6644-4df7-b622-e14e0eeac547",
@@ -715,8 +710,9 @@
     "clientRole" : false,
     "containerId" : "5260ffdf-6ad0-478a-827f-5fab67a3699b"
   },
+  "defaultGroups" : [ "/customer" ],
   "requiredCredentials" : [ "password" ],
-  "passwordPolicy" : "length(3) and maxLength(64) and passwordHistory(3) and specialChars(0) and upperCase(0) and lowerCase(0) and digits(0)",
+  "passwordPolicy" : "length(4) and maxLength(64) and specialChars(0) and upperCase(0) and lowerCase(0) and digits(0)",
   "otpPolicyType" : "totp",
   "otpPolicyAlgorithm" : "HmacSHA1",
   "otpPolicyInitialCounter" : 0,
@@ -725,7 +721,18 @@
   "otpPolicyPeriod" : 30,
   "otpPolicyCodeReusable" : false,
   "otpSupportedApplications" : [ "totpAppFreeOTPName", "totpAppGoogleName", "totpAppMicrosoftAuthenticatorName" ],
-  "localizationTexts" : { },
+  "localizationTexts" : {
+    "ru" : {
+      "profile.attributes.position" : "position",
+      "profile.attributes.department" : "department",
+      "profile.attributes.telegram_chat_id" : "telegram_chat_id"
+    },
+    "en" : {
+      "profile.attributes.position" : "position",
+      "profile.attributes.department" : "department",
+      "profile.attributes.telegram_chat_id" : "telegram_chat_id"
+    }
+  },
   "webAuthnPolicyRpEntityName" : "keycloak",
   "webAuthnPolicySignatureAlgorithms" : [ "ES256" ],
   "webAuthnPolicyRpId" : "",
@@ -793,7 +800,9 @@
     "id" : "fa947762-0f67-4374-83af-3f94326aff42",
     "clientId" : "account-console",
     "name" : "${client_account-console}",
+    "description" : "",
     "rootUrl" : "${authBaseUrl}",
+    "adminUrl" : "",
     "baseUrl" : "/realms/SpringBootKeycloak/account/",
     "surrogateAuthRequired" : false,
     "enabled" : true,
@@ -806,15 +815,22 @@
     "consentRequired" : false,
     "standardFlowEnabled" : true,
     "implicitFlowEnabled" : false,
-    "directAccessGrantsEnabled" : false,
+    "directAccessGrantsEnabled" : true,
     "serviceAccountsEnabled" : false,
     "publicClient" : true,
     "frontchannelLogout" : false,
     "protocol" : "openid-connect",
     "attributes" : {
       "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "backchannel.logout.session.required" : "true",
+      "standard.token.exchange.enabled" : "false",
       "post.logout.redirect.uris" : "+",
-      "pkce.code.challenge.method" : "S256"
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "display.on.consent.screen" : "false",
+      "pkce.code.challenge.method" : "S256",
+      "backchannel.logout.revoke.offline.tokens" : "false",
+      "dpop.bound.access.tokens" : "false"
     },
     "authenticationFlowBindingOverrides" : { },
     "fullScopeAllowed" : false,
@@ -1027,7 +1043,7 @@
         "decisionStrategy" : "UNANIMOUS",
         "config" : {
           "fetchRoles" : "false",
-          "roles" : "[{\"id\":\"ADMIN\",\"required\":true}]"
+          "roles" : "[]"
         }
       }, {
         "name" : "Auth level 1",
@@ -1037,7 +1053,7 @@
         "decisionStrategy" : "UNANIMOUS",
         "config" : {
           "fetchRoles" : "false",
-          "roles" : "[{\"id\":\"USER\",\"required\":true}]"
+          "roles" : "[]"
         }
       }, {
         "name" : "Permission level 2",
@@ -1080,7 +1096,7 @@
     "id" : "8c6d851d-5933-4fd4-be19-43a0d03dc56f",
     "clientId" : "login-admin",
     "name" : "",
-    "description" : "",
+    "description" : "Client credential authentication client for admin realm",
     "rootUrl" : "",
     "adminUrl" : "",
     "baseUrl" : "",
@@ -1106,11 +1122,13 @@
       "oidc.ciba.grant.enabled" : "false",
       "client.secret.creation.time" : "1740658138",
       "backchannel.logout.session.required" : "true",
+      "standard.token.exchange.enabled" : "false",
       "post.logout.redirect.uris" : "+",
       "frontchannel.logout.session.required" : "true",
       "oauth2.device.authorization.grant.enabled" : "false",
       "display.on.consent.screen" : "false",
-      "backchannel.logout.revoke.offline.tokens" : "false"
+      "backchannel.logout.revoke.offline.tokens" : "false",
+      "dpop.bound.access.tokens" : "false"
     },
     "authenticationFlowBindingOverrides" : { },
     "fullScopeAllowed" : true,
@@ -1161,10 +1179,10 @@
     "defaultClientScopes" : [ "web-origins", "service_account", "acr", "phone", "profile", "roles", "position", "basic", "email" ],
     "optionalClientScopes" : [ "address", "offline_access", "microprofile-jwt" ]
   }, {
-    "id" : "e283bfc9-d9f0-4942-96ac-6f1b71261c44",
+    "id" : "061d9df6-2df6-4dd5-8432-abaf14b663c0",
     "clientId" : "login-web",
-    "name" : "",
-    "description" : "",
+    "name" : "Web authentication client",
+    "description" : "Client credential authentication browser web client",
     "rootUrl" : "",
     "adminUrl" : "",
     "baseUrl" : "",
@@ -1172,6 +1190,7 @@
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
+    "secret" : "WbP46pdXfGG1Gmpw5sS859vL5NgLN2t4",
     "redirectUris" : [ "http://localhost:8081/*", "http://localhost:8080/*", "http://localhost:8082/*" ],
     "webOrigins" : [ "+" ],
     "notBefore" : 0,
@@ -1181,24 +1200,41 @@
     "implicitFlowEnabled" : false,
     "directAccessGrantsEnabled" : true,
     "serviceAccountsEnabled" : false,
-    "publicClient" : true,
+    "publicClient" : false,
     "frontchannelLogout" : true,
     "protocol" : "openid-connect",
     "attributes" : {
+      "request.object.signature.alg" : "any",
+      "frontchannel.logout.session.required" : "true",
+      "post.logout.redirect.uris" : "/*##http://localhost:8081/*##http://localhost:8082/*",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false",
+      "use.refresh.tokens" : "true",
       "realm_client" : "false",
       "oidc.ciba.grant.enabled" : "false",
       "backchannel.logout.session.required" : "true",
-      "frontchannel.logout.session.required" : "true",
-      "post.logout.redirect.uris" : "/*",
-      "oauth2.device.authorization.grant.enabled" : "false",
+      "client_credentials.use_refresh_token" : "false",
+      "require.pushed.authorization.requests" : "false",
+      "request.object.encryption.enc" : "any",
+      "dpop.bound.access.tokens" : "false",
+      "id.token.as.detached.signature" : "false",
+      "client.secret.creation.time" : "1765447334",
+      "request.object.encryption.alg" : "any",
+      "client.introspection.response.allow.jwt.claim.enabled" : "false",
+      "standard.token.exchange.enabled" : "false",
+      "client.use.lightweight.access.token.enabled" : "false",
+      "request.object.required" : "not required",
+      "access.token.header.type.rfc9068" : "false",
+      "tls.client.certificate.bound.access.tokens" : "false",
+      "acr.loa.map" : "{}",
       "display.on.consent.screen" : "false",
-      "backchannel.logout.revoke.offline.tokens" : "false"
+      "token.response.type.bearer.lower-case" : "false"
     },
     "authenticationFlowBindingOverrides" : { },
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
     "protocolMappers" : [ {
-      "id" : "04c289b5-e251-4f07-94db-f7dc8a4047e6",
+      "id" : "29baf494-ce8f-4174-bd3a-7badd9d7fbcd",
       "name" : "middle name",
       "protocol" : "openid-connect",
       "protocolMapper" : "oidc-usermodel-attribute-mapper",
@@ -1216,7 +1252,7 @@
         "jsonType.label" : "String"
       }
     }, {
-      "id" : "14d01542-abb1-4591-9ad4-e04eb9d167b3",
+      "id" : "d693011c-5eea-4a13-8817-9ec49f185974",
       "name" : "enterTime",
       "protocol" : "openid-connect",
       "protocolMapper" : "oidc-usermodel-attribute-mapper",
@@ -1232,7 +1268,7 @@
         "jsonType.label" : "String"
       }
     } ],
-    "defaultClientScopes" : [ "web-origins", "acr", "phone", "profile", "roles", "position", "basic", "session_state", "group_attribute", "email" ],
+    "defaultClientScopes" : [ "abscustId", "roles", "profile", "web-origins", "acr", "phone", "position", "department", "basic", "session_state", "required_2FA", "enterTime", "group_attribute", "email" ],
     "optionalClientScopes" : [ "address", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "d3e1ba5e-f9f3-43ef-9de1-5c2e814fdb62",
@@ -1331,6 +1367,34 @@
         "single" : "false",
         "attribute.nameformat" : "Basic",
         "attribute.name" : "Role"
+      }
+    } ]
+  }, {
+    "id" : "e7e5bfcc-4c98-45b2-a5a0-2ac8cd0a518d",
+    "name" : "department",
+    "description" : "",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "true",
+      "gui.order" : "",
+      "consent.screen.text" : ""
+    },
+    "protocolMappers" : [ {
+      "id" : "8852c9d9-eb13-4f76-96d3-d45efa0bdf70",
+      "name" : "department",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "introspection.token.claim" : "true",
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "department",
+        "id.token.claim" : "true",
+        "lightweight.claim" : "false",
+        "access.token.claim" : "true",
+        "claim.name" : "department",
+        "jsonType.label" : "String"
       }
     } ]
   }, {
@@ -1446,6 +1510,13 @@
         "access.token.claim" : "true",
         "userinfo.token.claim" : "true"
       }
+    }, {
+      "id" : "49f103bf-3577-40db-bd8a-4beed9bcf50a",
+      "name" : "Infinispan blocker",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "infinispan-lock-blocker-mapper",
+      "consentRequired" : false,
+      "config" : { }
     }, {
       "id" : "95466cbe-4796-4034-9c71-bc25016e6c03",
       "name" : "middle name",
@@ -1648,12 +1719,40 @@
       "config" : { }
     } ]
   }, {
+    "id" : "abd121fe-3799-4761-bfca-93bfe6134256",
+    "name" : "required_2FA",
+    "description" : "атрибут определяющий каким образом выполняется второй фактор",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "true",
+      "gui.order" : "",
+      "consent.screen.text" : ""
+    },
+    "protocolMappers" : [ {
+      "id" : "d4116167-84b2-4a83-a57d-4f293b3f0bba",
+      "name" : "required_2FA",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "introspection.token.claim" : "true",
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "required_2FA",
+        "id.token.claim" : "true",
+        "lightweight.claim" : "false",
+        "access.token.claim" : "true",
+        "claim.name" : "required_2FA",
+        "jsonType.label" : "String"
+      }
+    } ]
+  }, {
     "id" : "cd50ecfb-aa78-4977-a21f-1bbc258a5d64",
     "name" : "enterTime",
     "description" : "",
     "protocol" : "openid-connect",
     "attributes" : {
-      "include.in.token.scope" : "false",
+      "include.in.token.scope" : "true",
       "display.on.consent.screen" : "true",
       "gui.order" : "",
       "consent.screen.text" : ""
@@ -1858,8 +1957,8 @@
         "userinfo.token.claim" : "false",
         "multivalued" : "true",
         "user.attribute" : "foo",
-        "id.token.claim" : "true",
         "lightweight.claim" : "false",
+        "id.token.claim" : "true",
         "access.token.claim" : "true",
         "claim.name" : "realm_access.roles",
         "jsonType.label" : "String"
@@ -2013,13 +2112,13 @@
       "consentRequired" : false,
       "config" : {
         "aggregate.attrs" : "false",
-        "introspection.token.claim" : "false",
+        "introspection.token.claim" : "true",
         "multivalued" : "false",
-        "userinfo.token.claim" : "false",
+        "userinfo.token.claim" : "true",
         "user.attribute" : "email",
-        "lightweight.claim" : "false",
-        "id.token.claim" : "false",
-        "access.token.claim" : "false",
+        "lightweight.claim" : "true",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
         "claim.name" : "email",
         "jsonType.label" : "String"
       }
@@ -2031,11 +2130,11 @@
       "consentRequired" : false,
       "config" : {
         "introspection.token.claim" : "false",
-        "userinfo.token.claim" : "false",
+        "userinfo.token.claim" : "true",
         "user.attribute" : "emailVerified",
-        "lightweight.claim" : "false",
-        "id.token.claim" : "false",
-        "access.token.claim" : "false",
+        "lightweight.claim" : "true",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
         "claim.name" : "email_verified",
         "jsonType.label" : "boolean"
       }
@@ -2058,17 +2157,20 @@
       "protocolMapper" : "oidc-usermodel-attribute-mapper",
       "consentRequired" : false,
       "config" : {
+        "aggregate.attrs" : "false",
         "introspection.token.claim" : "true",
+        "multivalued" : "false",
         "userinfo.token.claim" : "true",
         "user.attribute" : "abscustId",
-        "id.token.claim" : "true",
         "lightweight.claim" : "false",
+        "id.token.claim" : "true",
         "access.token.claim" : "true",
+        "claim.name" : "abscust_id",
         "jsonType.label" : "String"
       }
     } ]
   } ],
-  "defaultDefaultClientScopes" : [ "role_list", "profile", "email", "web-origins", "acr", "position", "phone", "roles", "basic", "session_state", "middle_name", "group_attribute", "abscustId", "enterTime" ],
+  "defaultDefaultClientScopes" : [ "required_2FA", "enterTime", "department", "role_list", "profile", "email", "web-origins", "acr", "position", "phone", "roles", "basic", "session_state", "middle_name", "group_attribute", "abscustId", "required_otp" ],
   "defaultOptionalClientScopes" : [ "offline_access", "address", "microprofile-jwt" ],
   "browserSecurityHeaders" : {
     "contentSecurityPolicyReportOnly" : "",
@@ -2081,11 +2183,12 @@
     "strictTransportSecurity" : "max-age=31536000; includeSubDomains"
   },
   "smtpServer" : { },
-  "eventsEnabled" : false,
-  "eventsListeners" : [ "Custom-Event-Listener", "jboss-logging" ],
-  "enabledEventTypes" : [ "UPDATE_CONSENT_ERROR", "SEND_RESET_PASSWORD", "GRANT_CONSENT", "VERIFY_PROFILE_ERROR", "UPDATE_TOTP", "REMOVE_TOTP", "REVOKE_GRANT", "LOGIN_ERROR", "CLIENT_LOGIN", "RESET_PASSWORD_ERROR", "UPDATE_CREDENTIAL", "IMPERSONATE_ERROR", "CODE_TO_TOKEN_ERROR", "CUSTOM_REQUIRED_ACTION", "OAUTH2_DEVICE_CODE_TO_TOKEN_ERROR", "RESTART_AUTHENTICATION", "UPDATE_PROFILE_ERROR", "IMPERSONATE", "LOGIN", "UPDATE_PASSWORD_ERROR", "OAUTH2_DEVICE_VERIFY_USER_CODE", "CLIENT_INITIATED_ACCOUNT_LINKING", "USER_DISABLED_BY_PERMANENT_LOCKOUT", "OAUTH2_EXTENSION_GRANT", "REMOVE_CREDENTIAL_ERROR", "TOKEN_EXCHANGE", "REGISTER", "LOGOUT", "AUTHREQID_TO_TOKEN", "DELETE_ACCOUNT_ERROR", "CLIENT_REGISTER", "IDENTITY_PROVIDER_LINK_ACCOUNT", "USER_DISABLED_BY_TEMPORARY_LOCKOUT", "UPDATE_PASSWORD", "DELETE_ACCOUNT", "FEDERATED_IDENTITY_LINK_ERROR", "CLIENT_DELETE", "IDENTITY_PROVIDER_FIRST_LOGIN", "VERIFY_EMAIL", "CLIENT_DELETE_ERROR", "CLIENT_LOGIN_ERROR", "RESTART_AUTHENTICATION_ERROR", "REMOVE_FEDERATED_IDENTITY_ERROR", "EXECUTE_ACTIONS", "TOKEN_EXCHANGE_ERROR", "PERMISSION_TOKEN", "FEDERATED_IDENTITY_OVERRIDE_LINK", "SEND_IDENTITY_PROVIDER_LINK_ERROR", "UPDATE_CREDENTIAL_ERROR", "EXECUTE_ACTION_TOKEN_ERROR", "SEND_VERIFY_EMAIL", "OAUTH2_EXTENSION_GRANT_ERROR", "OAUTH2_DEVICE_AUTH", "EXECUTE_ACTIONS_ERROR", "REMOVE_FEDERATED_IDENTITY", "OAUTH2_DEVICE_CODE_TO_TOKEN", "IDENTITY_PROVIDER_POST_LOGIN", "IDENTITY_PROVIDER_LINK_ACCOUNT_ERROR", "FEDERATED_IDENTITY_OVERRIDE_LINK_ERROR", "UPDATE_EMAIL", "OAUTH2_DEVICE_VERIFY_USER_CODE_ERROR", "REGISTER_ERROR", "REVOKE_GRANT_ERROR", "LOGOUT_ERROR", "UPDATE_EMAIL_ERROR", "EXECUTE_ACTION_TOKEN", "CLIENT_UPDATE_ERROR", "UPDATE_PROFILE", "AUTHREQID_TO_TOKEN_ERROR", "INVITE_ORG_ERROR", "FEDERATED_IDENTITY_LINK", "CLIENT_REGISTER_ERROR", "INVITE_ORG", "SEND_VERIFY_EMAIL_ERROR", "SEND_IDENTITY_PROVIDER_LINK", "RESET_PASSWORD", "CLIENT_INITIATED_ACCOUNT_LINKING_ERROR", "OAUTH2_DEVICE_AUTH_ERROR", "REMOVE_CREDENTIAL", "UPDATE_CONSENT", "REMOVE_TOTP_ERROR", "VERIFY_EMAIL_ERROR", "SEND_RESET_PASSWORD_ERROR", "CLIENT_UPDATE", "IDENTITY_PROVIDER_POST_LOGIN_ERROR", "CUSTOM_REQUIRED_ACTION_ERROR", "UPDATE_TOTP_ERROR", "CODE_TO_TOKEN", "VERIFY_PROFILE", "GRANT_CONSENT_ERROR", "IDENTITY_PROVIDER_FIRST_LOGIN_ERROR" ],
-  "adminEventsEnabled" : false,
-  "adminEventsDetailsEnabled" : false,
+  "eventsEnabled" : true,
+  "eventsExpiration" : 1800,
+  "eventsListeners" : [ "custom-event-listener", "jboss-logging" ],
+  "enabledEventTypes" : [ "UPDATE_CONSENT_ERROR", "SEND_RESET_PASSWORD", "GRANT_CONSENT", "VERIFY_PROFILE_ERROR", "UPDATE_TOTP", "REMOVE_TOTP", "REVOKE_GRANT", "LOGIN_ERROR", "CLIENT_LOGIN", "RESET_PASSWORD_ERROR", "UPDATE_CREDENTIAL", "IMPERSONATE_ERROR", "CODE_TO_TOKEN_ERROR", "CUSTOM_REQUIRED_ACTION", "OAUTH2_DEVICE_CODE_TO_TOKEN_ERROR", "RESTART_AUTHENTICATION", "UPDATE_PROFILE_ERROR", "IMPERSONATE", "LOGIN", "UPDATE_PASSWORD_ERROR", "OAUTH2_DEVICE_VERIFY_USER_CODE", "CLIENT_INITIATED_ACCOUNT_LINKING", "USER_DISABLED_BY_PERMANENT_LOCKOUT", "OAUTH2_EXTENSION_GRANT", "REMOVE_CREDENTIAL_ERROR", "TOKEN_EXCHANGE", "REGISTER", "LOGOUT", "AUTHREQID_TO_TOKEN", "DELETE_ACCOUNT_ERROR", "CLIENT_REGISTER", "IDENTITY_PROVIDER_LINK_ACCOUNT", "USER_DISABLED_BY_TEMPORARY_LOCKOUT", "UPDATE_PASSWORD", "DELETE_ACCOUNT", "FEDERATED_IDENTITY_LINK_ERROR", "CLIENT_DELETE", "IDENTITY_PROVIDER_FIRST_LOGIN", "VERIFY_EMAIL", "CLIENT_DELETE_ERROR", "CLIENT_LOGIN_ERROR", "RESTART_AUTHENTICATION_ERROR", "REMOVE_FEDERATED_IDENTITY_ERROR", "EXECUTE_ACTIONS", "TOKEN_EXCHANGE_ERROR", "PERMISSION_TOKEN", "FEDERATED_IDENTITY_OVERRIDE_LINK", "SEND_IDENTITY_PROVIDER_LINK_ERROR", "UPDATE_CREDENTIAL_ERROR", "EXECUTE_ACTION_TOKEN_ERROR", "SEND_VERIFY_EMAIL", "OAUTH2_EXTENSION_GRANT_ERROR", "OAUTH2_DEVICE_AUTH", "EXECUTE_ACTIONS_ERROR", "REMOVE_FEDERATED_IDENTITY", "OAUTH2_DEVICE_CODE_TO_TOKEN", "IDENTITY_PROVIDER_POST_LOGIN", "IDENTITY_PROVIDER_LINK_ACCOUNT_ERROR", "FEDERATED_IDENTITY_OVERRIDE_LINK_ERROR", "UPDATE_EMAIL", "OAUTH2_DEVICE_VERIFY_USER_CODE_ERROR", "REGISTER_ERROR", "REVOKE_GRANT_ERROR", "LOGOUT_ERROR", "UPDATE_EMAIL_ERROR", "EXECUTE_ACTION_TOKEN", "CLIENT_UPDATE_ERROR", "UPDATE_PROFILE", "AUTHREQID_TO_TOKEN_ERROR", "INVITE_ORG_ERROR", "FEDERATED_IDENTITY_LINK", "CLIENT_REGISTER_ERROR", "INVITE_ORG", "SEND_VERIFY_EMAIL_ERROR", "SEND_IDENTITY_PROVIDER_LINK", "RESET_PASSWORD", "CLIENT_INITIATED_ACCOUNT_LINKING_ERROR", "OAUTH2_DEVICE_AUTH_ERROR", "REMOVE_CREDENTIAL", "UPDATE_CONSENT", "REMOVE_TOTP_ERROR", "VERIFY_EMAIL_ERROR", "SEND_RESET_PASSWORD_ERROR", "CLIENT_UPDATE", "CUSTOM_REQUIRED_ACTION_ERROR", "IDENTITY_PROVIDER_POST_LOGIN_ERROR", "UPDATE_TOTP_ERROR", "VERIFY_PROFILE", "CODE_TO_TOKEN", "GRANT_CONSENT_ERROR", "IDENTITY_PROVIDER_FIRST_LOGIN_ERROR" ],
+  "adminEventsEnabled" : true,
+  "adminEventsDetailsEnabled" : true,
   "identityProviders" : [ ],
   "identityProviderMappers" : [ ],
   "components" : {
@@ -2164,7 +2267,7 @@
       "providerId" : "declarative-user-profile",
       "subComponents" : { },
       "config" : {
-        "kc.user.profile.config" : [ "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"username\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"phone\",\"displayName\":\"phone\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"enterTime\",\"displayName\":\"enterTime\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"abscustId\",\"displayName\":\"abscustId\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}" ]
+        "kc.user.profile.config" : [ "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"username\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"phone\",\"displayName\":\"phone\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"enterTime\",\"displayName\":\"enterTime\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"abscustId\",\"displayName\":\"abscustId\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"required_2FA\",\"displayName\":\"2FA метод\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false,\"defaultValue\":\"SMS\"},{\"name\":\"position\",\"displayName\":\"${profile.attributes.position}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"department\",\"displayName\":\"${profile.attributes.department}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"telegram_chat_id\",\"displayName\":\"${profile.attributes.telegram_chat_id}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}" ]
       }
     } ],
     "org.keycloak.keys.KeyProvider" : [ {
@@ -2224,7 +2327,9 @@
       }
     } ]
   },
-  "internationalizationEnabled" : false,
+  "internationalizationEnabled" : true,
+  "supportedLocales" : [ "ru", "en" ],
+  "defaultLocale" : "en",
   "authenticationFlows" : [ {
     "id" : "143f224e-5cac-40f0-b923-11e58efe6b4e",
     "alias" : "Account verification options",
@@ -2270,31 +2375,8 @@
       "userSetupAllowed" : false
     } ]
   }, {
-    "id" : "6c7e09c3-61a0-447f-a978-596ff434e70d",
-    "alias" : "Browser 2FA",
-    "description" : "",
-    "providerId" : "basic-flow",
-    "topLevel" : false,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticatorConfig" : "Condition - user attribute config",
-      "authenticator" : "conditional-user-attribute",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 0,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticator" : "auth-otp-form",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 1,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    } ]
-  }, {
-    "id" : "071f7e5d-91ed-43e8-922d-058e9dca3053",
-    "alias" : "Browser Username Password",
+    "id" : "6f90abf8-46a6-4fb6-a1da-9f966ac27742",
+    "alias" : "Browser - Telegram - 2FA",
     "description" : "browser based authentication",
     "providerId" : "basic-flow",
     "topLevel" : true,
@@ -2310,22 +2392,471 @@
       "authenticator" : "auth-spnego",
       "authenticatorFlow" : false,
       "requirement" : "ALTERNATIVE",
-      "priority" : 26,
+      "priority" : 20,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     }, {
       "authenticator" : "identity-provider-redirector",
       "authenticatorFlow" : false,
       "requirement" : "ALTERNATIVE",
-      "priority" : 27,
+      "priority" : 25,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     }, {
       "authenticatorFlow" : true,
       "requirement" : "ALTERNATIVE",
-      "priority" : 34,
+      "priority" : 30,
       "autheticatorFlow" : true,
-      "flowAlias" : "Username Form",
+      "flowAlias" : "Browser - Telegram - 2FA forms",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "d65080c8-9154-420e-ba3d-97a50ea0fc5e",
+    "alias" : "Browser - Telegram - 2FA forms",
+    "description" : "Username, password, otp and other auth forms.",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-username-password-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Telegram 2FA config mono",
+      "authenticator" : "telegram-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 11,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "a6fdacc7-451d-46cf-bfdc-db8a81dbad6d",
+    "alias" : "Browser - Telegram 2FA - Trusted Device ALTERNATIVE",
+    "description" : "browser based authentication alternative",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-cookie",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-spnego",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 20,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "identity-provider-redirector",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 25,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 30,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser Advanced Flow",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "1bf4ac1a-81a3-4fc2-95ba-9b827abb9e42",
+    "alias" : "Browser - Telegram 2FA - Trusted Device ALTERNATIVE R38 migrated",
+    "description" : "browser based authentication alternative",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-cookie",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-spnego",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 20,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "identity-provider-redirector",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 25,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 30,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser Advanced Flow R38 migrated",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "b254d857-c18f-471e-aad7-b05e46d4f307",
+    "alias" : "Browser - Telegram 2FA - Trusted Device CONDITIONAL",
+    "description" : "browser based authentication conditional",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-cookie",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-spnego",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 20,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "identity-provider-redirector",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 25,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Username Password - Telegram 2FA - Trusted Device Conditional",
+      "authenticatorFlow" : true,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 26,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Username Password - Trusted Device - Telegram 2FA - Conditional",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "7ce2bd2b-2667-4052-9842-e8cead96dabd",
+    "alias" : "Browser - Telegram 2FA - Trusted Device CONDITIONAL R38 migrated",
+    "description" : "browser based authentication conditional",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-cookie",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-spnego",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 20,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "identity-provider-redirector",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 25,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 26,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Username Password - Trusted Device - Telegram 2FA - Conditional R38 migrated",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "6c7e09c3-61a0-447f-a978-596ff434e70d",
+    "alias" : "Browser 2FA Application",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - check user attribute config Application",
+      "authenticator" : "check_attribute_condition",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-otp-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "424fe637-301c-461f-adb9-72780e8fb3cd",
+    "alias" : "Browser 2FA Application R38 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - check user attribute config Application R38 migrated",
+      "authenticator" : "check_attribute_condition",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-otp-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "75d1ba86-cc35-4a5e-96cf-70e0fa8c8ae7",
+    "alias" : "Browser 2FA SMS ",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - check user attribute config",
+      "authenticator" : "check_attribute_condition",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 3,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "2FA SMS Authentication config",
+      "authenticator" : "sms_2fa_authentication",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 4,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "9674e8f8-e532-408c-8f5b-e8ed8307e5ab",
+    "alias" : "Browser 2FA SMS  R38 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - check user attribute config R38 migrated",
+      "authenticator" : "check_attribute_condition",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 3,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "2FA SMS Authentication config R38 migrated",
+      "authenticator" : "sms_2fa_authentication",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 4,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "50be3554-7193-4865-add4-d5f2a03c7b84",
+    "alias" : "Browser 2FA Telegram",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - check user attribute config Telegram",
+      "authenticator" : "check_attribute_condition",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Telegram 2FA config",
+      "authenticator" : "telegram-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "b88a0b6b-5f5a-4c20-b08d-db023deedb54",
+    "alias" : "Browser 2FA Telegram R38 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - check user attribute config Telegram R38 migrated",
+      "authenticator" : "check_attribute_condition",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Telegram 2FA config R38 migrated",
+      "authenticator" : "telegram-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "cb6db77d-f27f-4e37-8840-d2291dcdb28e",
+    "alias" : "Browser Advanced Flow",
+    "description" : "Username, password, otp and other auth forms.",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-username-password-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "REQUIRED",
+      "priority" : 11,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Trusted Device - Telegram 2FA - Alternative",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Remember Device Form config uno",
+      "authenticator" : "remember-device-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 12,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "49cd97c5-8904-40f6-9f02-17e9005cbdc8",
+    "alias" : "Browser Advanced Flow R38 migrated",
+    "description" : "Username, password, otp and other auth forms.",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-username-password-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "REQUIRED",
+      "priority" : 11,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Trusted Device - Telegram 2FA - Alternative R38 migrated",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Remember Device Form config uno R38 migrated",
+      "authenticator" : "remember-device-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 12,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "071f7e5d-91ed-43e8-922d-058e9dca3053",
+    "alias" : "Browser Username Password",
+    "description" : "browser based authentication",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Cookie config",
+      "authenticator" : "auth-cookie",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 26,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Kerberos config",
+      "authenticator" : "auth-spnego",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 27,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Identity Provider Redirector config",
+      "authenticator" : "identity-provider-redirector",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 34,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Username - Password - OTP - Form config",
+      "authenticatorFlow" : true,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 35,
+      "autheticatorFlow" : true,
+      "flowAlias" : "FORMS - Username - Password - 2FA",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "03c29335-fb21-46b3-9a4e-3dc36e1276b9",
+    "alias" : "Browser Username Password R38 migrated",
+    "description" : "browser based authentication",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Cookie config R38 migrated",
+      "authenticator" : "auth-cookie",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 26,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Kerberos config R38 migrated",
+      "authenticator" : "auth-spnego",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 27,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Identity Provider Redirector config R38 migrated",
+      "authenticator" : "identity-provider-redirector",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 34,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 35,
+      "autheticatorFlow" : true,
+      "flowAlias" : "FORMS - Username - Password - 2FA R38 migrated",
       "userSetupAllowed" : false
     } ]
   }, {
@@ -2348,6 +2879,69 @@
       "requirement" : "REQUIRED",
       "priority" : 20,
       "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "9c4865e4-e77d-4f8c-9876-09f48dd4c2b1",
+    "alias" : "FORMS - Username - Password - 2FA",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Username Form config",
+      "authenticator" : "auth-username-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Username Login Limiter config",
+      "authenticator" : "username_blocking_execution",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Password Form and 2FA conditional Forms config",
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 11,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Password Form and 2FA conditional Forms",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "2a00ce28-f01c-4a4f-8d2d-d8a6b928e5f9",
+    "alias" : "FORMS - Username - Password - 2FA R38 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Username Form config R38 migrated",
+      "authenticator" : "auth-username-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Username Login Limiter config R38 migrated",
+      "authenticator" : "username_blocking_execution",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 11,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Password Form and 2FA conditional Forms R38 migrated",
       "userSetupAllowed" : false
     } ]
   }, {
@@ -2395,6 +2989,113 @@
       "userSetupAllowed" : false
     } ]
   }, {
+    "id" : "bee0088b-5d4f-43e1-bf24-08111c622185",
+    "alias" : "Password Form and 2FA conditional Forms",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - user role config",
+      "authenticator" : "conditional-user-role",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Password Form Brute Force Locker configuration",
+      "authenticator" : "password_brute_force_locker",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Enter Time Attribute Logic config",
+      "authenticator" : "enter_timer_logics",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 7,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Browser 2FA SMS config",
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 8,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser 2FA SMS ",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 9,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser 2FA Application",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 10,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser 2FA Telegram",
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "bdc4c3b3-52a1-4f68-b9b9-c76a3eebefca",
+    "alias" : "Password Form and 2FA conditional Forms R38 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - user role config R38 migrated",
+      "authenticator" : "conditional-user-role",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Password Form Brute Force Locker configuration R38 migrated",
+      "authenticator" : "password_brute_force_locker",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Enter Time Attribute Logic config R38 migrated",
+      "authenticator" : "enter_timer_logics",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 7,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 8,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser 2FA SMS  R38 migrated",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 9,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser 2FA Application R38 migrated",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 10,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser 2FA Telegram R38 migrated",
+      "userSetupAllowed" : false
+    } ]
+  }, {
     "id" : "32eb8dd4-6837-41cf-8f95-8919dbed2f14",
     "alias" : "Reset - Conditional OTP",
     "description" : "Flow to determine if the OTP should be reset or not. Set to REQUIRED to force.",
@@ -2413,6 +3114,100 @@
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
       "priority" : 20,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "7480f156-6ab5-4dfb-affb-dbeda4f95b75",
+    "alias" : "Trusted Device - Telegram 2FA - Alternative",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Trusted Device Checker config",
+      "authenticator" : "trusted-device-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Telegram 2FA config uno",
+      "authenticator" : "telegram-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "3ecdde1a-6d44-4daa-b39b-6e342d7d2191",
+    "alias" : "Trusted Device - Telegram 2FA - Alternative R38 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Trusted Device Checker config R38 migrated",
+      "authenticator" : "trusted-device-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Telegram 2FA config uno R38 migrated",
+      "authenticator" : "telegram-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "ef13ac5c-dfbd-46de-87cf-55f8d66096fa",
+    "alias" : "Trusted Device - Telegram 2FA - Conditional",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - Device is NOT Trusted config",
+      "authenticator" : "conditional-trusted-device",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "telegram-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "36a16cbd-f392-497a-a796-5054ffc46067",
+    "alias" : "Trusted Device - Telegram 2FA - Conditional R38 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "Condition - Device is NOT Trusted config R38 migrated",
+      "authenticator" : "conditional-trusted-device",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "telegram-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 1,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     } ]
@@ -2440,55 +3235,63 @@
       "userSetupAllowed" : false
     } ]
   }, {
-    "id" : "9c4865e4-e77d-4f8c-9876-09f48dd4c2b1",
-    "alias" : "Username Form",
+    "id" : "62a218fd-201f-4f16-853e-6128801ce2ca",
+    "alias" : "Username Password - Trusted Device - Telegram 2FA - Conditional",
     "description" : "",
     "providerId" : "basic-flow",
     "topLevel" : false,
     "builtIn" : false,
     "authenticationExecutions" : [ {
-      "authenticator" : "auth-username-form",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 2,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorFlow" : true,
-      "requirement" : "CONDITIONAL",
-      "priority" : 4,
-      "autheticatorFlow" : true,
-      "flowAlias" : "Username Form ADMIN Role",
-      "userSetupAllowed" : false
-    } ]
-  }, {
-    "id" : "bee0088b-5d4f-43e1-bf24-08111c622185",
-    "alias" : "Username Form ADMIN Role",
-    "description" : "",
-    "providerId" : "basic-flow",
-    "topLevel" : false,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticatorConfig" : "Condition - user role config",
-      "authenticator" : "conditional-user-role",
+      "authenticator" : "auth-username-password-form",
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
       "priority" : 0,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     }, {
-      "authenticator" : "auth-password-form",
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 1,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Trusted Device - Telegram 2FA - Conditional",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Remember Device Form config Conditional",
+      "authenticator" : "remember-device-authenticator",
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
-      "priority" : 1,
+      "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "b898867a-839d-4601-923b-e67ccdf2d892",
+    "alias" : "Username Password - Trusted Device - Telegram 2FA - Conditional R38 migrated",
+    "description" : "",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-username-password-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 0,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     }, {
       "authenticatorFlow" : true,
       "requirement" : "CONDITIONAL",
-      "priority" : 2,
+      "priority" : 1,
       "autheticatorFlow" : true,
-      "flowAlias" : "Browser 2FA",
+      "flowAlias" : "Trusted Device - Telegram 2FA - Conditional R38 migrated",
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Remember Device Form config Conditional R38 migrated",
+      "authenticator" : "remember-device-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 2,
+      "autheticatorFlow" : false,
       "userSetupAllowed" : false
     } ]
   }, {
@@ -2530,7 +3333,7 @@
     }, {
       "authenticator" : "auth-spnego",
       "authenticatorFlow" : false,
-      "requirement" : "DISABLED",
+      "requirement" : "ALTERNATIVE",
       "priority" : 20,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
@@ -2675,6 +3478,14 @@
       "userSetupAllowed" : false
     } ]
   }, {
+    "id" : "c1d50643-9dc9-4e00-a44a-b8aba80d566c",
+    "alias" : "forms 111225-1726",
+    "description" : "Username, password, otp and other auth forms.",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : true,
+    "authenticationExecutions" : [ ]
+  }, {
     "id" : "4ccb7246-80fd-42f3-8ef8-e5cbd442d4da",
     "alias" : "registration",
     "description" : "registration flow",
@@ -2772,12 +3583,96 @@
     } ]
   } ],
   "authenticatorConfig" : [ {
-    "id" : "06be248d-176c-4945-b4b9-345828e16f78",
-    "alias" : "Condition - user attribute config",
+    "id" : "18244093-8d4f-44dd-9dbf-54c6a1c29643",
+    "alias" : "2FA SMS Authentication config",
     "config" : {
-      "attribute_expected_value" : "true",
-      "attribute_name" : "required_otp",
-      "include_group_attributes" : "true"
+      "sms_stub_code" : "1111",
+      "sms_code_ttl" : "60",
+      "sms_stub_length" : "4",
+      "ttl" : "30",
+      "sms_stub_switch" : "false"
+    }
+  }, {
+    "id" : "57d2e5fc-254f-4e4c-bab5-1ec94f47a442",
+    "alias" : "2FA SMS Authentication config R38 migrated",
+    "config" : {
+      "sms_stub_code" : "1111",
+      "sms_code_ttl" : "60",
+      "sms_stub_length" : "4",
+      "ttl" : "30",
+      "sms_stub_switch" : "false"
+    }
+  }, {
+    "id" : "bc775d04-be97-47c9-9ded-40a23407d3fb",
+    "alias" : "Browser 2FA SMS config",
+    "config" : { }
+  }, {
+    "id" : "04a49f99-b38e-4cb4-96dc-a173cd5a39c9",
+    "alias" : "Condition - Device is NOT Trusted config",
+    "config" : {
+      "trusted_device_switch" : "false",
+      "trusted_device_delete" : "false"
+    }
+  }, {
+    "id" : "d014fcab-da3d-4a04-9474-354677dd18e2",
+    "alias" : "Condition - Device is NOT Trusted config R38 migrated",
+    "config" : {
+      "trusted_device_switch" : "false",
+      "trusted_device_delete" : "false"
+    }
+  }, {
+    "id" : "43ac6af3-417f-4794-a7e8-004d1ac15526",
+    "alias" : "Condition - check user attribute config",
+    "config" : {
+      "attribute_name" : "required_2FA",
+      "attribute_value" : "SMS##СМС",
+      "native_enabled" : "false",
+      "attribute_groups_enabled" : "true"
+    }
+  }, {
+    "id" : "b2eca140-d1de-4fe6-b699-1b3820a040bc",
+    "alias" : "Condition - check user attribute config Application",
+    "config" : {
+      "attribute_name" : "required_2FA",
+      "attribute_value" : "APP##APK",
+      "native_enabled" : "false",
+      "attribute_groups_enabled" : "true"
+    }
+  }, {
+    "id" : "56d1b5dc-07cd-440e-9c3e-8d73eddbe4d2",
+    "alias" : "Condition - check user attribute config Application R38 migrated",
+    "config" : {
+      "attribute_name" : "required_2FA",
+      "attribute_value" : "APP##APK",
+      "native_enabled" : "false",
+      "attribute_groups_enabled" : "true"
+    }
+  }, {
+    "id" : "5e6cb514-ee1c-41cf-a732-957bb756f5d8",
+    "alias" : "Condition - check user attribute config R38 migrated",
+    "config" : {
+      "attribute_name" : "required_2FA",
+      "attribute_value" : "SMS##СМС",
+      "native_enabled" : "false",
+      "attribute_groups_enabled" : "true"
+    }
+  }, {
+    "id" : "1895709b-2ec2-4a92-aac4-fbc49b1ec821",
+    "alias" : "Condition - check user attribute config Telegram",
+    "config" : {
+      "attribute_name" : "required_2FA",
+      "attribute_value" : "TEL##TG##ТЕЛЕГА",
+      "native_enabled" : "false",
+      "attribute_groups_enabled" : "true"
+    }
+  }, {
+    "id" : "76efd6c9-8cdc-4a72-8fed-376724b9073c",
+    "alias" : "Condition - check user attribute config Telegram R38 migrated",
+    "config" : {
+      "attribute_name" : "required_2FA",
+      "attribute_value" : "TEL##TG##ТЕЛЕГА",
+      "native_enabled" : "false",
+      "attribute_groups_enabled" : "true"
     }
   }, {
     "id" : "b2a429c8-40b6-4092-bcc5-2e0ab3be5305",
@@ -2786,6 +3681,203 @@
       "condUserRole" : "ADMIN",
       "negate" : "true"
     }
+  }, {
+    "id" : "25961da7-579e-439a-b4bd-9180d61d9b01",
+    "alias" : "Condition - user role config R38 migrated",
+    "config" : {
+      "condUserRole" : "ADMIN",
+      "negate" : "true"
+    }
+  }, {
+    "id" : "8202bba9-05cb-4e7d-9a99-5bafc6607010",
+    "alias" : "Cookie config",
+    "config" : { }
+  }, {
+    "id" : "b7c4bec3-bd23-4029-b29c-b82df50833e9",
+    "alias" : "Cookie config R38 migrated",
+    "config" : { }
+  }, {
+    "id" : "32cf0073-2596-4051-9488-384efc9a22a3",
+    "alias" : "Enter Time Attribute Logic config",
+    "config" : {
+      "30" : "30",
+      "enter_time_switch" : "true"
+    }
+  }, {
+    "id" : "cbe50fcd-3e26-43e9-8222-c3fe1ca2737b",
+    "alias" : "Enter Time Attribute Logic config R38 migrated",
+    "config" : {
+      "30" : "30",
+      "enter_time_switch" : "true"
+    }
+  }, {
+    "id" : "48fbe0f6-24d5-4dfe-a1bb-2f5b6408b89a",
+    "alias" : "Identity Provider Redirector config",
+    "config" : { }
+  }, {
+    "id" : "1aeab27b-38ab-482a-aaa9-8f85f911f372",
+    "alias" : "Identity Provider Redirector config R38 migrated",
+    "config" : { }
+  }, {
+    "id" : "9412f2bc-e6db-4c5b-beb9-705ccb9efaa4",
+    "alias" : "Kerberos config",
+    "config" : { }
+  }, {
+    "id" : "5a5eaa3b-3d26-4ea1-99f5-bbe2b617bfc9",
+    "alias" : "Kerberos config R38 migrated",
+    "config" : { }
+  }, {
+    "id" : "3e899713-5659-4ac9-badf-516324de949d",
+    "alias" : "Password Form Brute Force Locker configuration",
+    "config" : {
+      "block_minutes" : "10",
+      "brute_force_switch" : "true",
+      "max_failures" : "5",
+      "critical_block" : "20",
+      "critical_window" : "1",
+      "quick_login_interval" : "500",
+      "quick_block_minutes" : "1",
+      "reset_minutes" : "60",
+      "critical_failures" : "10"
+    }
+  }, {
+    "id" : "0e7159a5-ed6b-48b8-9ff1-b36beaa7a801",
+    "alias" : "Password Form Brute Force Locker configuration R38 migrated",
+    "config" : {
+      "block_minutes" : "10",
+      "brute_force_switch" : "true",
+      "max_failures" : "5",
+      "critical_block" : "20",
+      "critical_window" : "1",
+      "quick_login_interval" : "500",
+      "quick_block_minutes" : "1",
+      "reset_minutes" : "60",
+      "critical_failures" : "10"
+    }
+  }, {
+    "id" : "422995b7-48c9-4bf2-a694-4fbcf82a8cd9",
+    "alias" : "Password Form and 2FA conditional Forms config",
+    "config" : { }
+  }, {
+    "id" : "b17e0b85-062c-48dc-aaad-0b7945b563d5",
+    "alias" : "Remember Device Form config Conditional",
+    "config" : {
+      "remember_recovery_swith" : "true",
+      "remember_switch" : "true",
+      "remember_cookie_ttl" : "30"
+    }
+  }, {
+    "id" : "79cd79bd-e69a-4bba-8f98-859f5c6ddef2",
+    "alias" : "Remember Device Form config Conditional R38 migrated",
+    "config" : {
+      "remember_recovery_swith" : "true",
+      "remember_switch" : "true",
+      "remember_cookie_ttl" : "30"
+    }
+  }, {
+    "id" : "bb8ae1d0-b96f-425d-8d4a-45b4450f3248",
+    "alias" : "Remember Device Form config uno",
+    "config" : {
+      "remember_recovery_swith" : "true",
+      "remember_switch" : "true",
+      "remember_cookie_ttl" : "30"
+    }
+  }, {
+    "id" : "5a6fa852-ffac-4ab5-af7e-4e979d872337",
+    "alias" : "Remember Device Form config uno R38 migrated",
+    "config" : {
+      "remember_recovery_swith" : "true",
+      "remember_switch" : "true",
+      "remember_cookie_ttl" : "30"
+    }
+  }, {
+    "id" : "4ad69b7c-03ff-4d26-9ab2-88710d9d195e",
+    "alias" : "Telegram 2FA config",
+    "config" : {
+      "telegram_code_ttl" : "30",
+      "telegram_switch" : "true",
+      "telegram_code_length" : "6"
+    }
+  }, {
+    "id" : "d3c2f32c-402a-4492-b753-5376be7ae67b",
+    "alias" : "Telegram 2FA config R38 migrated",
+    "config" : {
+      "telegram_code_ttl" : "30",
+      "telegram_switch" : "true",
+      "telegram_code_length" : "6"
+    }
+  }, {
+    "id" : "bf0f0030-58c9-4e87-afa0-cf1a976fc53b",
+    "alias" : "Telegram 2FA config mono",
+    "config" : {
+      "telegram_switch" : "true",
+      "telegram_switch_pass" : "true",
+      "telegram_code_length" : "6"
+    }
+  }, {
+    "id" : "c3bceb0f-1796-4112-a042-3fd00f6452e2",
+    "alias" : "Telegram 2FA config uno",
+    "config" : {
+      "telegram_code_ttl" : "60",
+      "telegram_switch" : "true",
+      "telegram_code_length" : "6"
+    }
+  }, {
+    "id" : "80683587-2168-40e0-ad62-b52985746966",
+    "alias" : "Telegram 2FA config uno R38 migrated",
+    "config" : {
+      "telegram_code_ttl" : "60",
+      "telegram_switch" : "true",
+      "telegram_code_length" : "6"
+    }
+  }, {
+    "id" : "0505e09d-a63d-4211-a56a-faa5a0ff3670",
+    "alias" : "Trusted Device Checker config",
+    "config" : {
+      "trusted_device_switch" : "false",
+      "trusted_device_delete" : "false"
+    }
+  }, {
+    "id" : "fc2d7e12-ad16-4e63-8fbf-7ed8790d95b4",
+    "alias" : "Trusted Device Checker config R38 migrated",
+    "config" : {
+      "trusted_device_switch" : "false",
+      "trusted_device_delete" : "false"
+    }
+  }, {
+    "id" : "fbe05c56-7e2b-49a7-aaad-bd237efac402",
+    "alias" : "Username - Password - OTP - Form config",
+    "config" : { }
+  }, {
+    "id" : "394bcc0f-2639-428b-a507-309c04f81303",
+    "alias" : "Username Form config",
+    "config" : { }
+  }, {
+    "id" : "d9c6b73e-b757-4156-8ef2-8f8b7be6ad6a",
+    "alias" : "Username Form config R38 migrated",
+    "config" : { }
+  }, {
+    "id" : "30443e33-80a7-4307-a64b-d8c5f666d606",
+    "alias" : "Username Login Limiter config",
+    "config" : {
+      "Check_toggle" : "true",
+      "blocking_username_list" : "nikola",
+      "Username_prohibited" : "nikola",
+      "blocking_switch" : "true"
+    }
+  }, {
+    "id" : "e0a41461-ea2b-4059-8f6b-0d01b2af7af6",
+    "alias" : "Username Login Limiter config R38 migrated",
+    "config" : {
+      "Check_toggle" : "true",
+      "blocking_username_list" : "nikola",
+      "Username_prohibited" : "nikola",
+      "blocking_switch" : "true"
+    }
+  }, {
+    "id" : "d6e9058e-e776-452b-8515-732ab264c1d3",
+    "alias" : "Username Password - Telegram 2FA - Trusted Device Conditional",
+    "config" : { }
   }, {
     "id" : "886bfcb6-8c52-43ca-a5fd-cfea7961ffd2",
     "alias" : "create unique user config",
@@ -2887,8 +3979,16 @@
     "defaultAction" : false,
     "priority" : 1000,
     "config" : { }
+  }, {
+    "alias" : "telegram-bind-action",
+    "name" : "Bind Telegram 2FA",
+    "providerId" : "telegram-bind-action",
+    "enabled" : true,
+    "defaultAction" : true,
+    "priority" : 1001,
+    "config" : { }
   } ],
-  "browserFlow" : "Browser Username Password",
+  "browserFlow" : "Browser Username Password R38 migrated",
   "registrationFlow" : "registration",
   "directGrantFlow" : "direct grant",
   "resetCredentialsFlow" : "reset credentials",
@@ -2909,7 +4009,8 @@
     "parRequestUriLifespan" : "60",
     "clientSessionMaxLifespan" : "0",
     "frontendUrl" : "",
-    "acr.loa.map" : "{}"
+    "acr.loa.map" : "{}",
+    "adminEventsExpiration" : "1800"
   },
   "keycloakVersion" : "26.4.1",
   "userManagedAccessAllowed" : false,

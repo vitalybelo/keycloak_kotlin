@@ -87,10 +87,10 @@ class KeycloakClientService {
      * @param clientResource ресурс управления сервисом Client
      */
     fun createOrUpdateClientRoles(
-
         clientExportDto: ClientExportDto,
         clientResource: ClientResource
     ) {
+
         // выполняем проверку на необходимость выполнения присвоения ролей
         val clientId = clientExportDto.clientRepresentation?.clientId
         val importClientRoles = clientExportDto.clientRoles
@@ -105,6 +105,7 @@ class KeycloakClientService {
 
         // начинаем назначать роли для клиента из импортируемой сущности
         importClientRoles.forEach { importClientRole ->
+
             val name = importClientRole.name
             try {
                 if (!foundClientRoles.containsKey(name)) {
@@ -157,32 +158,31 @@ class KeycloakClientService {
     ): ClientExportDto? {
 
         try {
-            val clientRepresentation = realmResource.clients().findByClientId(clientId).firstOrNull()
-            if (clientRepresentation != null) {
+            val clientRepresentation =
+                realmResource.clients().findByClientId(clientId).firstOrNull() ?: return null
 
-                val clientExportDto = ClientExportDto(clientRepresentation = clientRepresentation)
+            val clientExportDto = ClientExportDto(clientRepresentation = clientRepresentation)
 
-                val clientResource = realmResource.clients().get(clientRepresentation.id)
-                clientExportDto.clientRoles = clientResource.roles()?.list() ?: emptyList()
+            val clientResource = realmResource.clients().get(clientRepresentation.id)
+            clientExportDto.clientRoles = clientResource.roles()?.list() ?: emptyList()
 
-                val isAuthorizationEnabled = clientRepresentation.authorizationServicesEnabled ?: false
-                if (isAuthorizationEnabled) {
-                    clientRepresentation.authorizationSettings = clientResource.authorization().settings
-                    clientRepresentation.authorizationSettings.policies = clientResource.authorization().policies().policies()
-                    clientRepresentation.authorizationSettings.scopes = clientResource.authorization().scopes().scopes()
-                    clientRepresentation.authorizationSettings.resources = clientResource.authorization().resources().resources()
-                    clientExportDto.exportSettings = clientResource.authorization().exportSettings()
-                }
-
-                val isServiceAccountEnabled = clientRepresentation.isServiceAccountsEnabled ?: false
-                if (isServiceAccountEnabled) {
-                    clientResource.serviceAccountUser?.let { serviceAccountUser ->
-                        clientExportDto.serviceAccountUser =
-                            getServiceAccount(serviceAccountUser, realmResource)
-                    }
-                }
-                return clientExportDto
+            val isAuthorizationEnabled = clientRepresentation.authorizationServicesEnabled ?: false
+            if (isAuthorizationEnabled) {
+                clientRepresentation.authorizationSettings = clientResource.authorization().settings
+                clientRepresentation.authorizationSettings.policies = clientResource.authorization().policies().policies()
+                clientRepresentation.authorizationSettings.scopes = clientResource.authorization().scopes().scopes()
+                clientRepresentation.authorizationSettings.resources = clientResource.authorization().resources().resources()
+                clientExportDto.exportSettings = clientResource.authorization().exportSettings()
             }
+
+            val isServiceAccountEnabled = clientRepresentation.isServiceAccountsEnabled ?: false
+            if (isServiceAccountEnabled) {
+                clientResource.serviceAccountUser?.let { serviceAccountUser ->
+                    clientExportDto.serviceAccountUser =
+                        getServiceAccount(serviceAccountUser, realmResource)
+                }
+            }
+            return clientExportDto
         } catch (ex: Exception) {
             logger.error("Error while getting client representation: ${ex.message}, cause: ${ex.cause}", ex)
         }
@@ -206,7 +206,7 @@ class KeycloakClientService {
             realmResource.users().get(userRepresentation.id)?.let { userResource ->
 
                 val clientRoles = mutableMapOf<String, List<String>>()
-                userResource.roles().all.clientMappings.map { (key, value) ->
+                userResource.roles().all.clientMappings?.map { (key, value) ->
                     clientRoles[key] = value.mappings.map { it.name }.toList()
                 }
                 val realmRoles = userResource.roles().all.realmMappings

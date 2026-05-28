@@ -253,11 +253,11 @@ class MigrateClientScopeService(
      *
      */
     private fun updateClientScopeWithMappers(
-
         clientScope: ClientScopeRepresentation,
         foundClientScope: ClientScopeRepresentation,
         importedExportDto: ClientScopeExportDto,
         realmResource: RealmResource
+
     ): Boolean {
         try {
             clientScope.id = foundClientScope.id

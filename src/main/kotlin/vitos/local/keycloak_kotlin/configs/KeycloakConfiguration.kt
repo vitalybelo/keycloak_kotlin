@@ -4,6 +4,7 @@ import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.admin.client.resource.RealmResource
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -30,12 +31,25 @@ class KeycloakConfiguration (
 ) {
 
     @Bean
-    fun keycloak(): Keycloak {
+    @Qualifier("keycloakMaster")
+    fun keycloakMaster(): Keycloak {
         return KeycloakBuilder.builder()
             .serverUrl(keycloakServerUrl)
             .realm(keycloakMasterAdminRealm)
             .clientId(keycloakMasterAdminClientId)
             .clientSecret(keycloakMasterAdminClientSecret)
+            .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
+            .build()
+    }
+
+    @Bean
+    @Qualifier("keycloakRealm")
+    fun keycloakRealm(): Keycloak {
+        return KeycloakBuilder.builder()
+            .serverUrl(keycloakServerUrl)
+            .realm(keycloakRealm)
+            .clientId(keycloakAdminClientId)
+            .clientSecret(keycloakAdminClientSecret)
             .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
             .build()
     }

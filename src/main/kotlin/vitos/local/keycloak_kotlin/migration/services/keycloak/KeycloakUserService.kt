@@ -49,22 +49,12 @@ class KeycloakUserService(
                     // переопределяем атрибуты системного пользователя
                     foundServiceUserAccount.attributes = importServiceUserAccount.attributes
                     userResource?.update(foundServiceUserAccount)
-                    // назначаем realm роли системному пользователю
-                    assignRealmRolesToUser(
-                        importServiceUserAccount,
-                        userResource,
-                        realmResource
-                    )
-                    assignClientRolesToUser(
-                        importServiceUserAccount,
-                        userResource,
-                        realmResource
-                    )
-                    assignGroupsToUser(
-                        importServiceUserAccount,
-                        userResource,
-                        realmResource
-                    )
+
+                    // обогащаем учётку системного пользователя
+                    assignRealmRolesToUser(importServiceUserAccount, userResource, realmResource)
+                    assignClientRolesToUser(importServiceUserAccount, userResource, realmResource)
+                    assignGroupsToUser(importServiceUserAccount, userResource, realmResource)
+
                     logger.infoM("Service account user $userName successfully updated")
 
                 } catch (ex: Exception) {

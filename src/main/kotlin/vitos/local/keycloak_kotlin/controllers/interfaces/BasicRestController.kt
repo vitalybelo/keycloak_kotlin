@@ -1,4 +1,4 @@
-package vitos.local.keycloak_kotlin.interfaces
+package vitos.local.keycloak_kotlin.controllers.interfaces
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema

@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import vitos.local.keycloak_kotlin.authorization.AccessTokenService
+import vitos.local.keycloak_kotlin.client.KeycloakBranchClient
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.BAD_REQUEST
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.NOT_FOUND
@@ -53,7 +54,8 @@ class KeycloakRestService(
     private val accessTokenService: AccessTokenService,
     private val keycloakTokenService: KeycloakTokenService,
     private val objectMapper: ObjectMapper = jacksonObjectMapper(),
-    private val parameterChecker: ParameterChecker
+    private val parameterChecker: ParameterChecker,
+    private val keycloakBranchClient: KeycloakBranchClient
 
 ) {
 
@@ -379,8 +381,8 @@ class KeycloakRestService(
 
 
     /**
-     * Выполняет запрос в keycloak rest api ext-ui списка пользователей я расширенно информацией
-     * по временным блокировкам brute-force, с статусом блокировок
+     * Выполняет запрос в keycloak rest api ext-ui для получения списка пользователей с расширенно информацией
+     * по временным блокировкам brute-force, и статусом блокировок.
      * @return список сущностей пользователей Keycloak
      */
     private fun getBruteForceUserList(): List<BruteForceUserRepresentation>? {
@@ -394,7 +396,6 @@ class KeycloakRestService(
                 StringBuilder(getKeycloakExtURI()).append("/brute-force-user?first=0&max=1000000").toString()
 
             val res = restTemplate.exchange(
-//                "$keycloakServerURL/admin/realms/$keycloakRealm/ui-ext/brute-force-user?first=0&max=1000000",
                 uriString,
                 HttpMethod.GET,
                 requestEntity,
@@ -493,15 +494,7 @@ class KeycloakRestService(
      */
     private fun findUserByAttributes(key: String?, value: String?): UserRepresentation? {
 
-        realmResource.users()
-            .searchByAttributes("$key:$value", true)?.let { userList ->
-                userList.stream()
-                    .filter { user -> user.attributes[key]?.any { s -> s.equals(value) } == true }
-                    .findFirst()
-                    .orElse(null)
-                    ?.let { return it }
-            }
-        return null
+        return realmResource.users().searchByAttributes("$key:\"$value\"", true).firstOrNull()
     }
 
 
@@ -586,6 +579,8 @@ class KeycloakRestService(
      */
     fun getUserInfo(userId: String?, headers: Map<String, String>): ResponseEntity<Any> {
 
+        val sid = accessTokenService.getClaims()["sid"]
+        logger.infoM("Received access token session id = $sid")
         collectUserId(userId, headers)?.let { keycloakUserId ->
             getUserRepresentationPrivate(keycloakUserId)?.let {
 
@@ -829,6 +824,39 @@ class KeycloakRestService(
         }
         return null
     }
+
+
+    /**
+     * Метод выполняет поиск пользователей по заданному атрибуту переданному в метод.
+     * Для найденного пользователя, вызывается метода REST API Keycloak для изменения заданного атрибута
+
+     * @param searchKey атрибут поиска пользователя
+     * @param searchValue значение атрибута поиска пользователя
+     * @param modifyKey модифицируемый атрибут пользователя
+     * @param modifyValue значение модифицируемого атрибута пользователя
+     * @return статус и сообщение
+     */
+    fun manageUserBranchMigration(
+        searchKey: String,
+        searchValue: String,
+        modifyKey: String,
+        modifyValue: String
+    ): ResponseEntity<Any> {
+
+        logger.infoM("Request parameters :: searchKey = $searchKey, searchValue = $searchValue ")
+
+        val response = keycloakBranchClient
+                .manageMigrationFlag("SpringBootKeycloak", searchKey, searchValue, modifyKey, modifyValue)
+
+        return when (response.statusCode.value()) {
+            200 -> ResponseEntity("Успех: Атрибут обновлен", HttpStatus.OK)
+            404 -> ResponseEntity("Ошибка: Пользователь не найден", HttpStatus.NOT_FOUND)
+            400 -> ResponseEntity("Ошибка: Неверные параметры запроса", HttpStatus.BAD_REQUEST)
+            500 -> ResponseEntity("Ошибка: Что-то пошло не так на стороне Keycloak", HttpStatus.INTERNAL_SERVER_ERROR)
+            else -> ResponseEntity("Неожиданный статус", response.statusCode)
+        }
+    }
+
 
 }
 
