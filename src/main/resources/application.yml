@@ -1,0 +1,99 @@
+db:
+  schema: keycloakadp
+
+server:
+  port: 8080
+  servlet:
+    context-path: /keycloak/api
+
+logging:
+  level:
+    root: info
+    vitos.local.keycloak_kotlin: info
+    vitos.local.keycloak_kotlin.services: debug
+    vitos.local.keycloak_kotlin.migration: debug
+
+keycloak:
+  server:
+    url: http://localhost:8443
+  master:
+    admin:
+      realm: master
+      client_id: admin-client
+      client_secret: TapOEMvNpD4ZajAcAzdXQriUNYHjzRNt
+  admin:
+    realm: SpringBootKeycloak
+    client_id: login-admin
+    client_secret: 6dMULRFc4gnadbs4xaqzvUueaQNJJSBS
+
+spring:
+  application:
+    name: keycloak_kotlin
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mcspdb
+    username: postgres
+    password: Vitalex88
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: ${db.schema}
+    show-sql: false
+    open-in-view: false
+
+  jackson:
+    mapper:
+      allow-coercion-of-scalars: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: login-web
+            client-secret: WbP46pdXfGG1Gmpw5sS859vL5NgLN2t4
+            authorization-grant-type: authorization_code
+            scope:
+              - openid
+            provider: keycloak
+        provider:
+          keycloak:
+            user-name-attribute: preferred_username
+            issuer-uri: ${keycloak.server.url}/realms/${keycloak.admin.realm}
+      resourceserver:
+        jwt:
+          issuer-uri: ${keycloak.server.url}/realms/${keycloak.admin.realm}
+          jwk-set-uri: ${keycloak.server.url}/realms/${keycloak.admin.realm}/protocol/openid-connect/certs
+
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha
+    doc-expansion: none
+  writer-with-default-pretty-printer: true
+  enable-hateoas: false
+  enable-data-rest: false
+  api-docs:
+    enabled: false
+
+digital:
+  ruble:
+    pcrconnect:
+      callback:
+        login: alex
+        password: alex
+
+dormant:
+  delete:
+    last-enter-time-period: 48
+    ft-userdel-event: true

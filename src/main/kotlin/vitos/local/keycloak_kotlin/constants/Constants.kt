@@ -1,5 +1,8 @@
 package vitos.local.keycloak_kotlin.constants
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 class Constants {
 
     companion object {
@@ -17,6 +20,8 @@ class Constants {
         const val CREATE_CLIENT_DESC = "Client created automatically during group migration"
         const val CLIENT_NOT_CONFIGURED = "Import client representation not configured"
         const val INVALID_FLOW = "Invalid request parameter: flow dto incorrect"
+
+        val RESPONSE_DATE_TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     }
 
 }

@@ -1,13 +1,13 @@
 package vitos.local.keycloak_kotlin.controllers
 
-import org.keycloak.representations.idm.UserRepresentation
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
+import org.keycloak.representations.idm.UserRepresentation
 import vitos.local.keycloak_kotlin.controllers.interfaces.KeycloakRestController
+import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersRequestDto
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersResponseDto
 import vitos.local.keycloak_kotlin.services.KeycloakRestService
@@ -18,27 +18,20 @@ class KeycloakRestControllerImpl(
     private val keycloakService: KeycloakRestService,
 ) : KeycloakRestController {
 
-    companion object {
-        private val log = LoggerFactory.getLogger(KeycloakRestControllerImpl::class.java)
-    }
+    companion object: Log()
 
 
     override fun changeUserPassword(
-        @RequestParam("user", required = false) userName: String?,
-        @RequestParam("password", required = false, defaultValue = "1") password: String?,
-        @RequestHeader headers: Map<String, String>,
+        userName: String,
+        password: String,
+        headers: Map<String, String>,
     ): ResponseEntity<Any> {
         return keycloakService.changeUserPassword(userName, password, headers)
     }
 
-    override fun createKeycloakUser(user: UserRepresentation?): ResponseEntity<Any> {
-
-        if (user != null && user.username.isNotEmpty()) {
-            log.info(">>>> Creating user {}", user.username)
-            return keycloakService.createKeycloakUser(user)
-        }
-        log.info(">>>> Invalid create user parameters")
-        return ResponseEntity("Invalid username", HttpStatus.BAD_REQUEST)
+    override fun createKeycloakUser(user: UserRepresentation): ResponseEntity<Any> {
+        logger.infoM(">>>> Received request to create user == ${user.username}")
+        return keycloakService.createKeycloakUser(user)
     }
 
     override fun getUserInfo(userId: String?, headers: Map<String, String>): ResponseEntity<Any> {
@@ -49,16 +42,16 @@ class KeycloakRestControllerImpl(
         return keycloakService.getUserRepresentation(authentication)
     }
 
-    override fun getFullUserRepresentation(headers: Map<String, String>): ResponseEntity<Any> {
-        return keycloakService.getFullUserRepresentation(headers)
+    override fun getEnrichedUserRepresentation(headers: Map<String, String>): ResponseEntity<Any> {
+        return keycloakService.getEnrichedUserRepresentation(headers)
     }
 
-    override fun getExtendedUserRepresentation(): ResponseEntity<Any> {
-        return keycloakService.getExtendedUserRepresentation()
+    override fun getBruteForceUserRepresentation(): ResponseEntity<Any> {
+        return keycloakService.getBruteForceUserRepresentation()
     }
 
-    override fun getExtendedUserRepresentationList(): ResponseEntity<Any> {
-        return keycloakService.getExtendedUserRepresentationList()
+    override fun getBruteForceUserRepresentationList(): ResponseEntity<Any> {
+        return keycloakService.getBruteForceUserRepresentationList()
     }
 
     override fun getEffectiveUserRoles(): ResponseEntity<Any> {
@@ -68,42 +61,32 @@ class KeycloakRestControllerImpl(
     override fun changeUserAttributes(
         key: String,
         value: String,
-        attributesMap: Map<String, List<String>>
+        attributesMap: Map<String?, List<String>?>
     ): ResponseEntity<Any> {
-
-        if (key.isNotEmpty() && value.isNotEmpty() && attributesMap.isNotEmpty()) {
-            return keycloakService.changeUserAttributes(key, value, attributesMap)
-        }
-        return ResponseEntity("Incorrect request parameters", HttpStatus.BAD_REQUEST)
+       return keycloakService.changeUserAttributes(key, value, attributesMap)
     }
 
-    override fun findGroupAssignedRoleList(headers: Map<String, String>?): ResponseEntity<Any> {
-        return keycloakService.findGroupAssignedRoleList(headers)
+    override fun findUserGroupedRoleList(headers: Map<String, String>): ResponseEntity<Any> {
+        return keycloakService.findUserGroupedRoleList(headers)
     }
 
-    override fun getUserListByAttribute(
-        key: String?,
-        value: String?
+    override fun getUserListByAttributeKeyValue(
+        key: String,
+        value: String
     ): ResponseEntity<Any> {
-        return keycloakService.findUserListByAttributes(key, value)
-    }
-
-    override fun updateUserListByAttribute(
-        userList: List<Map<String, Any>>
-    ): ResponseEntity<Any> {
-        return keycloakService.updateUserListByAttributes(userList)
+        return keycloakService.findUserListByAttributesKeyValue(key, value)
     }
 
     override fun deleteUsersByAttributeList(
-        abscustIdValues: DeleteUsersRequestDto?
-    ): ResponseEntity<out Collection<DeleteUsersResponseDto>> {
+        abscustIdValues: DeleteUsersRequestDto
+    ): ResponseEntity<List<DeleteUsersResponseDto>> {
 
-        abscustIdValues?.getValueSet()?.let { values ->
-            val isHardDelete = abscustIdValues.isHardDelete ?: true
-            return keycloakService
-                .deleteUsersByAttributeList("abscustId", values, isHardDelete)
-        }
-        return ResponseEntity(HttpStatus.BAD_REQUEST)
+        val values = abscustIdValues.getValueSet()
+        if (values.isEmpty()) return ResponseEntity(HttpStatus.BAD_REQUEST)
+
+        logger.infoM(">>>> Received request to delete users of $values")
+        return keycloakService
+            .deleteUsersByAttributeList("abscustId", values, abscustIdValues.isHardDelete)
     }
 
     override fun manageUserBranchMigration(
@@ -115,4 +98,7 @@ class KeycloakRestControllerImpl(
         return keycloakService.manageUserBranchMigration(searchKey, searchValue, modifyKey, modifyValue)
     }
 
+    override fun getUserAttackDetection(userId: String?): ResponseEntity<Any> {
+        return keycloakService.getUserAttackDetection(userId)
+    }
 }

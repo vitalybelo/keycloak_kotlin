@@ -1,16 +1,15 @@
 package vitos.local.keycloak_kotlin.services
 
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import vitos.local.keycloak_kotlin.logging.Log
 
 
 @Service
-class BasicRestService(
-) {
+class BasicRestService {
 
-    private val logger = LoggerFactory.getLogger(BasicRestService::class.java)
+    companion object: Log()
 
 
     /**
@@ -22,8 +21,8 @@ class BasicRestService(
      */
     fun getBasicAuthorization(headers: Map<String, String>?): ResponseEntity<Any> {
 
-        logger.info(">>>> Getting basic authorization :: $headers")
-        return ResponseEntity("GRANTED", HttpStatus.OK)
+        logger.infoM(">>>> Getting basic authorization :: ${headers?.toString()}")
+        return ResponseEntity("ACCESS GRANTED", HttpStatus.OK)
     }
 
 }

@@ -9,32 +9,68 @@
     "emailVerified" : true,
     "attributes" : {
       "abscustId" : [ "0001" ],
+      "telegram_chat_id" : [ "969596659" ],
       "phone" : [ "89035392244" ],
-      "enterTime" : [ "2025-08-28T14:47:40+03:00" ]
+      "position" : [ "Team Lead" ],
+      "locale" : [ "ru" ],
+      "department" : [ "Unicredit Development" ],
+      "birthDate" : [ "2007-04-01" ],
+      "required_2FA" : [ "ТЕЛЕГА" ],
+      "session_time" : [ "60" ],
+      "enterTime" : [ "05-05-2026 15:10:40+03:00" ],
+      "migration_flag" : [ "false" ]
     },
     "enabled" : true,
     "createdTimestamp" : 1756900514782,
-    "totp" : true,
+    "totp" : false,
     "credentials" : [ {
       "id" : "5e3b66be-2e35-41be-b066-ba587bf498a9",
       "type" : "password",
       "userLabel" : "My password",
-      "createdDate" : 1756900531726,
-      "secretData" : "{\"value\":\"id3l63RQKgXPm3SVODgQgdoPqpdYCkwE0Lax1+K8rJE=\",\"salt\":\"2qasiaPD/aC1FQSHlsZ8uQ==\",\"additionalParameters\":{}}",
+      "createdDate" : 1773226383185,
+      "secretData" : "{\"value\":\"jIhM1edZFyTiaV9xaw28UpfOFFjqkTx1xpbu2ocNyVQ=\",\"salt\":\"r2mAP06IecZK40tkn38eRg==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     }, {
-      "id" : "447d85e2-6e6d-46eb-80c8-58cc58ff16a0",
-      "type" : "otp",
-      "userLabel" : "",
-      "createdDate" : 1764247309373,
-      "secretData" : "{\"value\":\"aB9nnQoARjfKU1i0MpRf\"}",
-      "credentialData" : "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}"
+      "id" : "adefa1c0-affa-4303-a98a-29c081d1f9c7",
+      "type" : "trusted-device",
+      "userLabel" : "ASUS Notebook TUF16 Alex",
+      "createdDate" : 1773914533352,
+      "secretData" : "{\"fingerprint\":\"139648d8-ae09-462f-85fb-e45467e34273\"}",
+      "credentialData" : "{}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "USER", "CUSTOMER", "default-roles-springbootkeycloak" ],
+    "clientRoles" : {
+      "realm-management" : [ "realm-admin" ],
+      "gateway" : [ "gateway_role_3", "gateway_role_1", "gateway_role_2" ]
+    },
     "notBefore" : 0,
-    "groups" : [ ]
+    "groups" : [ "/customer" ]
+  }, {
+    "id" : "d72b31c2-0677-46df-a5b3-aba8d832c8a8",
+    "username" : "alexis",
+    "firstName" : "Alex",
+    "lastName" : "White",
+    "email" : "alexis@gmail.com",
+    "emailVerified" : true,
+    "attributes" : {
+      "abscustId" : [ "0111" ],
+      "phone" : [ "+7 800 700-1020" ],
+      "required_2FA" : [ "APP" ],
+      "session_gate" : [ "3000" ],
+      "session_time" : [ "300" ],
+      "migration_flag" : [ "false" ]
+    },
+    "enabled" : true,
+    "createdTimestamp" : 1788952625859,
+    "totp" : false,
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "telegram-bind-action" ],
+    "realmRoles" : [ "default-roles-springbootkeycloak" ],
+    "notBefore" : 0,
+    "groups" : [ "/customer" ]
   }, {
     "id" : "25c00143-3181-4fa3-a74f-9148f27111c7",
     "username" : "nikola",
@@ -43,15 +79,18 @@
     "email" : "nikola@gmail.com",
     "emailVerified" : true,
     "attributes" : {
-      "abscustId" : [ "0004" ],
+      "abscustId" : [ "0002" ],
       "max_sessions" : [ "2" ],
       "phone" : [ "+79651757301" ],
       "ip_address" : [ "123.123.123.123" ],
       "position" : [ "Начальник группы" ],
       "middle_name" : [ "3" ],
       "department" : [ "ВП" ],
+      "required_2FA" : [ "SMS" ],
       "max_idle_time" : [ "300" ],
-      "enterTime" : [ "2025-09-02T14:47:40+03:00" ]
+      "session_time" : [ "600" ],
+      "enterTime" : [ "04-12-2025 12:13:44+03:00" ],
+      "migration_flag" : [ "false" ]
     },
     "enabled" : true,
     "createdTimestamp" : 1756900690165,
@@ -66,12 +105,52 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "ADMIN", "REVIEWER", "default-roles-springbootkeycloak" ],
+    "realmRoles" : [ "USER", "REVIEWER", "CUSTOMER", "default-roles-springbootkeycloak" ],
     "clientRoles" : {
       "gateway" : [ "gateway_role_3" ]
     },
     "notBefore" : 0,
     "groups" : [ "/root_parent/child_1", "/root_parent/child_2", "/root_parent/child_3", "/customer" ]
+  }, {
+    "id" : "e6018275-a25d-48f4-a0d3-f2fb77efa9d0",
+    "username" : "peter",
+    "firstName" : "Petrovich",
+    "lastName" : "Petrov",
+    "email" : "peter@gmail.com",
+    "emailVerified" : true,
+    "attributes" : {
+      "abscustId" : [ "0003" ],
+      "telegram_chat_id" : [ "969596659" ],
+      "phone" : [ "84957994409" ],
+      "position" : [ "Developer" ],
+      "department" : [ "Lanit Development" ],
+      "required_2FA" : [ "APP" ],
+      "session_time" : [ "600" ],
+      "enterTime" : [ "07-04-2026 12:24:34+03:00" ],
+      "migration_flag" : [ "false" ]
+    },
+    "enabled" : true,
+    "createdTimestamp" : 1765183231707,
+    "totp" : true,
+    "credentials" : [ {
+      "id" : "6be28b65-671f-42f2-903f-a88e261b2398",
+      "type" : "password",
+      "createdDate" : 1775553983490,
+      "secretData" : "{\"value\":\"WIxHnVuz+1gTs3V3clrOc8gw+tMDpZb0iQUgqs5frTg=\",\"salt\":\"U2CY+G+QbziTzl+Qj81+qQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    }, {
+      "id" : "35f3eb1f-ca42-4648-ab88-58e9e1e1c063",
+      "type" : "otp",
+      "userLabel" : "",
+      "createdDate" : 1775553972465,
+      "secretData" : "{\"value\":\"qJJdhv7NLyrSJCD0nKiJ\"}",
+      "credentialData" : "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-springbootkeycloak" ],
+    "notBefore" : 0,
+    "groups" : [ "/customer" ]
   }, {
     "id" : "88e7f24f-0f94-428a-b1c2-336f0794e878",
     "username" : "service-account-gateway",
@@ -84,9 +163,6 @@
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-springbootkeycloak" ],
-    "clientRoles" : {
-      "gateway" : [ "uma_protection" ]
-    },
     "notBefore" : 0,
     "groups" : [ ]
   }, {
@@ -106,9 +182,8 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "REVIEWER", "default-roles-springbootkeycloak" ],
     "clientRoles" : {
-      "realm-management" : [ "realm-admin", "manage-clients", "manage-users", "query-users", "manage-realm", "view-clients", "view-events", "manage-events", "view-identity-providers", "create-client", "impersonation", "query-groups", "query-realms", "manage-identity-providers", "manage-authorization", "view-users", "view-authorization", "view-realm", "query-clients" ],
-      "login-web" : [ "LOGIN_WEB_ROLE_2", "LOGIN_WEB_ROLE_1", "LOGIN_WEB_ROLE_3" ],
-      "login-admin" : [ "LOGIN_ADMIN_3", "LOGIN_ADMIN_2", "LOGIN_ADMIN_1" ]
+      "realm-management" : [ "realm-admin" ],
+      "login-admin" : [ "LOGIN_ADMIN_3", "LOGIN_ADMIN_1", "LOGIN_ADMIN_2" ]
     },
     "notBefore" : 0,
     "groups" : [ "/customer", "/group_root/group_A", "/group_root/group_A/group_A1" ]
@@ -116,36 +191,44 @@
     "id" : "39b7961b-181e-48ea-a70c-cbf0bae3b050",
     "username" : "user",
     "firstName" : "User",
-    "lastName" : "Family",
+    "lastName" : "Userov",
     "email" : "user@gmail.com",
     "emailVerified" : true,
     "attributes" : {
-      "required_otp" : [ "true" ],
-      "abscustId" : [ "0002" ],
+      "abscustId" : [ "0004" ],
+      "telegram_chat_id" : [ "969596659" ],
       "phone" : [ "89035392244" ],
-      "enterTime" : [ "2025-08-27T14:47:40+03:00" ]
+      "position" : [ "Testing" ],
+      "locale" : [ "ru" ],
+      "department" : [ "Lanit Development" ],
+      "required_2FA" : [ "SMS" ],
+      "session_time" : [ "600" ],
+      "enterTime" : [ "07-04-2026 12:24:04+03:00" ],
+      "migration_flag" : [ "false" ]
     },
     "enabled" : true,
     "createdTimestamp" : 1756900579356,
-    "totp" : true,
+    "totp" : false,
     "credentials" : [ {
       "id" : "8ff6356d-57b5-411c-8f0a-4cf1faeb63b5",
       "type" : "password",
-      "userLabel" : "My password",
-      "createdDate" : 1756900594247,
-      "secretData" : "{\"value\":\"HKW0CkOtDwxUnn6SCpjIy4kxkZ0znpGL71lC5M4NWxA=\",\"salt\":\"7U7+7SGFd2pT8KZ2J/w47g==\",\"additionalParameters\":{}}",
+      "createdDate" : 1775553734412,
+      "secretData" : "{\"value\":\"D4mMfeZrDw86vabAco7YLUJ1vNwgiM6Fi/8iZQUCfr8=\",\"salt\":\"Z8Ml3KmyuPkEkEN/CxIIoA==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     }, {
-      "id" : "1d0ec576-45da-4f1b-971f-a35a121c1764",
-      "type" : "otp",
-      "userLabel" : "",
-      "createdDate" : 1764253171252,
-      "secretData" : "{\"value\":\"1ndxFJmxDUPF8CULzVNs\"}",
-      "credentialData" : "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}"
+      "id" : "55b3e3d3-310b-456c-ab19-9c45fedc978d",
+      "type" : "trusted-device",
+      "userLabel" : "ASUS Notebook TUF16 User",
+      "createdDate" : 1773921818310,
+      "secretData" : "{\"fingerprint\":\"1775cb4c-d2c2-474f-951f-d68a0fe7f922\"}",
+      "credentialData" : "{}"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "USER", "REVIEWER", "CUSTOMER", "default-roles-springbootkeycloak" ],
+    "clientRoles" : {
+      "realm-management" : [ "realm-admin" ]
+    },
     "notBefore" : 0,
     "groups" : [ ]
   }, {
@@ -156,9 +239,15 @@
     "email" : "vitaly.belo@gmail.com",
     "emailVerified" : true,
     "attributes" : {
-      "abscustId" : [ "0003" ],
+      "abscustId" : [ "0005" ],
+      "telegram_chat_id" : [ "969596659" ],
       "phone" : [ "89035392244" ],
-      "enterTime" : [ "2025-08-27T14:47:40+03:00" ]
+      "position" : [ "Admin" ],
+      "department" : [ "Unicredit Development" ],
+      "required_2FA" : [ "SMS" ],
+      "session_time" : [ "600" ],
+      "enterTime" : [ "27-01-2026 11:36:56+03:00" ],
+      "migration_flag" : [ "false" ]
     },
     "enabled" : true,
     "createdTimestamp" : 1756900617963,
@@ -166,9 +255,8 @@
     "credentials" : [ {
       "id" : "5092a8bd-7df2-412c-994f-5a80ec9d0d61",
       "type" : "password",
-      "userLabel" : "My password",
-      "createdDate" : 1756900630256,
-      "secretData" : "{\"value\":\"KmVh0AN1ufA5DfwGUVyekDXCReMkexuxXqNUhzY8hQM=\",\"salt\":\"L6CPZ5h13Cmy19mrV7eu2g==\",\"additionalParameters\":{}}",
+      "createdDate" : 1769503000840,
+      "secretData" : "{\"value\":\"2uGqd01YJ4QY1DMQEvQYECvoOfc+vBkG/Lfb7haI+Ck=\",\"salt\":\"u0S7nFApLKr30SmF0QOWtw==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
     } ],
     "disableableCredentialTypes" : [ ],

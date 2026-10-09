@@ -20,7 +20,6 @@ class ExperimentsRestControllerImpl(
 ): ExperimentsRestController {
 
 
-
     /**
      * Задаем переменную timeout, которую в дальнейшем используем для Callable<> обертки
      */
@@ -35,5 +34,4 @@ class ExperimentsRestControllerImpl(
             }
         }
     }
-
 }

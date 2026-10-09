@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.getForEntity
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
 import vitos.local.keycloak_kotlin.models.OpenIdConfiguration
 
@@ -16,7 +17,7 @@ import vitos.local.keycloak_kotlin.models.OpenIdConfiguration
 @Service
 class PublicRestService(
 
-    @param:Value("\${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+    @param:Value($$"${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
     private val issuerURL: String? = null,
     private val restTemplate: RestTemplate,
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
@@ -33,10 +34,10 @@ class PublicRestService(
 
         val configUrl = "$issuerURL/.well-known/openid-configuration"
         try {
-            val response = restTemplate.getForEntity(configUrl, Any::class.java)
+            val response = restTemplate.getForEntity<Any>(configUrl)
             if (response.statusCode.is2xxSuccessful && response.body != null) {
                 val value = objectMapper.writeValueAsString(response.body)
-                val result: OpenIdConfiguration = objectMapper.readValue(value)
+                val result = objectMapper.readValue<OpenIdConfiguration>(value)
                 return ResponseEntity(result, HttpStatus.OK)
             }
         } catch (e: Exception) {

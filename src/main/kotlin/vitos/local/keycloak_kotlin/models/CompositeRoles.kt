@@ -16,10 +16,10 @@ import io.swagger.v3.oas.annotations.tags.Tag
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CompositeRoles(
 
-    var id: String? = null,
-    var role: String? = null,
-    var client: String? = null,
-    var clientId: String? = null,
-    var description: String? = null
+    val id: String?,
+    val role: String?,
+    val client: String? = null,
+    val clientId: String? = null,
+    val description: String?
 
 )

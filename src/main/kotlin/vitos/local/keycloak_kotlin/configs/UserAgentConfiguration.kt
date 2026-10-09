@@ -5,6 +5,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 
+/**
+ * Конфигурация для определения User Agent заголовка запроса с парсингом и кешированием
+ * @author Belotserkovskii Vitalii (c)
+ */
 @Configuration
 class UserAgentConfiguration {
 
