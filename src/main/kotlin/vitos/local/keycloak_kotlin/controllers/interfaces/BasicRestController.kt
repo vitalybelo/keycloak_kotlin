@@ -42,6 +42,6 @@ interface BasicRestController {
     )
     @GetMapping("/auth")
     @Operation(summary = "Имитация запроса с Basic авторизацией в заголовке")
-    fun receiveRequestBasicAuthorization(@RequestHeader headers: Map<String, String>?): ResponseEntity<Any>
+    fun receiveRequestBasicAuthorization(@RequestHeader headers: Map<String, String>): ResponseEntity<Any>
 
 }

@@ -59,7 +59,10 @@ class SecurityOAuth2Configuration(
                     "/migrate/**"
                 )
                 .permitAll()
-                .requestMatchers("/users/create").hasAuthority("ROLE_ADMIN")
+                .requestMatchers(
+                    "/users/create",
+                    "/users/change-password"
+                ).hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/**").authenticated()
                 .anyRequest().denyAll()
         }

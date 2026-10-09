@@ -45,10 +45,8 @@ interface KeycloakRestController {
     @PostMapping("/change-password")
     @Operation(summary = "Изменение пароля для пользователя в обход установленных политик и ограничений")
     fun changeUserPassword(
-        @Parameter(description = "имя пользователя")
-        @RequestParam("user", required = false) userName: String? = null,
-        @Parameter(description = "новый пароль")
-        @RequestParam("password", required = false, defaultValue = "1") password: String? = "1",
+        @Parameter(description = "пользователь") @RequestParam("user", required = true) userName: String,
+        @Parameter(description = "новый пароль") @RequestParam("password", defaultValue = "1") password: String,
         @RequestHeader headers: Map<String, String>
     ): ResponseEntity<Any>
 
@@ -78,8 +76,7 @@ interface KeycloakRestController {
     @PostMapping("/create")
     @Operation(summary = "Создание нового пользователя или чтение если он уже существует")
     fun createKeycloakUser(
-        @Parameter(description = "сущность для нового пользователя")
-        @RequestBody(required = true) user: UserRepresentation?
+        @Parameter(description = "сущность пользователя") @RequestBody(required = true) user: UserRepresentation
     ): ResponseEntity<Any>
 
 
@@ -107,10 +104,10 @@ interface KeycloakRestController {
             ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
         ]
     )
-    @RequestMapping(value = ["/{user_id}/info", "/info"], method = [RequestMethod.GET])
+    @RequestMapping(value = [ "/info"], method = [RequestMethod.GET])
     @Operation(summary = "Возвращает расширенную brute-force информацию о пользователе из Keycloak")
     fun getUserInfo(
-        @PathVariable("user_id", required = false) userId: String?,
+        @RequestParam("user_id", required = false) userId: String?,
         @RequestHeader headers: Map<String, String>
     ): ResponseEntity<Any>
 
@@ -165,7 +162,7 @@ interface KeycloakRestController {
     )
     @GetMapping("/representation/full")
     @Operation(summary = "Возвращает полную информацию о пользователе из Keycloak")
-    fun getFullUserRepresentation(@RequestHeader headers: Map<String, String>): ResponseEntity<Any>
+    fun getEnrichedUserRepresentation(@RequestHeader headers: Map<String, String>): ResponseEntity<Any>
 
 
     /**
@@ -190,7 +187,7 @@ interface KeycloakRestController {
     )
     @GetMapping("/brute-force/representation")
     @Operation(summary = "Возвращает расширенную brute-force информацию о пользователе из Keycloak")
-    fun getExtendedUserRepresentation(): ResponseEntity<Any>
+    fun getBruteForceUserRepresentation(): ResponseEntity<Any>
 
 
 
@@ -237,7 +234,7 @@ interface KeycloakRestController {
     )
     @GetMapping("/brute-force/list")
     @Operation(summary = "Возвращает список пользователей с расширенной информацией по блокировкам brute-force")
-    fun getExtendedUserRepresentationList(): ResponseEntity<Any>
+    fun getBruteForceUserRepresentationList(): ResponseEntity<Any>
 
 
     /**
@@ -268,7 +265,7 @@ interface KeycloakRestController {
     fun changeUserAttributes(
         @RequestParam(required = true) key: String,
         @RequestParam(required = true) value: String,
-        @RequestBody(required = true) attributesMap: Map<String, List<String>>
+        @RequestBody(required = true) attributesMap: Map<String?, List<String>?>
     ): ResponseEntity<Any>
 
 
@@ -300,7 +297,7 @@ interface KeycloakRestController {
     )
     @RequestMapping("/groups/role-list", method = [RequestMethod.GET])
     @Operation(summary = "Выполняет формирование списка всех ролей групп, которые иерархически закреплены пользователю.")
-    fun findGroupAssignedRoleList(@RequestHeader headers: Map<String, String>? = null): ResponseEntity<Any>
+    fun findUserGroupedRoleList(@RequestHeader headers: Map<String, String>): ResponseEntity<Any>
 
 
     /**
@@ -329,35 +326,9 @@ interface KeycloakRestController {
     )
     @RequestMapping(value = ["/list/by-attributes"], method = [RequestMethod.GET])
     @Operation(summary = "Возвращает список сущностей пользователей Keycloak по заданному атрибуту")
-    fun getUserListByAttribute(
-        @RequestParam(required = true) key: String?,
-        @RequestParam(required = true) value: String?,
-    ): ResponseEntity<Any>
-
-
-    /**
-     * Метод выполняет обновление в карте атрибутов на каждого пользователя Keycloak переданного в списке.
-     *
-     * @param userList список сущностей найденных пользователей Keycloak
-     * @return статус выполнения и сообщение
-     */
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200", description = "Выполнено успешно", content = [
-                    (Content(
-                        mediaType = "application/json",
-                        array = (ArraySchema(schema = Schema(implementation = Any::class)))
-                    ))]
-            ),
-            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
-            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
-        ]
-    )
-    @RequestMapping(value = ["/list/by-attributes"], method = [RequestMethod.PUT])
-    @Operation(summary = "Выполняет изменение атрибутов для каждого переданного в списке пользователя Keycloak")
-    fun updateUserListByAttribute(
-        @RequestBody(required = true) userList: List<Map<String, Any>>
+    fun getUserListByAttributeKeyValue(
+        @RequestParam(required = true) key: String,
+        @RequestParam(required = true) value: String,
     ): ResponseEntity<Any>
 
 
@@ -385,8 +356,8 @@ interface KeycloakRestController {
     @RequestMapping(value = ["/by-attribute-list"], method = [RequestMethod.DELETE])
     @Operation(summary = "Выполняет поиск пользователей по атрибуту и удаляет каждого найденного из Keycloak")
     fun deleteUsersByAttributeList(
-        @RequestBody(required = true) abscustIdValues: DeleteUsersRequestDto?
-    ): ResponseEntity<out Collection<DeleteUsersResponseDto>>
+        @RequestBody(required = true) abscustIdValues: DeleteUsersRequestDto
+    ): ResponseEntity<List<DeleteUsersResponseDto>>
 
 
     /**
@@ -421,5 +392,28 @@ interface KeycloakRestController {
         @RequestParam(value = "modifyKey", required = true) modifyKey: String,
         @RequestParam(value = "modifyValue", required = true) modifyValue: String,
     ): ResponseEntity<Any>
+
+
+    /**
+     * Выполняет проверку статуса Brute Force для заданного параметром запроса пользователя
+     * @param userId идентификатор пользователя Keycloak
+     * @return json ответа в виде map()
+     */
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "Выполнено успешно", content = [
+                    (Content(
+                        mediaType = "application/json",
+                        array = (ArraySchema(schema = Schema(implementation = Any::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Пользователь не найден", content = [Content()]),
+            ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = [Content()])
+        ]
+    )
+    @RequestMapping(value = ["/brute-force/user"], method = [RequestMethod.GET])
+    fun getUserAttackDetection(@RequestParam(value = "user_id", required = false) userId: String?): ResponseEntity<Any>
 
 }

@@ -11,52 +11,48 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AccessToken(
 
-    var exp: Long? = null,
-    var iat: Long? = null,
-    var jti: String? = null,
-    var iss: String? = null,
-    var aud: List<String>? = null,
+    val exp: Long?,
+    val iat: Long?,
+    val jti: String?,
+    val iss: String?,
+    val aud: List<String>?,
 
-    @JsonProperty("sub") var userId: String? = null,
-    @JsonProperty("typ") var type: String? = null,
-    @JsonProperty("azp") var clientId: String? = null,
-    @JsonProperty("sid") var sessionId: String? = null,
-    @JsonProperty("session_state") var sessionState: String? = null,
+    @JsonProperty("sub") val userId: String?,
+    @JsonProperty("typ") val type: String?,
+    @JsonProperty("azp") val clientId: String?,
+    @JsonProperty("sid") val sessionId: String?,
+    @JsonProperty("session_state") val sessionState: String?,
 
     @JsonProperty("realm_access")
-    var realmRolesMap: LinkedHashMap<String, List<String>>? = null,
+    val realmRolesMap: LinkedHashMap<String, List<String>>? = null,
 
     @JsonProperty("resource_access")
-    var clientRolesMap: LinkedHashMap<String, LinkedHashMap<String, List<String>>>? = null,
+    val clientRolesMap: LinkedHashMap<String, LinkedHashMap<String, List<String>>>?,
 
-    @JsonProperty("scope") var scope: String? = null,
-    @JsonProperty("given_name") var firstName: String? = null,
-    @JsonProperty("middle_name") var middleName: String? = null,
-    @JsonProperty("family_name") var familyName: String? = null,
-    @JsonProperty("name") var displayName: String? = null,
-    @JsonProperty("preferred_username") var login: String? = null,
+    @JsonProperty("scope") val scope: String?,
+    @JsonProperty("given_name") val firstName: String?,
+    @JsonProperty("middle_name") val middleName: String?,
+    @JsonProperty("family_name") val familyName: String?,
+    @JsonProperty("name") val displayName: String?,
+    @JsonProperty("preferred_username") val login: String?,
+    @JsonProperty("email_verified") val emailVerified: Boolean?,
 
-    var email: String? = null,
-    var phone: String? = null,
-    var department: String? = null,
-    var position: String? = null,
+    val email: String?,
+    val phone: String?,
+    val department: String?,
+    val position: String?
 
-    @JsonProperty("email_verified") var emailVerified: Boolean = false,
-
-    ) {
-
+) {
+    companion object {
+        const val SPACE = " "
+    }
     /**
      * @return Возвращает полное имя пользователя: имя, отчество и фамилию
      */
-    fun fullName(): String {
-
-        val space = " "
-        val fio = StringBuilder().append(firstName ?: login ?: "Anonymous")
-
-        if (!middleName.isNullOrBlank()) fio.append(space).append(middleName)
-        if (!familyName.isNullOrBlank()) fio.append(space).append(familyName)
-
-        return fio.toString()
+    fun fullName(): String = buildString {
+        append(firstName ?: login ?: "Anonymous")
+        if (!middleName.isNullOrBlank()) append(SPACE).append(middleName)
+        if (!familyName.isNullOrBlank()) append(SPACE).append(familyName)
     }
 
 }

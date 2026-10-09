@@ -24,9 +24,9 @@ class KeycloakConfiguration (
     private val keycloakAdminClientSecret: String,
     @param:Value($$"${keycloak.master.admin.realm}")
     private val keycloakMasterAdminRealm: String,
-    @param:Value($$"${keycloak.master.admin.client-id}")
+    @param:Value($$"${keycloak.master.admin.client_id}")
     private val keycloakMasterAdminClientId: String,
-    @param:Value($$"${keycloak.master.admin.secret}")
+    @param:Value($$"${keycloak.master.admin.client_secret}")
     private val keycloakMasterAdminClientSecret: String,
 ) {
 

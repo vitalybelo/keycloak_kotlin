@@ -12,23 +12,14 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class DeleteUsersRequestDto(
 
     @field:Schema(description = "Список IDs пользователей с которыми должна выполняться логика удаления")
-    @param:JsonProperty("abscust_id")
-    val abscustId: List<String?>? = null,
+    @param:JsonProperty("abscust_id", required = true)
+    val abscustId: List<String?>,
 
     @field:Schema(description = "Заглушка для тестирования чтобы не удалять пользователей из Keycloak")
-    @param:JsonProperty("is_delete", required = false)
-    val isHardDelete: Boolean? = true
+    @param:JsonProperty("is_delete", required = false, defaultValue = "true")
+    val isHardDelete: Boolean
 
 ) {
 
-    fun getValueSet(): Set<String>? {
-
-        if (!abscustId.isNullOrEmpty()) {
-            val values = abscustId.filterNotNull().toSet()
-            if (values.isNotEmpty()) {
-                return values
-            }
-        }
-        return null
-    }
+    fun getValueSet(): Set<String> = abscustId.filterNotNull().toSet()
 }

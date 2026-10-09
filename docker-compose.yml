@@ -1,0 +1,17 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.1
+    container_name: local-keycloak-kotlin
+    # Переносим управление логами напрямую в параметры запуска
+    command: start-dev --log-console-color=true --log-level=info,com.vitos:debug,keycloak.spi.event_listener:debug,keycloak.spi.brute_force_locker:debug,keycloak.spi.token_mapper:debug,keycloak.spi.telegram:debug,keycloak.spi.username_limiter:debug,keycloak.spi.conditional_attribute:debug,keycloak.spi.trusted_device:debug,keycloak.spi.migration:debug,keycloak.spi.custom_session:debug,keycloak.spi.age_restriction:debug,keycloak.spi.fincert_blocks:debug
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://host.docker.internal:5432/keycloak264
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=Vitalex88
+    ports:
+      - "8443:8080"
+    volumes:
+      - /c/Keycloak/providers:/opt/keycloak/providers

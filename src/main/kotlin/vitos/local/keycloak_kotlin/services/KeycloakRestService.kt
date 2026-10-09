@@ -2,7 +2,6 @@ package vitos.local.keycloak_kotlin.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.coroutines.*
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.admin.client.resource.UserResource
@@ -15,17 +14,19 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import vitos.local.keycloak_kotlin.authorization.AccessTokenService
 import vitos.local.keycloak_kotlin.client.KeycloakBranchClient
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.BAD_REQUEST
 import vitos.local.keycloak_kotlin.constants.Constants.Companion.FATAL_ERROR
-import vitos.local.keycloak_kotlin.constants.Constants.Companion.NOT_FOUND
+import vitos.local.keycloak_kotlin.exceptions.InvalidUserRequestException
+import vitos.local.keycloak_kotlin.exceptions.ResourceNotFoundException
 import vitos.local.keycloak_kotlin.handlers.ParameterChecker
-import vitos.local.keycloak_kotlin.logging.Log
 import vitos.local.keycloak_kotlin.models.BruteForceUserRepresentation
 import vitos.local.keycloak_kotlin.models.CompositeRoles
 import vitos.local.keycloak_kotlin.models.KeycloakTokenService
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersEnum
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersEventDto
 import vitos.local.keycloak_kotlin.models.dormant.DeleteUsersResponseDto
+import vitos.local.keycloak_kotlin.logging.Log
+import vitos.local.keycloak_kotlin.models.ApiErrorResponse
+import vitos.local.keycloak_kotlin.models.ApiUserRepresentationListResponse
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -59,7 +60,8 @@ class KeycloakRestService(
 
 ) {
 
-    companion object: Log()
+    companion object : Log()
+
     private val lastEnterTimePeriodMillis = lastEnterTimePeriodHours * Timer.ONE_HOUR
     val enterTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ssXXX")
 
@@ -76,33 +78,28 @@ class KeycloakRestService(
      * @return строку сообщения о выполнении и статус выполнения
      */
     fun changeUserPassword(
-        username: String?,
-        password: String?,
+        username: String,
+        password: String,
         headers: Map<String, String>,
     ): ResponseEntity<Any> {
 
-        fun notFoundResponse(message: String): ResponseEntity<Any> {
-            return ResponseEntity(message, HttpStatus.NOT_FOUND)
-        }
+        if (username.isEmpty()) throw ResourceNotFoundException("Parameter username missed")
 
-        val userName = username
-            ?: accessTokenService.assign(headers)?.login
-            ?: return notFoundResponse("Parameter username missed")
-
-        logger.infoM("Changing password procedure for: $userName is starting...")
+        logger.infoM("Changing password procedure for: $username is starting...")
         try {
             // Ищем пользователя и получаем ресурс администрирования пользователя и области сервисов
-            val user = realmResource.users().searchByUsername(userName, true).firstOrNull()
-                ?: return notFoundResponse("User not found")
+            val user =
+                realmResource.users().searchByUsername(username, true).firstOrNull()
+                    ?: throw ResourceNotFoundException("User not found")
 
             val usersResource = realmResource.users().get(user.id)
-                ?: return notFoundResponse("Impossible to receive user resource")
+                ?: throw ResourceNotFoundException("Impossible to receive user resource")
 
             val realm: RealmRepresentation = realmResource.toRepresentation()
-                ?: return notFoundResponse("Impossible to receive realm representation")
+                ?: throw ResourceNotFoundException("Impossible to receive realm representation")
 
             // сохраняем существующие политики установленные для пароля и сбрасываем их временно
-            val passwordPolicies: String? = realm.passwordPolicy
+            val passwordPolicies = realm.passwordPolicy
             realm.passwordPolicy = ""
             realmResource.update(realm)
             logger.infoM("Realm password policies reset ...")
@@ -114,18 +111,20 @@ class KeycloakRestService(
             credential.isTemporary = false
 
             usersResource.resetPassword(credential)
+            logger.infoM("User password changed successfully for [$username]")
 
-            // восстанавливаем политики для паролей до дефолтных для области сервисов
+            // восстанавливаем политики паролей до дефолтных для области сервисов
             realm.passwordPolicy = passwordPolicies
             realmResource.update(realm)
             logger.infoM("Realm password policies restored ...")
 
-            return ResponseEntity("Password changed successfully for user: $userName", HttpStatus.OK)
+            return ResponseEntity("Password changed successfully for user: $username", HttpStatus.OK)
 
         } catch (ex: Exception) {
-            logger.errorM("Error during changing password, message = ${ex.message}, cause = ${ex.cause}")
+            val errorMessage = "Error during changing password, message = ${ex.message}, cause = ${ex.cause}"
+            logger.errorM(errorMessage)
+            return ResponseEntity(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR)
         }
-        return ResponseEntity("Error during changing password", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
 
@@ -139,27 +138,42 @@ class KeycloakRestService(
      */
     fun createKeycloakUser(user: UserRepresentation): ResponseEntity<Any> {
 
-        val userName = user.username
+        val username = user.username
+        if (username.isNullOrBlank()) throw InvalidUserRequestException("Username cannot be null or blank")
+
         try {
-            realmResource.users().create(user).use { response ->
-                if (response.status == 201) {
-                    val userId = CreatedResponseUtil.getCreatedId(response)
-                    if (!userId.isNullOrBlank()) {
-                        logger.infoM(">>>> User $userName created id = $userId")
-                        realmResource.users()?.get(userId)?.toRepresentation()?.also {
-                            return ResponseEntity(it, HttpStatus.CREATED)
+            realmResource.users().create(user)?.let { response ->
+                when (response.status) {
+                    201 -> {
+                        val userId = CreatedResponseUtil.getCreatedId(response)
+                        if (!userId.isNullOrBlank()) {
+                            logger.infoM(">>>> User $username created successfully with ID = [$userId]")
+                            realmResource.users()?.get(userId)?.toRepresentation()?.let { user ->
+                                logger.infoM("User $username found successfully by ID = [${user.id}]")
+                                return ResponseEntity(user, HttpStatus.CREATED)
+                            }
                         }
                     }
-                }
-                logger.infoM(">>>> Create failed, search existing by username :: $userName")
-                realmResource.users().searchByUsername(userName, true).firstOrNull()?.also {
-                    return ResponseEntity(it, HttpStatus.OK)
+
+                    409 -> {
+                        realmResource.users().searchByUsername(username, true).firstOrNull()?.let {
+                            logger.infoM(">>>> User already exist by username :: $username")
+                            return ResponseEntity(it, HttpStatus.OK)
+                        }
+                    }
+
+                    500 -> {
+                        logger.infoM("Failed to create user = $username (reason look in Keycloak logs)")
+                    }
                 }
             }
-        } catch (e: Exception) {
-            logger.infoM(">>>> Fatal error creating user :: $userName")
+        } catch (ex: Exception) {
+            logger.errorM(">>>> Fatal error creating user :: $username, message = ${ex.message}, cause = ${ex.cause}")
         }
-        return ResponseEntity("Fatal error creating user in keycloak", HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity(
+            "Failed to create user = $username (reason look in Keycloak logs)",
+            HttpStatus.INTERNAL_SERVER_ERROR
+        )
     }
 
 
@@ -173,13 +187,14 @@ class KeycloakRestService(
     fun getUserRepresentation(authentication: Authentication): ResponseEntity<Any> {
 
         val accessToken = accessTokenService.assign(authentication)
-        if (accessToken != null) {
-            getUserRepresentationPrivate(accessToken.userId)?.let {
-                return ResponseEntity(it, HttpStatus.OK)
-            }
-            return ResponseEntity("Пользователь не найден", HttpStatus.NOT_FOUND)
-        }
-        return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+            ?: throw InvalidUserRequestException("Access token is not in security context")
+        val userId = accessToken.userId
+            ?: throw InvalidUserRequestException("User ID absent")
+        val user = getUserRepresentationPrivate(userId)
+            ?: throw ResourceNotFoundException("User not found in keycloak by user_id = $userId")
+
+        return ResponseEntity(user, HttpStatus.OK)
+
     }
 
 
@@ -191,22 +206,20 @@ class KeycloakRestService(
      * @param headers карта заголовков http запроса
      * @return сущность пользователя keycloak - UserRepresentation (дополненная)
      */
-    fun getFullUserRepresentation(headers: Map<String, String>): ResponseEntity<Any> {
+    fun getEnrichedUserRepresentation(headers: Map<String, String>): ResponseEntity<Any> {
 
-        accessTokenService.assign(headers)?.userId?.let { userId ->
-            getUserRepresentationPrivate(userId)?.let { user ->
+        val accessToken = accessTokenService.assign(headers)
+            ?: throw InvalidUserRequestException("Access token is not in security context")
+        val userId = accessToken.userId
+            ?: throw InvalidUserRequestException("User ID absent")
+        val user = getUserRepresentationPrivate(userId)
+            ?: throw ResourceNotFoundException("User not found in keycloak by user_id = $userId")
 
-                user.groups = getUserGroupsAssign(userId)
+        user.groups = getUserGroupsAssign(userId)
+        user.realmRoles = getUserRealmRolesAsList(userId)
+        user.clientRoles = getUserClientsRolesAsList(userId)
 
-                val userRoles = getUserRolesMapping(userId)
-                user.realmRoles = userRoles.first
-                user.clientRoles = userRoles.second
-
-                return ResponseEntity(user, HttpStatus.OK)
-            }
-            return ResponseEntity(NOT_FOUND, HttpStatus.NOT_FOUND)
-        }
-        return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity(user, HttpStatus.OK)
     }
 
 
@@ -218,49 +231,49 @@ class KeycloakRestService(
      */
     fun getEffectiveUserRoles(): ResponseEntity<Any> {
 
-        val user = accessTokenService.assign()
-            ?: return ResponseEntity(BAD_REQUEST, HttpStatus.BAD_REQUEST)
-        val userId = user.userId
-            ?: return ResponseEntity(NOT_FOUND, HttpStatus.NOT_FOUND)
+        val accessToken = accessTokenService.assign()
+            ?: throw InvalidUserRequestException("Access token is not in security context")
+        val userId = accessToken.userId
+            ?: throw InvalidUserRequestException("User ID absent dramatically")
+        val effectiveRoles = getEffectiveUserRolesList(userId)
+            ?: throw ResourceNotFoundException("Effective roles absent for user_id = $userId")
+        val username = accessToken.login
+            ?: throw ResourceNotFoundException("Username absent dramatically")
 
+        logger.debugM("Effective roles list received for user = [$username] :: roles = $effectiveRoles")
         try {
-            logger.infoM("Start collect effective roles for user = ${user.displayName}")
-            val effectiveRoles = getEffectiveUserRolesList(userId)
-            logger.debugM("Effective roles list received for user = ${user.displayName} :: $effectiveRoles")
-
-            if (effectiveRoles != null) {
-
-                getUserResource(userId)?.let { userResource ->
-                    logger.infoM("Start add realm roles to final list for user = ${user.displayName}")
-                    userResource.roles().realmLevel().listEffective()?.let { realmRoles ->
-                        realmRoles.forEach { roleRepresentation ->
-                            logger.infoM("Add realm role = ${roleRepresentation.name}")
-                            effectiveRoles.add(CompositeRoles().apply {
-                                id = roleRepresentation.id
-                                role = roleRepresentation.name
-                                description = roleRepresentation.description
-                            })
-                        }
-                    }
-                    userResource.roles().all.clientMappings?.forEach { (key, value) ->
-                        logger.infoM("Start add client roles to final list for user = ${user.displayName}")
-                        value.mappings.forEach { roleRepresentation ->
-                            logger.infoM("Add client role = ${roleRepresentation.name}")
-                            effectiveRoles.add(CompositeRoles().apply {
-                                id = roleRepresentation.id
-                                role = roleRepresentation.name
-                                client = key
-                                clientId = value.id
-                                description = roleRepresentation.description
-                            })
-                        }
+            getUserResource(userId)?.let { userResource ->
+                logger.infoM("Start add realm roles to final list for user = $username")
+                userResource.roles().realmLevel().listEffective()?.let { realmRoles ->
+                    realmRoles.forEach { roleRepresentation ->
+                        logger.infoM("Add realm role = ${roleRepresentation.name}")
+                        effectiveRoles.add(CompositeRoles(
+                            id = roleRepresentation.id,
+                            role = roleRepresentation.name,
+                            description = roleRepresentation.description
+                        ))
                     }
                 }
-                return ResponseEntity(
-                    effectiveRoles.sortedBy { it.role?.lowercase(getDefault()) },
-                    HttpStatus.OK
-                )
+                logger.infoM("Start add client roles to final list for user = $username")
+                userResource.roles().all.clientMappings?.forEach { (key, value) ->
+                    value.mappings.forEach { roleRepresentation ->
+                        logger.infoM("Add client role = ${roleRepresentation.name}")
+                        effectiveRoles.add(
+                            CompositeRoles(
+                                id = roleRepresentation.id,
+                                role = roleRepresentation.name,
+                                client = key,
+                                clientId = value.id,
+                                description = roleRepresentation.description
+                            )
+                        )
+                    }
+                }
             }
+            return ResponseEntity(
+                effectiveRoles.sortedBy { it.role?.lowercase(getDefault()) },
+                HttpStatus.OK
+            )
         } catch (ex: Exception) {
             logger.errorM("Error during total effective roles list, message = ${ex.message}, cause = ${ex.cause}")
         }
@@ -278,7 +291,7 @@ class KeycloakRestService(
             try {
                 return realmResource.users()?.get(userId)?.toRepresentation()
             } catch (ex: Exception) {
-                logger.errorM("Error during getting user representation :: message = ${ex.message}, cause = ${ex.cause}")
+                logger.errorM("Impossible to get user representation :: message = ${ex.message}, cause = ${ex.cause}")
             }
         }
         return null
@@ -335,35 +348,26 @@ class KeycloakRestService(
 
 
     /**
-     * Выполняет чтение всех ролей области и всех клиентских ролей, которые назначены пользователю
-     * @param userId идентификатор пользователя
-     * @return пару: список ролей области, карту клиентских ролей
-     */
-    private fun getUserRolesMapping(userId: String): Pair<List<String>, Map<String, List<String>>> {
-
-        val realmRoles = getUserRealmRolesAsList(userId)
-        val clientsRoles = getUserClientsRolesAsList(userId)
-        return Pair(realmRoles, clientsRoles)
-    }
-
-
-    /**
      * Извлекает из токена доступа идентификатор пользователя Keycloak.
      * Затем выполняет чтение учетных данных пользователя с расширенной информацией по brute-force.
      * @return сущность пользователя с информацией по brute-force BruteForceUserRepresentation
      */
-    fun getExtendedUserRepresentation(): ResponseEntity<Any> {
+    fun getBruteForceUserRepresentation(): ResponseEntity<Any> {
 
-        val userId = accessTokenService.assign()?.userId
-        val bruteForceUserList: List<BruteForceUserRepresentation>? = getBruteForceUserList()
-        if (userId != null && bruteForceUserList != null) {
+        val accessToken = accessTokenService.assign()
+            ?: throw InvalidUserRequestException("Access token absent in security context")
+        val userId = accessToken.userId
+            ?: throw InvalidUserRequestException("User ID absent dramatically")
 
-            bruteForceUserList.stream()
-                .filter { user -> user.id.equals(userId) }.findFirst().orElse(null)?.let {
-                    return ResponseEntity(it, HttpStatus.OK)
-                }
-        }
-        return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+        getBruteForceUserList()?.stream()
+            ?.filter { user -> user.id.equals(userId) }
+            ?.findFirst()?.orElse(null)?.let {
+                logger.infoM("Brute force user representation received for user id = [$userId]")
+                return ResponseEntity(it, HttpStatus.OK)
+            }
+
+        logger.warnM("Brute force user's representations not received = null")
+        return ResponseEntity(emptyBruteForceErrorResponse(), HttpStatus.NOT_FOUND)
     }
 
 
@@ -371,12 +375,23 @@ class KeycloakRestService(
      * Выполняет чтение списка учетных данных пользователя с расширенной информацией по brute-force.
      * @return список сущностей пользователя с информацией по brute-force
      */
-    fun getExtendedUserRepresentationList(): ResponseEntity<Any> {
+    fun getBruteForceUserRepresentationList(): ResponseEntity<Any> {
 
         getBruteForceUserList()?.let {
+            logger.infoM("Brute force user's representations received :: count = ${it.size}")
             return ResponseEntity(it, HttpStatus.OK)
         }
-        return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+        logger.warnM("Brute force user's representations not received = null")
+        return ResponseEntity(emptyBruteForceErrorResponse(), HttpStatus.NOT_FOUND)
+    }
+
+
+    private fun emptyBruteForceErrorResponse(): ApiErrorResponse {
+        return ApiErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            HttpStatus.NOT_FOUND.reasonPhrase,
+            "Received empty brute force list from Keycloak"
+        )
     }
 
 
@@ -438,7 +453,7 @@ class KeycloakRestService(
                 return res.body?.toHashSet()
             }
         } catch (ex: Exception) {
-            logger.errorM("Error during getting user composite roles, message = ${ex.message}, cause = ${ex.cause}")
+            logger.errorM("Failed to get user composite roles, message = ${ex.message}, cause = ${ex.cause}")
         }
         return null
     }
@@ -458,30 +473,45 @@ class KeycloakRestService(
      * @return статус выполнения и полную карту атрибутов пользователя
      */
     fun changeUserAttributes(
-        key: String?,
-        value: String?,
-        attributesMap: Map<String, List<String>>
+        key: String,
+        value: String,
+        attributesMap: Map<String?, List<String>?>
     ): ResponseEntity<Any> {
 
-        findUserByAttributes(key, value)?.let { userRepresentation ->
-            try {
-                val userId = userRepresentation.id
-                getUserResource(userId)?.let { userResource ->
+        if (key.isBlank() || value.isBlank() || attributesMap.isEmpty())
+            throw InvalidUserRequestException("Incorrect request parameters")
+        val userRepresentation = findUserByAttributeKeyValue(key, value)
+            ?: throw ResourceNotFoundException("User not found")
+        val userId = userRepresentation.id
+        val username = userRepresentation.username
 
-                    attributesMap.forEach { (key, value) ->
-                        userRepresentation.attributes[key] = value
-                    }
-                    userResource.update(userRepresentation)
-                    return ResponseEntity(userRepresentation, HttpStatus.OK)
+        logger.infoM("Start changing user attributes for user = $username")
+        try {
+            // добавляем, обновляем, удаляем атрибуты
+            attributesMap.forEach { (key, value) ->
+                if (key == null) return@forEach
+                if (value.isNullOrEmpty()) {
+                    logger.infoM("User attribute key = [$key] removed")
+                    userRepresentation.attributes.remove(key)
+                } else {
+                    logger.infoM("User attribute key = [$key] updated")
+                    userRepresentation.attributes[key] = value
                 }
-            } catch (ex: Exception) {
-                logger.errorM(">>>> Changing user attributes failed: message = ${ex.message}, cause = ${ex.cause}")
-                return ResponseEntity("Error updating user attributes", HttpStatus.INTERNAL_SERVER_ERROR)
             }
+            // получаем ресурс управления пользователем
+            val userResource = getUserResource(userId)
+                ?: throw ResourceNotFoundException("User keycloak admin resource not found")
+
+            // выполняем обновление в Keycloak и возвращаем результат
+            userResource.update(userRepresentation)
+            logger.infoM("User attributes for user = $username changed successfully")
+
+            return ResponseEntity(userRepresentation, HttpStatus.OK)
+
+        } catch (ex: Exception) {
+            // упали при выполнении метода UPDATE
+            return responseEntityInternalServerError(ex, "Changing user attributes failed")
         }
-        val errorMsg = ">>>> User with attribute key = $key, value = $value not found"
-        logger.errorM(errorMsg)
-        return ResponseEntity(errorMsg, HttpStatus.NOT_FOUND)
     }
 
 
@@ -492,10 +522,10 @@ class KeycloakRestService(
      * @param value значение атрибута для поиска
      * @return сущность пользователя Keycloak, или null если совпадение не найдено
      */
-    private fun findUserByAttributes(key: String?, value: String?): UserRepresentation? {
-
-        return realmResource.users().searchByAttributes("$key:\"$value\"", true).firstOrNull()
-    }
+    private fun findUserByAttributeKeyValue(key: String?, value: String?): UserRepresentation? = realmResource
+        .users()
+        .searchByAttributes("$key:\"$value\"", true)
+        .firstOrNull()
 
 
     /**
@@ -506,65 +536,27 @@ class KeycloakRestService(
      * @param value значение атрибута для поиска пользователя
      * @return список сущностей найденных пользователей Keycloak
      */
-    fun findUserListByAttributes(
-        key: String?,
-        value: String?
-    ): ResponseEntity<Any> {
+    fun findUserListByAttributesKeyValue(key: String, value: String): ResponseEntity<Any> {
 
-        if (key != null && value != null) {
-            try {
-                realmResource.users()
-                    .searchByAttributes("$key:$value", true)?.let { userList ->
-                        if (userList.isNotEmpty()) {
-                            return ResponseEntity(userList, HttpStatus.OK)
-                        }
-                    }
-                return ResponseEntity(NOT_FOUND, HttpStatus.NOT_FOUND)
-            } catch (ex: Exception) {
-                logger.errorM(">>>> Error during searching user list by attributes, message = ${ex.message}, cause = ${ex.cause}")
-                logger.debugM(">>>> DEBUG :: ", ex)
-            }
-            return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
+        // проверяем входные параметры
+        if (key.isBlank() || value.isBlank())
+            throw InvalidUserRequestException("Incorrect request parameters: key = [$key], value = [$value]")
+
+        logger.infoM("Start searching user attributes by key = [$key] ,value = [$value]")
+        try {
+            // получаем список пользователей с одинаковыми заданными атрибутами
+            val userList =
+                realmResource.users().searchByAttributes("$key:$value", true)
+                    ?: throw ResourceNotFoundException("No one user found by attribute key = [$key], value = [$value]")
+
+            // список успешно получен, возвращаем результат
+            logger.infoM("Found user list count = [${userList.count()}]")
+            val response = ApiUserRepresentationListResponse.success(userList)
+            return ResponseEntity(response, HttpStatus.OK)
+
+        } catch (ex: Exception) {
+            return responseEntityInternalServerError(ex, "Receive user list by attributes failed")
         }
-        return ResponseEntity(BAD_REQUEST, HttpStatus.BAD_REQUEST)
-    }
-
-
-    /**
-     * Метод выполняет обновление карты атрибутов для каждого пользователя Keycloak переданного в списке.
-     *
-     * @param userList список сущностей найденных пользователей Keycloak
-     * @return статус выполнения и сообщение
-     */
-    fun updateUserListByAttributes(userList: List<Map<String, Any>>): ResponseEntity<Any> {
-
-        if (userList.isNotEmpty()) {
-
-            val updatedUsers = mutableListOf<String>()
-            userList.forEach { user ->
-
-                val userId = user["id"] as String
-                try {
-                    val userResource = realmResource.users().get(userId)
-                    val representation = userResource.toRepresentation()
-
-                    val attributesMap = user["attributes"] as Map<*, *>
-                    attributesMap.forEach { (key, values) ->
-                        if (key is String && values is List<*>) {
-                            val valueList = values.stream().map { v -> v as String }.toList()
-                            representation.attributes[key] = valueList
-                        }
-                    }
-                    userResource.update(representation)
-                    updatedUsers.add(userId)
-
-                } catch (ex: Exception) {
-                    logger.errorM(">>>> Impossible to change attribute for user id = $userId, message = $ex.message, cause = ${ex.cause}")
-                }
-            }
-            return ResponseEntity("Успешно обновленные пользователи = $updatedUsers", HttpStatus.OK)
-        }
-        return ResponseEntity(BAD_REQUEST, HttpStatus.BAD_REQUEST)
     }
 
 
@@ -573,44 +565,43 @@ class KeycloakRestService(
      * Идентификатор пользователя передается в метод параметром, в случае если этот параметр null или
      * пустой, метод извлекает идентификатор пользователя ищ токена и возвращает данные для него
      *
-     * @param userId пользователя
+     * @param userId идентификатор пользователя
      * @param headers заголовки http запроса
      * @return результат возвращаемый конечной точкой userinfo
      */
     fun getUserInfo(userId: String?, headers: Map<String, String>): ResponseEntity<Any> {
 
         val sid = accessTokenService.getClaims()["sid"]
-        logger.infoM("Received access token session id = $sid")
-        collectUserId(userId, headers)?.let { keycloakUserId ->
-            getUserRepresentationPrivate(keycloakUserId)?.let {
+        logger.infoM("Received access token with session id = $sid")
 
-                try {
-                    val userId = it.id
-                    val userInfo: MutableMap<String, Any> = emptyMap<String, Any>().toMutableMap()
+        val keycloakUserId = collectUserId(userId, headers)
+            ?: throw InvalidUserRequestException("User ID not provided into jwt or request params")
+        val user = getUserRepresentationPrivate(keycloakUserId)
+            ?: throw ResourceNotFoundException("User not found by id = $keycloakUserId")
 
-                    userInfo["id"] = userId ?: ""
-                    userInfo["username"] = it.username ?: ""
-                    userInfo["firstName"] = it.firstName ?: ""
-                    userInfo["lastName"] = it.lastName ?: ""
-                    userInfo["email"] = it.email ?: ""
-                    userInfo["createdTimestamp"] = it.createdTimestamp ?: ""
-                    userInfo["enabled"] = it.isEnabled ?: true
-                    userInfo["requiredActions"] = it.requiredActions ?: emptyList<String>()
-                    userInfo["realm_roles"] = getUserRealmRolesAsList(userId)
-                    userInfo["clients_roles"] = getUserClientsRolesAsList(userId)
-                    userInfo["groups"] = getUserGroupsAssign(userId)
+        try {
+            val userId = user.id
+            val userInfo = mutableMapOf<String, Any>()
 
-                    it.attributes.forEach { (k, v) -> userInfo[k] = v.firstOrNull() ?: "" }
+            userInfo["id"] = userId ?: ""
+            userInfo["username"] = user.username ?: ""
+            userInfo["firstName"] = user.firstName ?: ""
+            userInfo["lastName"] = user.lastName ?: ""
+            userInfo["email"] = user.email ?: ""
+            userInfo["createdTimestamp"] = user.createdTimestamp ?: ""
+            userInfo["enabled"] = user.isEnabled ?: true
+            userInfo["requiredActions"] = user.requiredActions ?: emptyList<String>()
+            userInfo["realm_roles"] = getUserRealmRolesAsList(userId)
+            userInfo["clients_roles"] = getUserClientsRolesAsList(userId)
+            userInfo["groups"] = getUserGroupsAssign(userId)
 
-                    return ResponseEntity(userInfo, HttpStatus.OK)
-                } catch (ex: Exception) {
-                    logger.errorM(">>>> getUserInfo() :: undefined error occurred ${ex.message}")
-                }
-                return ResponseEntity(FATAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR)
-            }
-            return ResponseEntity("Пользователь не найден", HttpStatus.NOT_FOUND)
+            user.attributes.forEach { (k, v) -> userInfo[k] = v.firstOrNull() ?: "" }
+
+            return ResponseEntity(userInfo, HttpStatus.OK)
+
+        } catch (ex: Exception) {
+            return responseEntityInternalServerError(ex, "Collect user info failed by undefined error")
         }
-        return ResponseEntity("Не найден id пользователя", HttpStatus.BAD_REQUEST)
     }
 
 
@@ -642,32 +633,67 @@ class KeycloakRestService(
      * @param headers заголовки http запроса
      * @return список ролей всех групп, включая дочерние, которые закреплены для пользователя
      */
-    fun findGroupAssignedRoleList(headers: Map<String, String>?): ResponseEntity<Any> {
+    fun findUserGroupedRoleList(headers: Map<String, String>): ResponseEntity<Any> {
 
-        val userId = headers?.let { accessTokenService.assign(it)?.userId }
-            ?: accessTokenService.assign()?.userId
-            ?: return ResponseEntity("JWT not found", HttpStatus.BAD_REQUEST)
+        val accessToken = accessTokenService.assign(headers) ?: accessTokenService.assign()
+        ?: throw InvalidUserRequestException("Jwt token not provided")
+        val userId = accessToken.userId
+            ?: throw InvalidUserRequestException("User ID absent dramatically")
 
-        val rolesSet = mutableSetOf<String>()
-        realmResource.users().get(userId).groups(0, Integer.MAX_VALUE, false)?.let { groups ->
-            groups.forEach { recursiveGroups(rolesSet, it) }
+        // получаем список присвоенных групп для пользователя, если нет возвращаем 404
+        val assignedGroups = realmResource
+            .users().get(userId).groups(0, Integer.MAX_VALUE, false)
+        if (assignedGroups == null || assignedGroups.isEmpty()) {
+            throw ResourceNotFoundException("User has no assigned groups")
         }
-        return ResponseEntity(rolesSet.sorted(), HttpStatus.OK)
+
+        logger.infoM("Start collecting user grouped role list")
+        try {
+            // рекурсивно собираем роли из всех подгрупп для каждой присвоенной группы
+            val rolesSet = mutableSetOf<String>()
+            assignedGroups.forEach {
+                recursiveGroups(rolesSet, it)
+            }
+            // возвращаем полученный набор ролей
+            return ResponseEntity(rolesSet.sorted(), HttpStatus.OK)
+
+        } catch (ex: Exception) {
+            return responseEntityInternalServerError(ex, "Collect assigned group roles failed")
+        }
     }
 
 
+    private fun responseEntityInternalServerError(ex: Exception, message: String): ResponseEntity<Any> {
+        val errorMessage = "$message >>>> message = ${ex.message}, cause = ${ex.cause}"
+        logger.errorM(errorMessage, ex)
+        val errorResponse = ApiErrorResponse(
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            error = HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase,
+            message = message
+        )
+        return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+    /**
+     * Собирает все унаследованные роли для заданной параметром группы.
+     * Наследование идет снизу вверх, каждая группа наследует роли от всех
+     * выше-расположенных родительских групп, вплоть до корневой группы.
+     * @param roleSet формируемый итоговый список всех унаследованных ролей
+     * @param group сущность группы, для которой выполняется сбор унаследованных ролей.
+     */
     private fun recursiveGroups(
         roleSet: MutableSet<String>,
-        parentGroup: GroupRepresentation
+        group: GroupRepresentation
     ) {
-        addGroupRoles(roleSet, parentGroup)
-        realmResource.groups().group(parentGroup.id)
-            ?.getSubGroups(0, Integer.MAX_VALUE, false)?.let { subGroups ->
-                subGroups.forEach { childGroup ->
-                    addGroupRoles(roleSet, childGroup)
-                    recursiveGroups(roleSet, childGroup)
-                }
-            }
+        try {
+            addGroupRoles(roleSet, group)
+            if (group.parentId.isNullOrBlank()) return
+            val parentGroup =
+                realmResource.groups().group(group.parentId)?.toRepresentation() ?: return
+            recursiveGroups(roleSet, parentGroup)
+        } catch (ex: Exception) {
+            logger.errorM("Recursive collecting group roles failed >>>> message = ${ex.message}, cause = ${ex.cause}")
+        }
     }
 
 
@@ -675,8 +701,14 @@ class KeycloakRestService(
         roles: MutableSet<String>,
         group: GroupRepresentation
     ) {
-        group.realmRoles?.let { roles.addAll(it) }
-        group.clientRoles?.values?.flatMap { it.toList() }?.let { roles.addAll(it) }
+        val realmRoles = group.realmRoles
+        if (!realmRoles.isNullOrEmpty()) {
+            roles.addAll(realmRoles)
+        }
+        val clientRoles = group.clientRoles
+        if (!clientRoles.isNullOrEmpty()) {
+            clientRoles.values.flatMap { it.toList() }.let { roles.addAll(it) }
+        }
     }
 
 
@@ -696,17 +728,13 @@ class KeycloakRestService(
      * @author Belotserkovskii Vitaly
      */
     fun deleteUsersByAttributeList(
-
         key: String,
         requestSet: Set<String>,
         isHardDelete: Boolean
-    ): ResponseEntity<out Collection<DeleteUsersResponseDto>> {
+    ): ResponseEntity<List<DeleteUsersResponseDto>> {
 
-        var deletedUsers: List<DeleteUsersResponseDto> = listOf()
-        runBlocking {
-            deletedUsers = deleteUsersConcurrently(key, requestSet, isHardDelete)
-            logger.infoM("Deletion procedure finished. Performed = ${deletedUsers.size} users")
-        }
+        val deletedUsers = deleteUsersSynchronized(key, requestSet, isHardDelete)
+        logger.infoM("Deletion procedure finished. Performed = ${deletedUsers.size} users")
         return ResponseEntity(deletedUsers, HttpStatus.OK)
     }
 
@@ -729,50 +757,45 @@ class KeycloakRestService(
      * 3 - не требуется удаление пользователя (он найден, но обнаружен вход в установленный период)
      * 999 - пользователь найден, но при выполнении удаления произошла непредвиденная ошибка
      */
-    suspend fun deleteUsersConcurrently(
-
+    fun deleteUsersSynchronized(
         key: String,
         requestSet: Set<String>,
         isHardDelete: Boolean
     ): List<DeleteUsersResponseDto> {
 
-        return supervisorScope {
-            val deferredResults = requestSet.map { value ->
-                async(Dispatchers.IO) {
-                    try {
-                        val user = findUserByAttributes(key, value)
-                        if (user != null) {
-                            // пользователь найден, проверяем логику
-                            if (isUserAliveByEnterTime(user)) {
-                                // оказывается что пользователь недавно входил в ДБО (задано параметром = 48 часов)
-                                return@async DeleteUsersResponseDto(value, DeleteUsersEnum.STILL_ALIVE.status)
-                            }
-                            // выполняем удаление пользователя из Keycloak
-                            if (isHardDelete) {
-                                realmResource.users().delete(user.id)
-                            }
-                            logger.debugM("User :: ${user.username}, found and successfully deleted from Keycloak")
-                            // выполняем отправку в очередь сообщение об удалении
-                            if (isDeleteEventToggleON) {
-                                val dataExportEvent = DeleteUsersEventDto(value)
-                                logger.debugM("Event data exported : ${dataExportEvent.toDebugString()}")
-                                // TODO ставим сюда отправку сообщения
-                            }
-                        } else {
-                            // пользователь найден, считаем что удаление выполнено
-                            logger.debugM("User :: $key = $value not found in Keycloak, consider deleted")
-                        }
-                        return@async DeleteUsersResponseDto(value, DeleteUsersEnum.DELETED.status)
-
-                    } catch (ex: Exception) {
-                        logger.errorM("Delete error occurred for user = $value, message = ${ex.message}, cause = ${ex.cause}")
+        return requestSet.map { value ->
+            try {
+                val user = findUserByAttributeKeyValue(key, value)
+                if (user != null) {
+                    // пользователь найден, проверяем логику последнего входа
+                    if (isUserAliveByEnterTime(user)) {
+                        // пользователь недавно входил в ДБО, удалять не надо
+                        return@map DeleteUsersResponseDto(value, DeleteUsersEnum.STILL_ALIVE.status)
                     }
-                    return@async DeleteUsersResponseDto(value, DeleteUsersEnum.FATAL_ERROR.status)
+
+                    // выполняем удаление пользователя из Keycloak
+                    if (isHardDelete) {
+                        realmResource.users().delete(user.id)
+                    }
+                    logger.debugM("User :: ${user.username}, found and successfully deleted from Keycloak")
+
+                    // выполняем отправку в очередь сообщение об удалении
+                    if (isDeleteEventToggleON) {
+                        val dataExportEvent = DeleteUsersEventDto(value)
+                        logger.debugM("Event data exported : ${dataExportEvent.toDebugString()}")
+                        // TODO ставим сюда отправку сообщения
+                    }
+                } else {
+                    // пользователь найден, считаем что удаление выполнено
+                    logger.debugM("User :: $key = $value not found in Keycloak, consider deleted")
                 }
+                DeleteUsersResponseDto(value, DeleteUsersEnum.DELETED.status)
+
+            } catch (ex: Exception) {
+                logger.errorM("Delete error occurred for user = $value, message = ${ex.message}, cause = ${ex.cause}")
+                DeleteUsersResponseDto(value, DeleteUsersEnum.FATAL_ERROR.status)
             }
-            // дожидаемся завершения всех async-блоков
-            deferredResults.awaitAll()
-        }
+        }.toList()
     }
 
 
@@ -786,7 +809,7 @@ class KeycloakRestService(
      * @return true если пользователь входил в систему ДБО в установленный период времени [lastEnterTimePeriodHours]
      * @author Belotserkovskii Vitaly
      */
-    suspend fun isUserAliveByEnterTime(user: UserRepresentation): Boolean {
+    fun isUserAliveByEnterTime(user: UserRepresentation): Boolean {
 
         var offlineMillis: Long?
         var offlineHours: Long? = null
@@ -800,7 +823,8 @@ class KeycloakRestService(
                 }
                 if (offlineMillis < lastEnterTimePeriodMillis) {
                     logger.debugM(
-                        "isUserAliveByEnterTime() :: user ${user.username} no longer was offline = $offlineHours hours")
+                        "isUserAliveByEnterTime() :: user ${user.username} no longer was offline = $offlineHours hours"
+                    )
                     return true
                 }
             } catch (ex: DateTimeException) {
@@ -846,7 +870,7 @@ class KeycloakRestService(
         logger.infoM("Request parameters :: searchKey = $searchKey, searchValue = $searchValue ")
 
         val response = keycloakBranchClient
-                .manageMigrationFlag("SpringBootKeycloak", searchKey, searchValue, modifyKey, modifyValue)
+            .manageMigrationFlag("SpringBootKeycloak", searchKey, searchValue, modifyKey, modifyValue)
 
         return when (response.statusCode.value()) {
             200 -> ResponseEntity("Успех: Атрибут обновлен", HttpStatus.OK)
@@ -857,6 +881,36 @@ class KeycloakRestService(
         }
     }
 
+    /**
+     * Выполняет проверку статуса Brute Force для заданного параметром запроса пользователя
+     * @param userId идентификатор пользователя Keycloak
+     * @return json ответа в виде map()
+     */
+    fun getUserAttackDetection(userId: String?): ResponseEntity<Any> {
+
+        val keycloakUserId = userId
+            ?: accessTokenService.assign()?.userId
+            ?: throw InvalidUserRequestException("User ID should be specified")
+
+        try {
+            val response =
+                realmResource.attackDetection().bruteForceUserStatus(keycloakUserId)
+
+            logger.infoM("Attack Detection User Info received: $response")
+            return ResponseEntity.ok(response)
+
+        } catch (ex: Exception) {
+
+            logger.errorM("Failed to receive Attack Detection User Info: ${ex.message}")
+            return ResponseEntity.internalServerError().body(
+                mapOf(
+                    "status" to "error",
+                    "description" to ex.message
+                )
+            )
+        }
+
+    }
 
 }
 

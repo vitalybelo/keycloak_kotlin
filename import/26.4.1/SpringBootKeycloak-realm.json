@@ -658,7 +658,6 @@
   }, {
     "id" : "b6c1bf28-ba55-423c-99f0-3833b3762cf8",
     "name" : "root_parent",
-    "description" : "",
     "path" : "/root_parent",
     "subGroups" : [ {
       "id" : "fa13b396-d2d3-4d6a-a04b-61afbcb6bba8",
@@ -725,12 +724,18 @@
     "ru" : {
       "profile.attributes.position" : "position",
       "profile.attributes.department" : "department",
-      "profile.attributes.telegram_chat_id" : "telegram_chat_id"
+      "profile.attributes.telegram_chat_id" : "telegram_chat_id",
+      "profile.attributes.session_time" : "session_time",
+      "profile.attributes.migration_flag" : "migration_flag",
+      "profile.attributes.birthDate" : "birthDate"
     },
     "en" : {
       "profile.attributes.position" : "position",
       "profile.attributes.department" : "department",
-      "profile.attributes.telegram_chat_id" : "telegram_chat_id"
+      "profile.attributes.telegram_chat_id" : "telegram_chat_id",
+      "profile.attributes.session_time" : "session_time",
+      "profile.attributes.migration_flag" : "migration_flag",
+      "profile.attributes.birthDate" : "birthDate"
     }
   },
   "webAuthnPolicyRpEntityName" : "keycloak",
@@ -1268,7 +1273,7 @@
         "jsonType.label" : "String"
       }
     } ],
-    "defaultClientScopes" : [ "abscustId", "roles", "profile", "web-origins", "acr", "phone", "position", "department", "basic", "session_state", "required_2FA", "enterTime", "group_attribute", "email" ],
+    "defaultClientScopes" : [ "abscustId", "profile", "roles", "web-origins", "acr", "phone", "position", "department", "basic", "session_state", "required_2FA", "group_attribute", "enterTime", "email" ],
     "optionalClientScopes" : [ "address", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "d3e1ba5e-f9f3-43ef-9de1-5c2e814fdb62",
@@ -1531,6 +1536,13 @@
         "jsonType.label" : "String",
         "userinfo.token.claim" : "true"
       }
+    }, {
+      "id" : "e5fb022e-3fd6-4ae9-82f3-5a361de7eedf",
+      "name" : "Custom User Session Modifier",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "custom-user-session-mapper",
+      "consentRequired" : false,
+      "config" : { }
     }, {
       "id" : "7a56b226-15dc-4ff7-991c-20689c041aeb",
       "name" : "given name",
@@ -2234,7 +2246,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-full-name-mapper", "oidc-usermodel-property-mapper", "saml-user-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "saml-user-property-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-role-list-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper" ]
       }
     }, {
       "id" : "933c0e42-0cc0-42e7-a26e-e2178b2b06fb",
@@ -2259,7 +2271,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "oidc-usermodel-property-mapper", "saml-role-list-mapper", "saml-user-attribute-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper" ]
       }
     } ],
     "org.keycloak.userprofile.UserProfileProvider" : [ {
@@ -2267,7 +2279,7 @@
       "providerId" : "declarative-user-profile",
       "subComponents" : { },
       "config" : {
-        "kc.user.profile.config" : [ "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"username\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"phone\",\"displayName\":\"phone\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"enterTime\",\"displayName\":\"enterTime\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"abscustId\",\"displayName\":\"abscustId\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"required_2FA\",\"displayName\":\"2FA метод\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false,\"defaultValue\":\"SMS\"},{\"name\":\"position\",\"displayName\":\"${profile.attributes.position}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"department\",\"displayName\":\"${profile.attributes.department}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"telegram_chat_id\",\"displayName\":\"${profile.attributes.telegram_chat_id}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}" ]
+        "kc.user.profile.config" : [ "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"username\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"phone\",\"displayName\":\"phone\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"enterTime\",\"displayName\":\"enterTime\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"abscustId\",\"displayName\":\"abscustId\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"required_2FA\",\"displayName\":\"2FA метод\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false,\"defaultValue\":\"SMS\"},{\"name\":\"position\",\"displayName\":\"${profile.attributes.position}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"department\",\"displayName\":\"${profile.attributes.department}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"telegram_chat_id\",\"displayName\":\"${profile.attributes.telegram_chat_id}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"session_time\",\"displayName\":\"${profile.attributes.session_time}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\"]},\"multivalued\":false,\"defaultValue\":\"600\"},{\"name\":\"migration_flag\",\"displayName\":\"${profile.attributes.migration_flag}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false,\"defaultValue\":\"false\"},{\"name\":\"birthDate\",\"displayName\":\"${profile.attributes.birthDate}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}" ]
       }
     } ],
     "org.keycloak.keys.KeyProvider" : [ {
@@ -2375,8 +2387,31 @@
       "userSetupAllowed" : false
     } ]
   }, {
+    "id" : "d65080c8-9154-420e-ba3d-97a50ea0fc5e",
+    "alias" : "Browser - Telegram - 2FA forms",
+    "description" : "Username, password, otp and other auth forms.",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-username-password-form",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Telegram 2FA config mono",
+      "authenticator" : "telegram-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 11,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
     "id" : "6f90abf8-46a6-4fb6-a1da-9f966ac27742",
-    "alias" : "Browser - Telegram - 2FA",
+    "alias" : "Browser - Telegram 2FA",
     "description" : "browser based authentication",
     "providerId" : "basic-flow",
     "topLevel" : true,
@@ -2408,29 +2443,6 @@
       "priority" : 30,
       "autheticatorFlow" : true,
       "flowAlias" : "Browser - Telegram - 2FA forms",
-      "userSetupAllowed" : false
-    } ]
-  }, {
-    "id" : "d65080c8-9154-420e-ba3d-97a50ea0fc5e",
-    "alias" : "Browser - Telegram - 2FA forms",
-    "description" : "Username, password, otp and other auth forms.",
-    "providerId" : "basic-flow",
-    "topLevel" : false,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticator" : "auth-username-password-form",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 10,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorConfig" : "Telegram 2FA config mono",
-      "authenticator" : "telegram-authenticator",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 11,
-      "autheticatorFlow" : false,
       "userSetupAllowed" : false
     } ]
   }, {
@@ -2470,42 +2482,6 @@
       "userSetupAllowed" : false
     } ]
   }, {
-    "id" : "1bf4ac1a-81a3-4fc2-95ba-9b827abb9e42",
-    "alias" : "Browser - Telegram 2FA - Trusted Device ALTERNATIVE R38 migrated",
-    "description" : "browser based authentication alternative",
-    "providerId" : "basic-flow",
-    "topLevel" : true,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticator" : "auth-cookie",
-      "authenticatorFlow" : false,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 10,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticator" : "auth-spnego",
-      "authenticatorFlow" : false,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 20,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticator" : "identity-provider-redirector",
-      "authenticatorFlow" : false,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 25,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorFlow" : true,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 30,
-      "autheticatorFlow" : true,
-      "flowAlias" : "Browser Advanced Flow R38 migrated",
-      "userSetupAllowed" : false
-    } ]
-  }, {
     "id" : "b254d857-c18f-471e-aad7-b05e46d4f307",
     "alias" : "Browser - Telegram 2FA - Trusted Device CONDITIONAL",
     "description" : "browser based authentication conditional",
@@ -2540,42 +2516,6 @@
       "priority" : 26,
       "autheticatorFlow" : true,
       "flowAlias" : "Username Password - Trusted Device - Telegram 2FA - Conditional",
-      "userSetupAllowed" : false
-    } ]
-  }, {
-    "id" : "7ce2bd2b-2667-4052-9842-e8cead96dabd",
-    "alias" : "Browser - Telegram 2FA - Trusted Device CONDITIONAL R38 migrated",
-    "description" : "browser based authentication conditional",
-    "providerId" : "basic-flow",
-    "topLevel" : true,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticator" : "auth-cookie",
-      "authenticatorFlow" : false,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 10,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticator" : "auth-spnego",
-      "authenticatorFlow" : false,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 20,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticator" : "identity-provider-redirector",
-      "authenticatorFlow" : false,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 25,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorFlow" : true,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 26,
-      "autheticatorFlow" : true,
-      "flowAlias" : "Username Password - Trusted Device - Telegram 2FA - Conditional R38 migrated",
       "userSetupAllowed" : false
     } ]
   }, {
@@ -2751,36 +2691,6 @@
       "userSetupAllowed" : false
     } ]
   }, {
-    "id" : "49cd97c5-8904-40f6-9f02-17e9005cbdc8",
-    "alias" : "Browser Advanced Flow R38 migrated",
-    "description" : "Username, password, otp and other auth forms.",
-    "providerId" : "basic-flow",
-    "topLevel" : false,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticator" : "auth-username-password-form",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 10,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorFlow" : true,
-      "requirement" : "REQUIRED",
-      "priority" : 11,
-      "autheticatorFlow" : true,
-      "flowAlias" : "Trusted Device - Telegram 2FA - Alternative R38 migrated",
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorConfig" : "Remember Device Form config uno R38 migrated",
-      "authenticator" : "remember-device-authenticator",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 12,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    } ]
-  }, {
     "id" : "071f7e5d-91ed-43e8-922d-058e9dca3053",
     "alias" : "Browser Username Password",
     "description" : "browser based authentication",
@@ -2878,6 +2788,44 @@
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
       "priority" : 20,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "24ac193b-5dc5-4c20-8acf-09348a88346b",
+    "alias" : "Direct grant - age restriction - fincert block",
+    "description" : "OpenID Connect Resource Owner Grant",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : false,
+    "authenticationExecutions" : [ {
+      "authenticator" : "direct-grant-validate-username",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "direct-grant-validate-password",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 20,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "Age Restriction by birthDate config",
+      "authenticator" : "age-restriction-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 30,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "AML Fincert Customer Block config",
+      "authenticator" : "aml-fincert-block-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 31,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     } ]
@@ -3142,30 +3090,6 @@
       "userSetupAllowed" : false
     } ]
   }, {
-    "id" : "3ecdde1a-6d44-4daa-b39b-6e342d7d2191",
-    "alias" : "Trusted Device - Telegram 2FA - Alternative R38 migrated",
-    "description" : "",
-    "providerId" : "basic-flow",
-    "topLevel" : false,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticatorConfig" : "Trusted Device Checker config R38 migrated",
-      "authenticator" : "trusted-device-authenticator",
-      "authenticatorFlow" : false,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 0,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorConfig" : "Telegram 2FA config uno R38 migrated",
-      "authenticator" : "telegram-authenticator",
-      "authenticatorFlow" : false,
-      "requirement" : "ALTERNATIVE",
-      "priority" : 1,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    } ]
-  }, {
     "id" : "ef13ac5c-dfbd-46de-87cf-55f8d66096fa",
     "alias" : "Trusted Device - Telegram 2FA - Conditional",
     "description" : "",
@@ -3174,29 +3098,6 @@
     "builtIn" : false,
     "authenticationExecutions" : [ {
       "authenticatorConfig" : "Condition - Device is NOT Trusted config",
-      "authenticator" : "conditional-trusted-device",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 0,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticator" : "telegram-authenticator",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 1,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    } ]
-  }, {
-    "id" : "36a16cbd-f392-497a-a796-5054ffc46067",
-    "alias" : "Trusted Device - Telegram 2FA - Conditional R38 migrated",
-    "description" : "",
-    "providerId" : "basic-flow",
-    "topLevel" : false,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticatorConfig" : "Condition - Device is NOT Trusted config R38 migrated",
       "authenticator" : "conditional-trusted-device",
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
@@ -3257,36 +3158,6 @@
       "userSetupAllowed" : false
     }, {
       "authenticatorConfig" : "Remember Device Form config Conditional",
-      "authenticator" : "remember-device-authenticator",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 2,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    } ]
-  }, {
-    "id" : "b898867a-839d-4601-923b-e67ccdf2d892",
-    "alias" : "Username Password - Trusted Device - Telegram 2FA - Conditional R38 migrated",
-    "description" : "",
-    "providerId" : "basic-flow",
-    "topLevel" : false,
-    "builtIn" : false,
-    "authenticationExecutions" : [ {
-      "authenticator" : "auth-username-password-form",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 0,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorFlow" : true,
-      "requirement" : "CONDITIONAL",
-      "priority" : 1,
-      "autheticatorFlow" : true,
-      "flowAlias" : "Trusted Device - Telegram 2FA - Conditional R38 migrated",
-      "userSetupAllowed" : false
-    }, {
-      "authenticatorConfig" : "Remember Device Form config Conditional R38 migrated",
       "authenticator" : "remember-device-authenticator",
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
@@ -3603,19 +3474,32 @@
       "sms_stub_switch" : "false"
     }
   }, {
+    "id" : "af9cee67-6d84-433e-bc6c-3f429b649c7a",
+    "alias" : "AML Fincert Customer Block config",
+    "config" : {
+      "mock_behaviour" : "RANDOM",
+      "mock_enabled" : "false",
+      "timeout" : "60",
+      "url" : "http://host.docker.internal:8080/aml/customers/blocks",
+      "enabled" : "false",
+      "parameter" : "abscustId"
+    }
+  }, {
+    "id" : "c88ed79f-e704-449d-b282-20b364bec8f0",
+    "alias" : "Age Restriction by birthDate config",
+    "config" : {
+      "birth_date_format" : "yyyy-MM-dd",
+      "upper_age_limit" : "18",
+      "birth_date_attribute" : "birthDate",
+      "age_restriction_enabled" : "true"
+    }
+  }, {
     "id" : "bc775d04-be97-47c9-9ded-40a23407d3fb",
     "alias" : "Browser 2FA SMS config",
     "config" : { }
   }, {
     "id" : "04a49f99-b38e-4cb4-96dc-a173cd5a39c9",
     "alias" : "Condition - Device is NOT Trusted config",
-    "config" : {
-      "trusted_device_switch" : "false",
-      "trusted_device_delete" : "false"
-    }
-  }, {
-    "id" : "d014fcab-da3d-4a04-9474-354677dd18e2",
-    "alias" : "Condition - Device is NOT Trusted config R38 migrated",
     "config" : {
       "trusted_device_switch" : "false",
       "trusted_device_delete" : "false"
@@ -3767,24 +3651,8 @@
       "remember_cookie_ttl" : "30"
     }
   }, {
-    "id" : "79cd79bd-e69a-4bba-8f98-859f5c6ddef2",
-    "alias" : "Remember Device Form config Conditional R38 migrated",
-    "config" : {
-      "remember_recovery_swith" : "true",
-      "remember_switch" : "true",
-      "remember_cookie_ttl" : "30"
-    }
-  }, {
     "id" : "bb8ae1d0-b96f-425d-8d4a-45b4450f3248",
     "alias" : "Remember Device Form config uno",
-    "config" : {
-      "remember_recovery_swith" : "true",
-      "remember_switch" : "true",
-      "remember_cookie_ttl" : "30"
-    }
-  }, {
-    "id" : "5a6fa852-ffac-4ab5-af7e-4e979d872337",
-    "alias" : "Remember Device Form config uno R38 migrated",
     "config" : {
       "remember_recovery_swith" : "true",
       "remember_switch" : "true",
@@ -3823,23 +3691,8 @@
       "telegram_code_length" : "6"
     }
   }, {
-    "id" : "80683587-2168-40e0-ad62-b52985746966",
-    "alias" : "Telegram 2FA config uno R38 migrated",
-    "config" : {
-      "telegram_code_ttl" : "60",
-      "telegram_switch" : "true",
-      "telegram_code_length" : "6"
-    }
-  }, {
     "id" : "0505e09d-a63d-4211-a56a-faa5a0ff3670",
     "alias" : "Trusted Device Checker config",
-    "config" : {
-      "trusted_device_switch" : "false",
-      "trusted_device_delete" : "false"
-    }
-  }, {
-    "id" : "fc2d7e12-ad16-4e63-8fbf-7ed8790d95b4",
-    "alias" : "Trusted Device Checker config R38 migrated",
     "config" : {
       "trusted_device_switch" : "false",
       "trusted_device_delete" : "false"
@@ -3990,7 +3843,7 @@
   } ],
   "browserFlow" : "Browser Username Password R38 migrated",
   "registrationFlow" : "registration",
-  "directGrantFlow" : "direct grant",
+  "directGrantFlow" : "Direct grant - age restriction - fincert block",
   "resetCredentialsFlow" : "reset credentials",
   "clientAuthenticationFlow" : "clients",
   "dockerAuthenticationFlow" : "docker auth",
